@@ -1,0 +1,7 @@
+{
+  "workbench.editor.enablePreview": false,
+  "terminal.integrated.defaultProfile.windows": "Command Prompt",
+  "workbench.externalBrowser": "edge",
+  "browser.open": "external",
+  "liveServer.settings.CustomBrowser": "edge"
+}

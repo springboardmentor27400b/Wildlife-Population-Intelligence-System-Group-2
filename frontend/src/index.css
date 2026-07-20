@@ -1,0 +1,91 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+ 
+@layer base {
+  :root {
+    --background: 135 15% 98%; /* #F8FAF8 Soft White */
+    --foreground: 222.2 84% 4.9%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+ 
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+ 
+    --primary: 122 46% 34%; /* #2E7D32 Forest Green */
+    --primary-foreground: 210 40% 98%;
+ 
+    --secondary: 123 44% 57%; /* #66BB6A Leaf Green */
+    --secondary-foreground: 222.2 47.4% 11.2%;
+ 
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+ 
+    --accent: 16 19% 47%; /* #8D6E63 Earth Brown */
+    --accent-foreground: 210 40% 98%;
+ 
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 122 46% 34%;
+ 
+    --radius: 1rem; /* Softer, larger rounded corners */
+  }
+ 
+  .dark {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+ 
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+ 
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+ 
+    --primary: 122 46% 34%;
+    --primary-foreground: 210 40% 98%;
+ 
+    --secondary: 123 44% 57%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+ 
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+ 
+    --accent: 16 19% 47%;
+    --accent-foreground: 210 40% 98%;
+ 
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+ 
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 122 46% 34%;
+  }
+}
+ 
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground font-sans antialiased selection:bg-primary/20;
+  }
+}
+
+@layer utilities {
+  .glass {
+    @apply bg-white/60 backdrop-blur-md border border-white/40 shadow-sm dark:bg-black/60 dark:border-white/10;
+  }
+  .glass-card {
+    @apply bg-white/80 backdrop-blur-lg border border-white/50 shadow-md hover:shadow-lg transition-all duration-300 dark:bg-gray-900/80;
+  }
+  .soft-shadow {
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.04);
+  }
+  .soft-shadow-hover:hover {
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.08);
+  }
+}
