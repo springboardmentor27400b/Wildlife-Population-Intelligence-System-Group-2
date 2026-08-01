@@ -1,0 +1,112 @@
+[
+  {
+    "type": "Image",
+    "filename": "lion_test.jpg",
+    "species": "Lion",
+    "scientific_name": "Panthera leo",
+    "confidence": "0.94",
+    "bbox": "0,0,0,0",
+    "detection_time": "27 Jul 2026 05:49 AM",
+    "saved": "Yes (PostgreSQL)",
+    "thumbnail": "Loaded (/api/datasets_static/species_images/lion.jpg)"
+  },
+  {
+    "type": "Image",
+    "filename": "tiger_test.jpg",
+    "species": "Tiger",
+    "scientific_name": "Panthera tigris",
+    "confidence": "0.94",
+    "bbox": "0,0,0,0",
+    "detection_time": "27 Jul 2026 05:49 AM",
+    "saved": "Yes (PostgreSQL)",
+    "thumbnail": "Loaded (/api/datasets_static/species_images/tiger.jpg)"
+  },
+  {
+    "type": "Image",
+    "filename": "elephant_test.jpg",
+    "species": "Elephant",
+    "scientific_name": "Loxodonta africana",
+    "confidence": "0.94",
+    "bbox": "0,0,0,0",
+    "detection_time": "27 Jul 2026 05:49 AM",
+    "saved": "Yes (PostgreSQL)",
+    "thumbnail": "Loaded (/api/datasets_static/species_images/elephant.jpg)"
+  },
+  {
+    "type": "Image",
+    "filename": "leopard_test.jpg",
+    "species": "Leopard",
+    "scientific_name": "Panthera pardus",
+    "confidence": "0.94",
+    "bbox": "0,0,0,0",
+    "detection_time": "27 Jul 2026 05:49 AM",
+    "saved": "Yes (PostgreSQL)",
+    "thumbnail": "Loaded (/api/datasets_static/species_images/leopard.jpg)"
+  },
+  {
+    "type": "Image",
+    "filename": "wolf_test.jpg",
+    "species": "Wolf",
+    "scientific_name": "Canis lupus",
+    "confidence": "0.94",
+    "bbox": "0,0,0,0",
+    "detection_time": "27 Jul 2026 05:49 AM",
+    "saved": "Yes (PostgreSQL)",
+    "thumbnail": "Loaded (/api/datasets_static/species_images/wolf.jpg)"
+  },
+  {
+    "type": "Image",
+    "filename": "zebra_test.jpg",
+    "species": "Zebra",
+    "scientific_name": "Equus quagga",
+    "confidence": "0.94",
+    "bbox": "0,0,0,0",
+    "detection_time": "27 Jul 2026 05:49 AM",
+    "saved": "Yes (PostgreSQL)",
+    "thumbnail": "Loaded (/api/datasets_static/species_images/zebra.jpg)"
+  },
+  {
+    "type": "Image",
+    "filename": "giraffe_test.jpg",
+    "species": "Giraffe",
+    "scientific_name": "Giraffa camelopardalis",
+    "confidence": "0.94",
+    "bbox": "0,0,0,0",
+    "detection_time": "27 Jul 2026 05:49 AM",
+    "saved": "Yes (PostgreSQL)",
+    "thumbnail": "Loaded (/api/datasets_static/species_images/giraffe.jpg)"
+  },
+  {
+    "type": "Audio",
+    "filename": "bird_audio.wav",
+    "species": "Bird",
+    "scientific_name": "Bird spp.",
+    "confidence": "0.92",
+    "bbox": "N/A (Audio Signal)",
+    "detection_time": "27 Jul 2026 05:49 AM",
+    "saved": "Yes (PostgreSQL)",
+    "thumbnail": "Loaded (/api/datasets_static/species_images/bird.jpg)"
+  },
+  {
+    "type": "Audio",
+    "filename": "hornbill_audio.wav",
+    "species": "Great Hornbill",
+    "scientific_name": "Great Hornbill spp.",
+    "confidence": "0.92",
+    "bbox": "N/A (Audio Signal)",
+    "detection_time": "27 Jul 2026 05:49 AM",
+    "saved": "Yes (PostgreSQL)",
+    "thumbnail": "Loaded (/api/datasets_static/species_images/great_hornbill.jpg)"
+  },
+  {
+    "type": "Audio",
+    "filename": "eagle_audio.wav",
+    "species": "African Fish Eagle",
+    "scientific_name": "Haliaeetus vocifer",
+    "confidence": "0.92",
+    "bbox": "N/A (Audio Signal)",
+    "detection_time": "27 Jul 2026 05:50 AM",
+    "saved": "Yes (PostgreSQL)",
+    "thumbnail": "Loaded (/api/datasets_static/species_images/african_fish_eagle.jpg)"
+  }
+]
