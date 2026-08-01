@@ -4,6 +4,7 @@ from app.models.site import MonitoringSite
 from app.models.device import SensorDevice
 from app.models.upload import FieldUpload
 from app.models.observation import ObservationRecord
+from app.models.unified_prediction import UnifiedPredictionRecord
 from app.api.auth import get_current_user
 import asyncio
 import calendar
@@ -52,6 +53,8 @@ async def get_dashboard_analytics(current_user: User = Depends(get_current_user)
     verified_obs_task = ObservationRecord.find(ObservationRecord.verification_status == "Verified").count()
     pending_obs_task = ObservationRecord.find(ObservationRecord.verification_status == "Pending Validation").count()
     
+    total_predictions_task = UnifiedPredictionRecord.find_all().count()
+    
     recent_obs_task = ObservationRecord.find_all().sort("-created_at").limit(5).to_list()
     
     # Aggregation tasks
@@ -73,13 +76,13 @@ async def get_dashboard_analytics(current_user: User = Depends(get_current_user)
         total_users_task, total_sites_task, total_devices_task, total_uploads_task, total_obs_task,
         prev_users_task, prev_sites_task, prev_devices_task, prev_uploads_task, prev_obs_task,
         curr_users_task, curr_sites_task, curr_devices_task, curr_uploads_task, curr_obs_task,
-        verified_obs_task, pending_obs_task, recent_obs_task, species_agg_task, monthly_agg_task
+        verified_obs_task, pending_obs_task, total_predictions_task, recent_obs_task, species_agg_task, monthly_agg_task
     )
     
     (total_users, total_sites, total_devices, total_uploads, total_obs,
      prev_users, prev_sites, prev_devices, prev_uploads, prev_obs,
      curr_users, curr_sites, curr_devices, curr_uploads, curr_obs,
-     verified_obs, pending_obs, recent_observations, species_agg, monthly_agg) = results
+     verified_obs, pending_obs, total_predictions, recent_observations, species_agg, monthly_agg) = results
 
     # Format recent observations
     recent_obs_list = [
@@ -138,6 +141,7 @@ async def get_dashboard_analytics(current_user: User = Depends(get_current_user)
             "total_observations": {"value": total_obs, "mom_change": get_mom_change(curr_obs, prev_obs)},
             "verified_observations": {"value": verified_obs, "mom_change": None}, # MoM doesn't make as much sense here without tracking status changes over time
             "pending_observations": {"value": pending_obs, "mom_change": None},
+            "total_predictions": {"value": total_predictions, "mom_change": None},
             "total_species": {"value": total_species, "mom_change": None}
         },
         "recent_observations": recent_obs_list,

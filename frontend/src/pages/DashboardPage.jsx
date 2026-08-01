@@ -207,9 +207,9 @@ const DashboardPage = () => {
     { label: 'Total Observations', ...metrics.total_observations, icon: Activity },
     { label: 'Verified Obs.', ...metrics.verified_observations, icon: Trees },
     { label: 'Pending Obs.', ...metrics.pending_observations, icon: AlertCircle },
+    { label: 'AI Predictions', ...metrics.total_predictions, icon: Camera },
     { label: 'Monitoring Sites', ...metrics.total_monitoring_sites, icon: MapPin },
     { label: 'Sensor Devices', ...metrics.total_sensor_devices, icon: RadioReceiver },
-    { label: 'Total Uploads', ...metrics.total_uploads, icon: UploadCloud },
     { label: 'Registered Users', ...metrics.total_users, icon: Users },
   ];
 

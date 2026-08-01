@@ -11,25 +11,45 @@ from bson.errors import InvalidId
 
 router = APIRouter()
 
+
+# ── Request / Response Schemas ─────────────────────────────────────────────
+
 class SaveObservationRequest(BaseModel):
     site_id: str
     site_name: str
+
+
+class LinkObservationRequest(BaseModel):
+    observation_id: str = Field(..., description="The ID of the existing ObservationRecord to link.")
+
+
+# ── Endpoints ──────────────────────────────────────────────────────────────
 
 @router.post("/species", status_code=status.HTTP_200_OK)
 async def predict_species_endpoint(
     request: Request,
     file: UploadFile = File(...),
+    source: str = Query("Camera Trap", description="Image Source: Camera Trap or Drone"),
     current_user: User = Depends(get_current_user)
 ):
     """
-    Uploads an image, checks file constraints, runs the AI species prediction,
-    creates a prediction history record, and triggers notifications.
+    Upload a wildlife image and run AI species classification.
+
+    Returns:
+      - Predicted species category
+      - Confidence score (%)
+      - Processing time (seconds)
+      - Prediction timestamp (UTC)
+      - Image dimensions
+      - Top-3 predictions
     """
     return await PredictionService.process_and_predict(
         file=file,
+        source=source,
         current_user=current_user,
         request=request
     )
+
 
 @router.get("/")
 async def get_predictions_history(
@@ -39,16 +59,17 @@ async def get_predictions_history(
     search: Optional[str] = None,
     status: Optional[str] = None,
     species: Optional[str] = None,
-    sort_by: Optional[str] = Query("created_at", pattern="^(created_at|confidence_score|prediction_time|species_name)$"),
+    sort_by: Optional[str] = Query(
+        "created_at",
+        pattern="^(created_at|confidence_score|prediction_time|species_name|prediction_timestamp)$"
+    ),
     sort_order: Optional[str] = Query("desc", pattern="^(asc|desc)$")
 ):
     """
-    Fetch prediction history records with support for search, pagination, filtering, and sorting.
+    Fetch prediction history records with search, filtering, sorting, and pagination.
     """
     conditions = []
-    
-    # Filter by user if not Admin? Wait, it's generally good to let users see all predictions or only their own?
-    # Usually users see their own or all. Let's make it show all predictions or filter by user. Let's search all.
+
     if search:
         search_regex = {"$regex": search, "$options": "i"}
         conditions.append({
@@ -58,30 +79,29 @@ async def get_predictions_history(
                 {"user_name": search_regex}
             ]
         })
-        
+
     if status:
         conditions.append({"status": status})
-        
+
     if species:
         conditions.append({"species_name": {"$regex": species, "$options": "i"}})
-        
+
     query = {}
     if conditions:
-        if len(conditions) == 1:
-            query = conditions[0]
-        else:
-            query = {"$and": conditions}
-            
+        query = conditions[0] if len(conditions) == 1 else {"$and": conditions}
+
     total = await PredictionRecord.find(query).count()
     skip = (page - 1) * limit
-    
-    # Handle sorting
-    sort_field = sort_by
-    if sort_order == "desc":
-        sort_field = f"-{sort_field}"
-        
-    predictions = await PredictionRecord.find(query).sort(sort_field).skip(skip).limit(limit).to_list()
-    
+
+    sort_field = sort_by if sort_order == "asc" else f"-{sort_by}"
+    predictions = (
+        await PredictionRecord.find(query)
+        .sort(sort_field)
+        .skip(skip)
+        .limit(limit)
+        .to_list()
+    )
+
     return {
         "total": total,
         "page": page,
@@ -89,23 +109,23 @@ async def get_predictions_history(
         "predictions": predictions
     }
 
+
 @router.get("/{prediction_id}")
 async def get_prediction_detail(
     prediction_id: str,
     current_user: User = Depends(get_current_user)
 ):
-    """
-    Retrieve details of a single prediction record.
-    """
+    """Retrieve full details of a single prediction record."""
     try:
         obj_id = PydanticObjectId(prediction_id)
     except InvalidId:
-        raise HTTPException(status_code=400, detail="Invalid prediction ID format")
-        
+        raise HTTPException(status_code=400, detail="Invalid prediction ID format.")
+
     prediction = await PredictionRecord.get(obj_id)
     if not prediction:
-        raise HTTPException(status_code=404, detail="Prediction not found")
+        raise HTTPException(status_code=404, detail="Prediction not found.")
     return prediction
+
 
 @router.post("/{prediction_id}/save")
 async def save_prediction_endpoint(
@@ -115,7 +135,8 @@ async def save_prediction_endpoint(
     current_user: User = Depends(get_current_user)
 ):
     """
-    Create an observation record from the AI prediction and update prediction status.
+    Create a new ObservationRecord from the AI prediction and mark prediction as Saved.
+    Use this when no existing observation exists.
     """
     return await PredictionService.save_as_observation(
         prediction_id=prediction_id,
@@ -125,15 +146,35 @@ async def save_prediction_endpoint(
         request=request
     )
 
+
+@router.post("/{prediction_id}/link-observation")
+async def link_observation_endpoint(
+    prediction_id: str,
+    payload: LinkObservationRequest,
+    request: Request,
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Link an AI prediction to an *existing* ObservationRecord.
+    Use this when you want to attach prediction results to a record already in the system.
+    Updates both the prediction (status=Saved, observation_id) and the observation
+    (prediction_id, prediction_source=AI).
+    """
+    return await PredictionService.link_to_observation(
+        prediction_id=prediction_id,
+        observation_id=payload.observation_id,
+        current_user=current_user,
+        request=request
+    )
+
+
 @router.post("/{prediction_id}/discard")
 async def discard_prediction_endpoint(
     prediction_id: str,
     request: Request,
     current_user: User = Depends(get_current_user)
 ):
-    """
-    Mark the prediction record as discarded.
-    """
+    """Mark the prediction record as Discarded."""
     return await PredictionService.discard_prediction(
         prediction_id=prediction_id,
         current_user=current_user,

@@ -20,6 +20,10 @@ const DevicesPage = lazy(() => import('./pages/DevicesPage'));
 const UploadsPage = lazy(() => import('./pages/UploadsPage'));
 const ObservationsPage = lazy(() => import('./pages/ObservationsPage'));
 const PredictionsPage = lazy(() => import('./pages/PredictionsPage'));
+const AudioPredictionsPage = lazy(() => import('./pages/AudioPredictionsPage'));
+const SpeciesIdentificationPage = lazy(() => import('./pages/SpeciesIdentificationPage'));
+const BiodiversityAnalyticsPage = lazy(() => import('./pages/BiodiversityAnalyticsPage'));
+const WildlifeReportsPage = lazy(() => import('./pages/WildlifeReportsPage'));
 const ReportsPage = lazy(() => import('./pages/ReportsPage'));
 const MapPage = lazy(() => import('./pages/MapPage'));
 const NotificationsPage = lazy(() => import('./pages/NotificationsPage'));
@@ -137,6 +141,26 @@ function App() {
             <Route path="/predictions" element={
               <RoleProtectedRoute>
                 <PageTransition><PredictionsPage /></PageTransition>
+              </RoleProtectedRoute>
+            } />
+            <Route path="/audio-predictions" element={
+              <RoleProtectedRoute>
+                <PageTransition><AudioPredictionsPage /></PageTransition>
+              </RoleProtectedRoute>
+            } />
+            <Route path="/species-identification" element={
+              <RoleProtectedRoute>
+                <PageTransition><SpeciesIdentificationPage /></PageTransition>
+              </RoleProtectedRoute>
+            } />
+            <Route path="/biodiversity-analytics" element={
+              <RoleProtectedRoute>
+                <PageTransition><BiodiversityAnalyticsPage /></PageTransition>
+              </RoleProtectedRoute>
+            } />
+            <Route path="/wildlife-reports" element={
+              <RoleProtectedRoute>
+                <PageTransition><WildlifeReportsPage /></PageTransition>
               </RoleProtectedRoute>
             } />
             <Route path="/reports" element={

@@ -1,15 +1,52 @@
+# Virtual environments
+venv/
+.venv/
+env/
+.env_dir/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Node.js
+node_modules/
+dist/
+build/
+
+# Environment variables
+.env
+.env.*
+
+# Uploads & Media
+uploads/
+
+# Logs
+logs/
+*.log
+
+# Databases
+*.sqlite3
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# IDEs
+.idea/
+.vscode/
+
+# Model training cache
+*.h5
+*.pb
+*.ckpt
+*.weights
+
+# Large / Temporary / Unnecessary Files
+datasets/
 wildlife_dataset/
 wildlife_ml_project/
 zip/
-*.zip
 *.pptx
-node_modules/
-__pycache__/
-.venv/
-venv/
-env/
-.env
-dist/
-build/
-*.pyc
-*.log
+backend/dummy_*.wav

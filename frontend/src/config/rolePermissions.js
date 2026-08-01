@@ -69,7 +69,7 @@ export const hasPermission = (role, action) => {
 };
 
 export const hasRouteAccess = (role, path) => {
-  const milestone1Paths = ['/dashboard', '/profile', '/surveys', '/sites', '/devices', '/uploads', '/observations', '/predictions', '/reports', '/map', '/settings'];
+  const milestone1Paths = ['/dashboard', '/profile', '/surveys', '/sites', '/devices', '/uploads', '/observations', '/predictions', '/audio-predictions', '/species-identification', '/biodiversity-analytics', '/wildlife-reports', '/reports', '/map', '/settings'];
   if (milestone1Paths.some(p => path.startsWith(p))) {
     return true;
   }

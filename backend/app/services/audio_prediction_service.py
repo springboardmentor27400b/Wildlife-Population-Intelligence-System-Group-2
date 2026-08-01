@@ -1,0 +1,245 @@
+import os
+import uuid
+import time
+from datetime import datetime, timezone
+from fastapi import UploadFile, HTTPException, Request
+from app.models.audio_prediction import AudioPredictionRecord, TopPrediction
+from app.models.observation import ObservationRecord
+from app.models.notification import Notification
+from app.models.user import User
+from app.ml.audio_predictor import predict_audio_species
+from app.utils.audit import create_audit_log
+from beanie import PydanticObjectId
+
+AUDIO_UPLOAD_DIR = "uploads/audio_predictions"
+os.makedirs(AUDIO_UPLOAD_DIR, exist_ok=True)
+
+SUPPORTED_AUDIO_EXTENSIONS = {"wav", "mp3", "flac"}
+
+
+class AudioPredictionService:
+
+    @staticmethod
+    async def process_and_predict(
+        file: UploadFile,
+        current_user: User,
+        request: Request
+    ) -> AudioPredictionRecord:
+        """
+        Full pipeline:
+          1. Validate file extension and size
+          2. Save to disk
+          3. Run ML inference (audio_predictor)
+          4. Persist AudioPredictionRecord to MongoDB
+          5. Fire notifications
+        """
+        # ── 1. Extension check ────────────────────────────────────────────
+        ext = file.filename.split('.')[-1].lower() if '.' in file.filename else ''
+        if ext not in SUPPORTED_AUDIO_EXTENSIONS:
+            await _audit_failed(current_user, request,
+                                f"Unsupported audio file extension .{ext}")
+            raise HTTPException(
+                status_code=400,
+                detail=f"Unsupported file type. Please upload a {', '.join(f'.{e}' for e in SUPPORTED_AUDIO_EXTENSIONS)} audio file."
+            )
+
+        # ── 2. Read content + size check ─────────────────────────────────
+        max_size = 50 * 1024 * 1024  # 50 MB for audio
+        content = await file.read()
+        file_size = len(content)
+
+        if file_size > max_size:
+            await _audit_failed(current_user, request,
+                                "File size exceeds 50 MB limit")
+            raise HTTPException(
+                status_code=400,
+                detail="File size exceeds the 50 MB limit."
+            )
+
+        # ── 3. Save to disk ───────────────────────────────────────────────
+        unique_filename = f"{uuid.uuid4()}.{ext}"
+        file_path = os.path.join(AUDIO_UPLOAD_DIR, unique_filename)
+        file_url = f"/uploads/audio_predictions/{unique_filename}"
+
+        try:
+            with open(file_path, "wb") as buffer:
+                buffer.write(content)
+
+            # ── 4. Run ML inference ───────────────────────────────────────
+            start_time = time.time()
+            try:
+                result = predict_audio_species(file_path)
+            except Exception as e:
+                await _audit_failed(current_user, request,
+                                    f"Audio model prediction error: {str(e)}", severity="ERROR")
+                raise HTTPException(
+                    status_code=500,
+                    detail=str(e)
+                )
+            end_time = time.time()
+            prediction_time = round(end_time - start_time, 3)
+
+            if "error" in result:
+                await _audit_failed(current_user, request,
+                                    f"Audio Prediction returned error: {result['error']}", severity="ERROR")
+                raise HTTPException(status_code=400, detail=result["error"])
+
+            # ── 5. Resolve prediction_timestamp from result ───────────────
+            prediction_ts = None
+            raw_ts = result.get("prediction_timestamp")
+            if raw_ts:
+                try:
+                    prediction_ts = datetime.fromisoformat(raw_ts)
+                except Exception:
+                    prediction_ts = datetime.now(timezone.utc)
+            else:
+                prediction_ts = datetime.now(timezone.utc)
+
+            # ── 6. Build and save AudioPredictionRecord ───────────────────
+            top_predictions = [
+                TopPrediction(species=p["species"], confidence=p["confidence"])
+                for p in result.get("top_predictions", [])
+            ]
+            top_3 = top_predictions[:3]
+
+            prediction_record = AudioPredictionRecord(
+                species_name=result["predicted_category"],
+                confidence_score=result["confidence"],
+                prediction_time=prediction_time,
+                prediction_timestamp=prediction_ts,
+                model_version="1.0.0 (Audio)",
+                top_3_predictions=top_3,
+                top_predictions=top_predictions,
+                file_name=file.filename,
+                file_url=file_url,
+                duration_seconds=result.get("duration"),
+                sample_rate=result.get("sample_rate"),
+                channels=result.get("channels", 1),
+                audio_quality=result.get("audio_quality", "Good"),
+                noise_level_db=result.get("noise_level_db", 0.0),
+                clipping_detected=result.get("clipping_detected", False),
+                silence_percentage=result.get("silence_percentage", 0.0),
+                event_count=result.get("event_count", 0),
+                events=result.get("events", []),
+                detection_source=result.get("detection_source", "Estimated"),
+                status="Pending",
+                user_id=str(current_user.id),
+                user_name=current_user.full_name
+            )
+            try:
+                await prediction_record.insert()
+            except Exception as e:
+                import logging
+                logging.error(f"Failed to save AudioPredictionRecord to history: {e}")
+
+            # ── 7. Audit success ──────────────────────────────────────────
+            try:
+                create_audit_log(
+                    user=current_user,
+                    request=request,
+                    action="AUDIO_PREDICTION_EXECUTED",
+                    module="Predictions",
+                    description=f"Bioacoustic prediction executed successfully for {file.filename}. "
+                                f"Species: {result['predicted_category']} ({result['confidence']}%).",
+                    resource_id=str(prediction_record.id) if hasattr(prediction_record, 'id') else None,
+                    status="Success",
+                    severity="INFO"
+                )
+            except Exception as e:
+                import logging
+                logging.error(f"Failed to create audit log for audio prediction: {e}")
+
+            return prediction_record
+
+        except Exception as e:
+            # Cleanup on failure
+            if os.path.exists(file_path):
+                os.remove(file_path)
+            if isinstance(e, HTTPException):
+                raise e
+            raise HTTPException(
+                status_code=500,
+                detail=str(e)
+            )
+
+
+    @staticmethod
+    async def link_to_observation(
+        prediction_id: str,
+        observation_id: str,
+        current_user: User,
+        request: Request
+    ) -> dict:
+        """
+        Link an Audio Prediction to an *existing* ObservationRecord.
+        """
+        prediction = await _get_prediction_or_404(prediction_id)
+
+        if prediction.status == "Saved":
+            raise HTTPException(
+                status_code=400,
+                detail="Prediction is already linked to an observation."
+            )
+
+        try:
+            obs_obj_id = PydanticObjectId(observation_id)
+        except Exception:
+            raise HTTPException(status_code=400, detail="Invalid observation ID format.")
+
+        observation = await ObservationRecord.get(obs_obj_id)
+        if not observation:
+            raise HTTPException(status_code=404, detail="Observation record not found.")
+
+        # Link prediction → observation
+        observation.prediction_id = prediction_id
+        observation.prediction_source = "Bioacoustic AI"
+        if not observation.confidence_score:
+            observation.confidence_score = prediction.confidence_score
+        observation.updated_at = datetime.now(timezone.utc)
+        await observation.save()
+
+        # Update prediction → observation
+        prediction.observation_id = observation_id
+        prediction.status = "Saved"
+        prediction.updated_at = datetime.now(timezone.utc)
+        await prediction.save()
+
+        create_audit_log(
+            user=current_user,
+            request=request,
+            action="AUDIO_PREDICTION_LINKED",
+            module="Predictions",
+            description=f"Audio Prediction {prediction_id} linked to existing observation {observation_id}.",
+            resource_id=prediction_id,
+            status="Success",
+            severity="SUCCESS"
+        )
+
+        return {
+            "message": "Audio Prediction successfully linked to existing observation.",
+            "prediction_id": prediction_id,
+            "observation_id": observation_id
+        }
+
+
+async def _get_prediction_or_404(prediction_id: str) -> AudioPredictionRecord:
+    try:
+        obj_id = PydanticObjectId(prediction_id)
+    except Exception:
+        raise HTTPException(status_code=400, detail="Invalid prediction ID format.")
+    prediction = await AudioPredictionRecord.get(obj_id)
+    if not prediction:
+        raise HTTPException(status_code=404, detail="Audio Prediction record not found.")
+    return prediction
+
+
+async def _audit_failed(user, request, description: str, severity: str = "WARNING"):
+    create_audit_log(
+        user=user,
+        request=request,
+        action="AUDIO_PREDICTION_FAILED",
+        module="Predictions",
+        description=f"Audio Prediction failed: {description}",
+        status="Failed",
+        severity=severity
+    )

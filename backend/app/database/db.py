@@ -9,6 +9,10 @@ from app.models.observation import ObservationRecord
 from app.models.audit_log import AuditLog
 from app.models.notification import Notification
 from app.models.prediction import PredictionRecord
+from app.models.analytics_cache import AdvancedAnalyticsCache
+from app.models.report_history import ReportHistory
+from app.models.unified_prediction import UnifiedPredictionRecord
+from app.models.audio_prediction import AudioPredictionRecord
 from datetime import datetime, timezone, timedelta
 
 async def init_db():
@@ -19,7 +23,7 @@ async def init_db():
     
     await init_beanie(
         database=client[db_name],
-        document_models=[User, Role, MonitoringSite, SensorDevice, FieldUpload, ObservationRecord, AuditLog, Notification, PredictionRecord]
+        document_models=[User, Role, MonitoringSite, SensorDevice, FieldUpload, ObservationRecord, AuditLog, Notification, PredictionRecord, UnifiedPredictionRecord, AdvancedAnalyticsCache, ReportHistory, AudioPredictionRecord]
     )
 
     # Seed default roles if they don't exist

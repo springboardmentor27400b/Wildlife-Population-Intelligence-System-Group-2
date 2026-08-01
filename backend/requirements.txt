@@ -16,3 +16,5 @@ google-auth>=2.29.0
 requests>=2.31.0
 openpyxl>=3.1.2
 fpdf2>=2.7.9
+librosa>=0.10.1
+soundfile>=0.12.1
