@@ -1,0 +1,57 @@
+from app.core.constants import ROLE_ADMIN, ROLE_RESEARCHER, ROLE_OFFICER, ROLE_FOREST_DEPT
+
+# Permission constants
+PERM_USER_MANAGE = "user:manage"
+
+PERM_SURVEY_CREATE = "survey:create"
+PERM_SURVEY_READ = "survey:read"
+PERM_SURVEY_UPDATE = "survey:update"
+PERM_SURVEY_DELETE = "survey:delete"
+
+PERM_SITE_CREATE = "site:create"
+PERM_SITE_READ = "site:read"
+PERM_SITE_UPDATE = "site:update"
+PERM_SITE_DELETE = "site:delete"
+
+PERM_DEVICE_CREATE = "device:create"
+PERM_DEVICE_READ = "device:read"
+PERM_DEVICE_UPDATE = "device:update"
+PERM_DEVICE_DELETE = "device:delete"
+
+PERM_OBSERVATION_CREATE = "observation:create"
+PERM_OBSERVATION_READ = "observation:read"
+PERM_OBSERVATION_UPDATE = "observation:update"
+PERM_OBSERVATION_DELETE = "observation:delete"
+
+# Permissions mapped to Roles
+ROLE_PERMISSIONS = {
+    ROLE_ADMIN: [
+        PERM_USER_MANAGE,
+        PERM_SURVEY_CREATE, PERM_SURVEY_READ, PERM_SURVEY_UPDATE, PERM_SURVEY_DELETE,
+        PERM_SITE_CREATE, PERM_SITE_READ, PERM_SITE_UPDATE, PERM_SITE_DELETE,
+        PERM_DEVICE_CREATE, PERM_DEVICE_READ, PERM_DEVICE_UPDATE, PERM_DEVICE_DELETE,
+        PERM_OBSERVATION_CREATE, PERM_OBSERVATION_READ, PERM_OBSERVATION_UPDATE, PERM_OBSERVATION_DELETE
+    ],
+    ROLE_RESEARCHER: [
+        PERM_SURVEY_CREATE, PERM_SURVEY_READ, PERM_SURVEY_UPDATE,
+        PERM_SITE_CREATE, PERM_SITE_READ, PERM_SITE_UPDATE,
+        PERM_DEVICE_CREATE, PERM_DEVICE_READ, PERM_DEVICE_UPDATE,
+        PERM_OBSERVATION_CREATE, PERM_OBSERVATION_READ, PERM_OBSERVATION_UPDATE
+    ],
+    ROLE_OFFICER: [
+        PERM_SURVEY_READ,
+        PERM_SITE_READ,
+        PERM_DEVICE_READ,
+        PERM_OBSERVATION_READ, PERM_OBSERVATION_UPDATE
+    ],
+    ROLE_FOREST_DEPT: [
+        PERM_SURVEY_READ,
+        PERM_SITE_READ,
+        PERM_DEVICE_READ,
+        PERM_OBSERVATION_CREATE, PERM_OBSERVATION_READ
+    ]
+}
+
+def role_has_permission(role: str, permission: str) -> bool:
+    """Check if a specific role possesses a permission."""
+    return permission in ROLE_PERMISSIONS.get(role, [])
