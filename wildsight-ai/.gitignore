@@ -1,0 +1,24 @@
+# Virtual Environment
+venv/
+
+# Python Cache
+__pycache__/
+*.pyc
+
+# Trained Models
+models/
+
+# Uploaded Images
+uploads/
+
+# Prediction Results
+predictions/
+
+# TensorBoard Logs
+logs/
+
+# VS Code
+.vscode/
+
+# Environment
+.env

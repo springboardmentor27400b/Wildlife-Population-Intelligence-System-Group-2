@@ -1,0 +1,13 @@
+target/classes/
+target/generated-sources/
+target/generated-test-sources/
+target/test-classes/
+
+src/test/
+
+.mvn/
+
+*.log
+
+.git/
+.github/

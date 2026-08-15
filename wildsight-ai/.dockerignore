@@ -1,0 +1,13 @@
+datasets/
+training/
+notebooks/
+tests/
+venv/
+node_modules/
+logs/
+runs/
+birdnet_output/
+birdnet_results/
+predictions/
+__pycache__/
+*.pyc

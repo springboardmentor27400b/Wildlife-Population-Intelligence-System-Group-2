@@ -1,0 +1,29 @@
+spring.application.name=wildsight-backend
+
+spring.servlet.multipart.enabled=true
+spring.servlet.multipart.max-file-size=20MB
+spring.servlet.multipart.max-request-size=20MB
+
+springdoc.swagger-ui.operationsSorter=method
+springdoc.swagger-ui.tagsSorter=alpha
+springdoc.swagger-ui.display-request-duration=true
+springdoc.swagger-ui.tryItOutEnabled=true
+
+# MySQL Database Docker
+spring.datasource.url=jdbc:mysql://mysql:3306/wildsight_db?useSSL=false&serverTimezone=Asia/Kolkata
+spring.datasource.username=YOUR_DB_USERNAME
+spring.datasource.password=YOUR_DB_PASSWORD
+spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver
+
+# JPA
+spring.jpa.hibernate.ddl-auto=update
+spring.jpa.show-sql=true
+spring.jpa.properties.hibernate.format_sql=true
+spring.jpa.database-platform=org.hibernate.dialect.MySQLDialect
+
+# JWT
+jwt.secret=YOUR_JWT_SECRET
+jwt.expiration=86400000
+
+# Server
+server.port=8080

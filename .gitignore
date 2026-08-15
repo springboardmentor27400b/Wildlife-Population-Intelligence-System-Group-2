@@ -1,0 +1,80 @@
+# Environment / secrets
+.env
+.env.*
+!.env.example
+
+# Java / Spring Boot
+**/target/
+*.class
+*.jar
+*.war
+*.log
+
+# Node / React
+**/node_modules/
+**/.output/
+**/.wrangler/
+**/.tanstack/
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+bun-debug.log*
+
+# Python
+**/__pycache__/
+**/*.py[cod]
+**/.pytest_cache/
+**/.venv/
+**/venv/
+**/env/
+
+# AI generated / runtime files
+wildsight-ai/models/
+wildsight-ai/runs/
+wildsight-ai/uploads/
+wildsight-ai/logs/
+wildsight-ai/predictions/
+wildsight-ai/birdnet_output/
+wildsight-ai/birdnet_results/
+
+# Large datasets
+wildsight-ai/datasets/
+wildsight-ai/animal_database/
+
+# ML model files
+*.pt
+*.pth
+*.onnx
+*.h5
+*.keras
+*.pkl
+
+# IDE
+.idea/
+.vscode/
+*.iml
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Build / generated files
+dist/
+build/
+coverage/
+
+# Generated reports
+*.xlsx
+*.csv
+*.pdf
+
+# Database dumps
+*.sql
+
+# Backend runtime uploads
+wildsight-backend/wildsight-backend/uploads/
+
+
+# Spring Boot local configuration
+wildsight-backend/wildsight-backend/src/main/resources/application.properties
+
