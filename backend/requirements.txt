@@ -1,6 +1,8 @@
 fastapi==0.115.0
 uvicorn[standard]==0.30.6
+gunicorn==22.0.0
 sqlalchemy==2.0.36
+psycopg2-binary==2.9.9
 pydantic==2.9.2
 python-jose[cryptography]==3.0.1
 passlib[bcrypt]==1.7.4
@@ -15,3 +17,5 @@ soundfile==0.12.1
 python-dotenv==1.0.1
 ultralytics==8.3.57
 opencv-python-headless==4.10.0.84
+psutil==6.0.0
+requests==2.32.3

@@ -1,0 +1,52 @@
+{
+  "dataset_metadata": {
+    "iNaturalist": {
+      "name": "iNaturalist Biodiversity Reference Species Standard",
+      "description": "Taxonomic reference dictionary for wild animal species observation mappings.",
+      "license": "CC0 / CC-BY-NC",
+      "status": "Reference Taxonomy Integrated",
+      "sample_records": 12
+    },
+    "AnimalKingdom": {
+      "name": "Animal Kingdom Multi-Modal Taxonomy Standard",
+      "description": "Hierarchical taxonomy classification schema for animal behavior and species identification.",
+      "license": "Academic Research Use",
+      "status": "Reference Taxonomy Integrated",
+      "sample_records": 12
+    }
+  },
+  "species_reference_samples": [
+    {
+      "common_name": "African Elephant",
+      "scientific_name": "Loxodonta africana",
+      "iNaturalist_id": 43696,
+      "animal_kingdom_class": "Mammalia",
+      "kingdom": "Animalia",
+      "family": "Elephantidae"
+    },
+    {
+      "common_name": "Bengal Tiger",
+      "scientific_name": "Panthera tigris tigris",
+      "iNaturalist_id": 130838,
+      "animal_kingdom_class": "Mammalia",
+      "kingdom": "Animalia",
+      "family": "Felidae"
+    },
+    {
+      "common_name": "African Lion",
+      "scientific_name": "Panthera leo",
+      "iNaturalist_id": 41964,
+      "animal_kingdom_class": "Mammalia",
+      "kingdom": "Animalia",
+      "family": "Felidae"
+    },
+    {
+      "common_name": "African Fish Eagle",
+      "scientific_name": "Haliaeetus vocifer",
+      "iNaturalist_id": 5304,
+      "animal_kingdom_class": "Aves",
+      "kingdom": "Animalia",
+      "family": "Accipitridae"
+    }
+  ]
+}

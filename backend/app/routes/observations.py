@@ -1,3 +1,4 @@
+from datetime import date
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from app.database.database import get_db
@@ -42,7 +43,7 @@ def create_observation(payload: dict, current_user: User = Depends(get_current_u
     obs = Observation(
         species_id=payload["species_id"],
         site_id=payload["site_id"],
-        observation_date=payload["observation_date"],
+        observation_date=date.fromisoformat(payload["observation_date"]) if isinstance(payload["observation_date"], str) else payload["observation_date"],
         count=payload["count"],
     )
     db.add(obs)

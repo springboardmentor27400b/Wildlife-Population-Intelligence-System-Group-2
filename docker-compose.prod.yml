@@ -1,0 +1,59 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: wildlife_postgres
+    restart: always
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-wildlife_admin}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-wildlife_prod_secret_2026}
+      POSTGRES_DB: ${POSTGRES_DB:-wildlife_prod}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-wildlife_admin} -d ${POSTGRES_DB:-wildlife_prod}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: wildlife_backend_prod
+    restart: always
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-wildlife_admin}:${POSTGRES_PASSWORD:-wildlife_prod_secret_2026}@db:5432/${POSTGRES_DB:-wildlife_prod}
+      - SECRET_KEY=${SECRET_KEY:-production_jwt_secret_key_wildlife_2026}
+      - ENVIRONMENT=production
+      - CORS_ORIGINS=${CORS_ORIGINS:-https://wildlife.example.com,http://localhost}
+    volumes:
+      - uploads_data:/app/uploads
+      - ./backend/models:/app/models
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: wildlife_frontend_prod
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    depends_on:
+      - backend
+    volumes:
+      - ./nginx/ssl:/etc/nginx/ssl:ro
+
+volumes:
+  postgres_data:
+  uploads_data:

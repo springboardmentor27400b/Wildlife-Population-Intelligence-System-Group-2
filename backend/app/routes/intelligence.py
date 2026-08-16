@@ -48,11 +48,14 @@ def get_dashboard(db: Session = Depends(get_db), current_user: User = Depends(ge
     
     recent_image_dets = db.query(ImageDetection).order_by(ImageDetection.id.desc()).limit(5).all()
     recent_audio_dets = db.query(AudioDetection).order_by(AudioDetection.id.desc()).limit(5).all()
-    recent_obs = db.query(Observation).order_by(Observation.id.desc()).limit(5).all()
+    recent_obs_joined = db.query(Observation, Species).join(Species, Observation.species_id == Species.id).order_by(Observation.id.desc()).limit(5).all()
+    
+    all_species = db.query(Species).all()
+    protected_count = sum(1 for s in all_species if getattr(s, 'is_protected', False) or (s.iucn_status and s.iucn_status in ['Endangered', 'Critically Endangered', 'Vulnerable']))
     
     return {
         "total_species": total_species,
-        "protected_species": sum(1 for s in db.query(Species).all() if s.is_protected) or int(total_species * 0.4),
+        "protected_species": protected_count or int(total_species * 0.4),
         "habitats_count": len(habitats_list),
         "population_records_count": len(pop.get("stats", [])),
         "total_population": pop.get("total_population", 0),
@@ -84,7 +87,7 @@ def get_dashboard(db: Session = Depends(get_db), current_user: User = Depends(ge
             {"id": a.id, "species": a.species, "confidence": a.confidence, "date": a.detection_date or str(a.created_at)[:10]} for a in recent_audio_dets
         ],
         "recent_observations": [
-            {"id": o.id, "species": o.species_name, "location": o.location, "observer": o.observer_name} for o in recent_obs
+            {"id": o.id, "species": sp.common_name, "count": o.count, "date": str(o.observation_date)} for o, sp in recent_obs_joined
         ]
     }
 
