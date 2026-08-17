@@ -32,7 +32,7 @@ services:
       - ALGORITHM=HS256
       - ACCESS_TOKEN_EXPIRE_MINUTES=60
       - GOOGLE_CLIENT_ID=251145097240-g3h8t0l6ii219nhkv99mvgju6qo9c3ug.apps.googleusercontent.com
-      - GEMINI_API_KEY=AIzaSyClHMW5t6hmLa1zN5k20Uzk-puTXmaoIB4
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
       - GEMINI_MODEL=gemini-1.5-flash
     ports:
       - "8000:8000"
