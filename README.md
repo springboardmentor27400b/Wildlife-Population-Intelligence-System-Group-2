@@ -4,6 +4,14 @@ A commercial-grade, multi-modal **AI Wildlife Population & Ecosystem Intelligenc
 
 ---
 
+## Deployment Status Notice
+
+> [!NOTE]
+> **DEPLOYMENT STATUS: NOT DEPLOYED (Render & Docker Blueprints Prepared)**  
+> Production configurations, automated Render Blueprints (`render.yaml`), Docker definitions (`docker-compose.prod.yml`), and PostgreSQL pooling logic have been prepared and tested locally. No remote cloud instances have been provisioned yet.
+
+---
+
 ## Executive Overview
 
 The **Wildlife Population Intelligence System** provides an end-to-end intelligence pipeline that transforms unstructured field data (camera trap imagery, bioacoustic audio recordings, and spatial telemetry) into actionable biodiversity analytics. Built with high-performance computer vision, bioacoustic signal processing, and deterministic ecological algorithms, the platform equips wildlife researchers, conservationists, and decision-makers with automated monitoring tools.
@@ -42,6 +50,7 @@ The **Wildlife Population Intelligence System** provides an end-to-end intellige
 - **Computer Vision Utilities**: OpenCV & Pillow
 
 ### Deployment & Orchestration
+- **Cloud PaaS**: Render Blueprint (`render.yaml`)
 - **Containerization**: Docker & Docker Compose (`docker-compose.yml`, `docker-compose.prod.yml`)
 - **Web Server Proxy**: Nginx (Alpine) with SPA routing fallback
 
@@ -65,7 +74,7 @@ graph TD
     subgraph Data & Telemetry Layer
         Backend --> ORM[SQLAlchemy ORM]
         ORM --> SQLite[SQLite Development DB]
-        ORM --> Postgres[Docker / Managed PostgreSQL]
+        ORM --> Postgres[Render / Docker PostgreSQL]
         Backend --> Telemetry[psutil Hardware Telemetry]
     end
 ```
@@ -96,7 +105,7 @@ graph TD
 
 ---
 
-## Installation & Setup Instructions
+## Installation & Local Setup Instructions
 
 ### Prerequisites
 - Python 3.11+
@@ -121,7 +130,7 @@ source venv/bin/activate
 pip install -r requirements.txt
 
 # Run FastAPI development server
-python -m uvicorn app.main:app --port 8000 --reload
+python -m uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 ```
 
 ### 2. Frontend Setup
@@ -160,7 +169,7 @@ HOST=127.0.0.1
 # SQLite (Development Default):
 DATABASE_URL=sqlite:///./wildlife.db
 # PostgreSQL (Production):
-# DATABASE_URL=postgresql://wildlife_admin:YOUR_POSTGRES_PASSWORD@localhost:5432/wildlife_prod
+# DATABASE_URL=postgresql://USER:PASSWORD@HOST:5432/DATABASE
 
 # SECURITY (Placeholders for local dev)
 SECRET_KEY=your_secret_key_here_min_32_chars
@@ -170,9 +179,37 @@ ACCESS_TOKEN_EXPIRE_MINUTES=1440
 
 ---
 
+## Render Cloud Deployment
+
+The repository is equipped with a native Render Blueprint (`render.yaml`) for zero-secret automated deployments.
+
+### 1-Click Render Blueprint Deployment
+1. Connect your GitHub repository to [Render](https://render.com).
+2. Create a new **Blueprint Instance** from your repository.
+3. Render automatically provisions:
+   - **PostgreSQL Managed Database**: `wildlife-db`
+   - **FastAPI Web Service**: `wildlife-backend` with dynamic `$PORT` binding and auto-generated `SECRET_KEY`.
+   - **React Vite Static Site**: `wildlife-frontend` with automatic SPA rewrites (`/*` -> `/index.html`) and `VITE_API_URL` configuration.
+
+### Manual Render Setup (Alternative)
+- **Backend**:
+  - Type: Web Service (Python 3.11)
+  - Root Directory: `backend`
+  - Build Command: `pip install -r requirements.txt`
+  - Start Command: `uvicorn app.main:app --host 0.0.0.0 --port $PORT`
+  - Health Check: `/api/health`
+- **Frontend**:
+  - Type: Static Site
+  - Root Directory: `frontend`
+  - Build Command: `npm install && npm run build`
+  - Publish Directory: `dist`
+  - Rewrite Rules: `/*` -> `/index.html`
+
+---
+
 ## Docker Production Deployment
 
-Production Docker configurations are prepared and containerized:
+Production Docker configurations are containerized:
 
 ```bash
 # Build and start all production containers
@@ -189,7 +226,7 @@ curl -f http://localhost:8000/api/health
 
 ## Automated Test Suite
 
-The repository includes comprehensive automated unit and pipeline integration tests covering AI inference, bioacoustic extraction, database ORM, timezone conversion, and report export endpoints.
+Comprehensive automated unit and pipeline integration tests covering AI inference, bioacoustic extraction, database ORM, timezone conversion, and report export endpoints.
 
 ```bash
 # Run pytest test suite from project root
