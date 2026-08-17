@@ -1,0 +1,104 @@
+.audio {
+  padding: 30px;
+}
+
+.audio-header {
+  margin-bottom: 25px;
+}
+
+.audio-header h1 {
+  color: #1b4332;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.audio-header p {
+  color: #666;
+  margin-top: 10px;
+}
+
+.upload-card,
+.history-card {
+  background: #fff;
+  border-radius: 12px;
+  padding: 25px;
+  margin-top: 25px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+}
+
+.upload-box {
+  border: 2px dashed #2d6a4f;
+  border-radius: 12px;
+  padding: 40px;
+  text-align: center;
+  cursor: pointer;
+  color: #2d6a4f;
+  transition: 0.3s;
+}
+
+.upload-box:hover {
+  background: #f1fff5;
+}
+
+.upload-box svg {
+  font-size: 40px;
+  margin-bottom: 15px;
+}
+
+.preview-section {
+  margin-top: 25px;
+  text-align: center;
+}
+
+.detect-btn {
+  margin-top: 20px;
+  background: #2d6a4f;
+  color: white;
+  border: none;
+  padding: 12px 25px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.detect-btn:hover {
+  background: #1b4332;
+}
+
+.history-card table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.history-card th,
+.history-card td {
+  border-bottom: 1px solid #ddd;
+  padding: 12px;
+  text-align: center;
+}
+
+.history-card th {
+  background: #2d6a4f;
+  color: white;
+}
+
+.detected {
+  background: #2d6a4f;
+  color: white;
+  padding: 5px 12px;
+  border-radius: 20px;
+}
+
+.delete-btn {
+  background: crimson;
+  color: white;
+  border: none;
+  padding: 10px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.delete-btn:hover {
+  background: darkred;
+}
