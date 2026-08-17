@@ -1,3 +1,5 @@
+import { formatISTDate, formatISTTime } from '../utils/dateTime';
+
 function formatConfidence(value) {
     if (value === undefined || value === null || value === '') {
         return 'N/A';
@@ -44,8 +46,8 @@ export default function DetectionTable({ rows = [] }) {
                         <th className="px-4 py-3 font-semibold text-slate-700">Species</th>
                         <th className="px-4 py-3 font-semibold text-slate-700">Scientific Name</th>
                         <th className="px-4 py-3 font-semibold text-slate-700">Confidence</th>
-                        <th className="px-4 py-3 font-semibold text-slate-700">Date</th>
-                        <th className="px-4 py-3 font-semibold text-slate-700">Time</th>
+                        <th className="px-4 py-3 font-semibold text-slate-700">Date (IST)</th>
+                        <th className="px-4 py-3 font-semibold text-slate-700">Time (IST)</th>
                     </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-200">
@@ -57,26 +59,11 @@ export default function DetectionTable({ rows = [] }) {
                         </tr>
                     ) : (
                         uniqueRows.map((row, idx) => {
-                            const dtStr = row.created_at ? String(row.created_at).trim() : '';
-                            let dateStr = 'N/A';
-                            let timeStr = 'N/A';
-                            
-                            if (dtStr) {
-                                const parts = dtStr.split(' ');
-                                if (parts.length >= 5) {
-                                    // Format: 27 Jul 2026 11:04 AM
-                                    dateStr = `${parts[0]} ${parts[1]} ${parts[2]}`;
-                                    timeStr = `${parts[3]} ${parts[4]}`;
-                                } else if (parts.length === 2) {
-                                    // Format: YYYY-MM-DD HH:MM:SS
-                                    dateStr = parts[0];
-                                    timeStr = parts[1];
-                                } else {
-                                    dateStr = dtStr;
-                                }
-                            }
+                            const dateStr = formatISTDate(row.created_at);
+                            const timeStr = formatISTTime(row.created_at);
                             
                             const defaultThumb = '/api/datasets_static/species_images/default_wildlife.png';
+
                             
                             return (
                                 <tr key={row.id ? `row-${row.id}` : `row-${idx}`} className="even:bg-slate-50 hover:bg-slate-100 transition">

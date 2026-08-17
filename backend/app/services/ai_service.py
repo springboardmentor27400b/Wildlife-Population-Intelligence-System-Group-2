@@ -593,8 +593,9 @@ def build_biodiversity_summary(db_or_images=None, audio_detections=None, species
         db = db_or_images
         img_rows = db.query(ImageDetection).all()
         audio_rows = db.query(AudioDetection).all()
-        img_list = [{"species": r.species, "confidence": r.confidence, "created_at": str(r.detection_date or r.created_at)} for r in img_rows]
-        audio_list = [{"species": a.species, "confidence": a.confidence, "created_at": str(a.detection_date or a.created_at)} for a in audio_rows]
+        from app.utils.datetime_utils import format_iso_utc
+        img_list = [{"species": r.species, "confidence": r.confidence, "created_at": format_iso_utc(r.created_at)} for r in img_rows]
+        audio_list = [{"species": a.species, "confidence": a.confidence, "created_at": format_iso_utc(a.created_at)} for a in audio_rows]
     else:
         img_list = db_or_images or []
         audio_list = audio_detections or []

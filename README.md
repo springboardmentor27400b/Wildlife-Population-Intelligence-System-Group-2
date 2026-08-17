@@ -16,7 +16,7 @@ The **Wildlife Population Intelligence System** provides an end-to-end intellige
 2. **Deterministic Ecological Analytics**: Automated calculation of mathematical ecological indicators, including Shannon's Diversity Index ($H'$), Pielou's Evenness ($J'$), species richness, and habitat suitability scores.
 3. **Population & Habitat Intelligence**: Per-species estimated population density ($/km^2$), growth velocity, sex/age ratio modeling, and migration corridor risk assessment.
 4. **Proactive Conservation Action**: Automated rule-based recommendation engine prioritizing intervention urgency (Critical, High, Medium, Low).
-5. **Interactive GIS & Executive Dashboards**: Leaflet spatial mapping, 12 Recharts visualizers, dynamic hardware telemetry, and publication-ready multi-format exporting (PDF, CSV, Excel, JSON).
+5. **Interactive GIS & Executive Dashboards**: Leaflet spatial mapping, interactive Recharts visualizers, dynamic hardware telemetry, and publication-ready multi-format exporting (PDF, CSV, Excel, JSON).
 
 ---
 
@@ -31,7 +31,7 @@ The **Wildlife Population Intelligence System** provides an end-to-end intellige
 
 ### Backend
 - **Framework**: FastAPI (Python 3.11 / 3.13)
-- **Database ORM**: SQLAlchemy (Dual driver support: SQLite dev & PostgreSQL `psycopg2-binary` prod connection pooling)
+- **Database ORM**: SQLAlchemy (Dual driver support: SQLite dev fallback & PostgreSQL `psycopg2-binary` prod connection pooling)
 - **PDF Engine**: ReportLab
 - **Hardware Telemetry**: `psutil`
 - **Authentication**: JWT tokens (`python-jose`) with bcrypt password hashing (`passlib`)
@@ -51,7 +51,7 @@ The **Wildlife Population Intelligence System** provides an end-to-end intellige
 
 ```mermaid
 graph TD
-    User([Field Researcher / Admin]) -->|HTTPS / Port 80| Frontend[React 18 + Nginx Container]
+    User([Field Researcher / Admin]) -->|HTTP / Port 80| Frontend[React 18 + Nginx Container]
     Frontend -->|REST API Requests| Backend[FastAPI Backend Container]
     
     subgraph AI & Analytics Engines
@@ -65,7 +65,7 @@ graph TD
     subgraph Data & Telemetry Layer
         Backend --> ORM[SQLAlchemy ORM]
         ORM --> SQLite[SQLite Development DB]
-        ORM --> Postgres[Amazon RDS / Docker PostgreSQL]
+        ORM --> Postgres[Docker / Managed PostgreSQL]
         Backend --> Telemetry[psutil Hardware Telemetry]
     end
 ```
@@ -89,6 +89,10 @@ graph TD
 | **Conservation Engine** | `/conservation` | Automated priority interventions & recommendation cards |
 | **Ecosystem Health** | `/ecosystem` | Ecosystem health grade & radar metric breakdown |
 | **Reports Exporter** | `/reports` | Native export center for PDF, CSV, Excel (XLSX), & JSON |
+| **Sites Management** | `/sites` | Habitat sites, GPS coordinates, & regional tracking |
+| **Surveys** | `/surveys` | Field sensor survey events & observer logs |
+| **Observations** | `/observations` | Direct species observation logs & encounter counts |
+| **Datasets** | `/datasets` | Multi-dataset ingestion catalog & metadata stats |
 
 ---
 
@@ -156,10 +160,10 @@ HOST=127.0.0.1
 # SQLite (Development Default):
 DATABASE_URL=sqlite:///./wildlife.db
 # PostgreSQL (Production):
-# DATABASE_URL=postgresql://wildlifeadmin:secret@localhost:5432/wildlife_prod
+# DATABASE_URL=postgresql://wildlife_admin:YOUR_POSTGRES_PASSWORD@localhost:5432/wildlife_prod
 
 # SECURITY (Placeholders for local dev)
-SECRET_KEY=dev_jwt_secret_key_wildlife_2026_change_in_production
+SECRET_KEY=your_secret_key_here_min_32_chars
 JWT_ALGORITHM=HS256
 ACCESS_TOKEN_EXPIRE_MINUTES=1440
 ```
@@ -168,7 +172,7 @@ ACCESS_TOKEN_EXPIRE_MINUTES=1440
 
 ## Docker Production Deployment
 
-To launch the multi-container production stack (React Frontend + FastAPI Backend + PostgreSQL Database):
+Production Docker configurations are prepared and containerized:
 
 ```bash
 # Build and start all production containers
@@ -185,17 +189,21 @@ curl -f http://localhost:8000/api/health
 
 ## Automated Test Suite
 
-The repository includes comprehensive automated unit and pipeline integration tests covering AI inference, bioacoustic extraction, database ORM, and report export endpoints.
+The repository includes comprehensive automated unit and pipeline integration tests covering AI inference, bioacoustic extraction, database ORM, timezone conversion, and report export endpoints.
 
 ```bash
-# Run pytest test suite from backend directory
+# Run pytest test suite from project root
+python -m pytest -v
+
+# Or run from backend directory
 cd backend
 python -m pytest tests/ -v
 ```
 
 ### Test Verification Status
-- **Total Automated Tests**: **20 passed / 0 failed / 0 skipped**
-- **Execution Time**: ~19.34 seconds
+- **Backend Test Suite**: **27 passed / 0 failed / 0 skipped**
+- **System Integration Test Suite**: **2 passed / 0 failed / 0 skipped**
+- **Total Tests**: **29 passed**
 - **End-to-End Workflow Verification**: **17/17 operational workflow modules verified**
 
 ---

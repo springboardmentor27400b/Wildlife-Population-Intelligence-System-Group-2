@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { formatToIST } from '../utils/dateTime';
 
 function formatConfidence(value) {
     if (value === undefined || value === null || value === '') {
@@ -184,8 +185,10 @@ export default function ImageUploader({ onUpload }) {
                                     <span className="font-medium text-slate-700">{res.diet || 'Omnivore'} • {res.average_lifespan || '10-20 Yrs'}</span>
                                 </div>
                                 <div>
-                                    <span className="text-xs text-slate-400 block font-medium">Detection Date & Time</span>
-                                    <span className="font-medium text-slate-700">{res.detection_date || 'N/A'} at {res.detection_time || 'N/A'}</span>
+                                    <span className="text-xs text-slate-400 block font-medium">Detection Date & Time (IST)</span>
+                                    <span className="font-medium text-slate-700">
+                                        {formatToIST(res.created_at || (res.detection_date && res.detection_time ? `${res.detection_date}T${res.detection_time}Z` : (res.detection_date || null)))}
+                                    </span>
                                 </div>
                                 <div>
                                     <span className="text-xs text-slate-400 block font-medium">Location</span>
