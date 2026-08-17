@@ -1,0 +1,13 @@
+train: train/images
+val: valid/images
+test: test/images
+
+nc: 12
+names: ['bird', 'buffalo', 'cat', 'cow', 'dog', 'elephant', 'monkey', 'mouse', 'panda', 'rabbit', 'snake', 'tiger']
+
+roboflow:
+  workspace: animal-detection-using-yolov8
+  project: animal-detection-using-yolov8
+  version: 1
+  license: Public Domain
+  url: https://universe.roboflow.com/animal-detection-using-yolov8/animal-detection-using-yolov8/dataset/1
