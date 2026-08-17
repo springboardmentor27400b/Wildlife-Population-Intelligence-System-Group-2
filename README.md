@@ -179,12 +179,6 @@ GEMINI_MODEL=gemini-1.5-flash
 
 ---
 
-## 🧭 Future Scope
-1. **Live Copernicus Satellites Sync**: Replace simulated NDVI indices with live raster maps using Sentinel Hub APIs.
-2. **PostGIS Spatial Queries**: Migrate distance queries from standard SQL trigonometry to PostGIS index lookups.
-3. **Advanced Sound Segmentation**: Enhance Librosa audio vocalization separation using neural networks.
-
----
 
 ## 🪪 License & Contributors
 - **License**: MIT Enterprise License
