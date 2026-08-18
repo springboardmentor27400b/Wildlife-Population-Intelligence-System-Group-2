@@ -1,0 +1,30 @@
+{
+  "buildCommand": "cd frontend && npm install && npm run build",
+  "outputDirectory": "frontend/dist",
+  "rewrites": [
+    {
+      "source": "/api/(.*)",
+      "destination": "/api/index.py?_path=$1"
+    },
+    {
+      "source": "/api",
+      "destination": "/api/index.py?_path="
+    },
+    {
+      "source": "/docs",
+      "destination": "/api/index.py?_path=docs"
+    },
+    {
+      "source": "/redoc",
+      "destination": "/api/index.py?_path=redoc"
+    },
+    {
+      "source": "/openapi.json",
+      "destination": "/api/index.py?_path=openapi.json"
+    },
+    {
+      "source": "/((?!api|docs|redoc|openapi.json|assets|.*\\..*).*)",
+      "destination": "/"
+    }
+  ]
+}

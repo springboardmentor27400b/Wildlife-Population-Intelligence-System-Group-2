@@ -1,0 +1,13 @@
+{
+  "sqltools.connections": [
+    {
+      "name": "Wildlife Postgres",
+      "driver": "PostgreSQL",
+      "server": "localhost",
+      "port": 5432,
+      "database": "wildlife_db",
+      "username": "admin",
+      "password": "supersecretpassword"
+    }
+  ]
+}

@@ -1,0 +1,184 @@
+# ==============================================================================
+# Wildlife Population Intelligence System - Git Ignore Configuration
+# ==============================================================================
+
+# ------------------------------------------------------------------------------
+# 1. Environment Variables, Secrets, API Keys & Cloud Credentials
+# ------------------------------------------------------------------------------
+# Environment configuration files
+.env
+.env.*
+!.env.example
+*.env
+*.env.local
+*.env.development.local
+*.env.test.local
+*.env.production.local
+
+# API keys, tokens, secret and credential stores
+*.pem
+*.key
+*.pkcs12
+*.pfx
+*.p12
+*.kdbx
+id_rsa*
+id_ed25519*
+*token*.json
+*tokens*.json
+*secret*.json
+*credentials*.json
+credentials.ini
+auth.json
+
+# Cloud Provider Service Accounts & Authentication
+*service-account*.json
+*service_account*.json
+*firebase-adminsdk*.json
+*gcloud*.json
+client_secret*.json
+wildlife-cloud-deploy*
+.gcloud/
+.aws/
+.azure/
+
+# ------------------------------------------------------------------------------
+# 2. Machine Learning Weights, Checkpoints & Model Caches
+# ------------------------------------------------------------------------------
+# Heavy model weight formats
+*.pt
+*.pth
+*.onnx
+*.tflite
+*.h5
+*.hdf5
+*.safetensors
+*.bin
+*.ckpt
+*.weights
+*.pb
+*.pkl
+*.joblib
+*.data-00000-of-*
+*.index
+
+# Specific root model weights (YOLOv8x, MegaDetector)
+yolov8x.pt
+megadetector_v5a.pt
+megadetector_v5a_real.pt
+
+# Model subdirectories in backend & local weight/model caches
+backend/app/models/animalclap/
+backend/app/models/perch_v2/
+backend/app/models/perch_v2_v8_temp/
+backend/app/models/birdnet/
+backend/app/models/weights/
+backend/app/services/ai/weights/
+.cache/
+.cache/huggingface/
+.cache/torch/
+.cache/speciesnet/
+
+# ------------------------------------------------------------------------------
+# 3. Large Datasets, Satellite Imagery & GeoTIFFs
+# ------------------------------------------------------------------------------
+*.SAFE/
+*.SAFE
+*.SAFE.zip
+*.tif
+*.tiff
+*.jp2
+*.nc
+*.hdf
+backend/storage/
+storage/
+
+# ------------------------------------------------------------------------------
+# 4. Python Virtual Environments, Bytecode & Testing Caches
+# ------------------------------------------------------------------------------
+venv/
+.venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+backend/.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+.nox/
+.mypy_cache/
+.ruff_cache/
+
+# ------------------------------------------------------------------------------
+# 5. Node.js, Frontend Dependencies & Build Artifacts
+# ------------------------------------------------------------------------------
+node_modules/
+frontend/node_modules/
+dist/
+dist-ssr/
+frontend/dist/
+build/
+.npm/
+.eslintcache
+
+# ------------------------------------------------------------------------------
+# 6. Cloud Hosting & Deployment Tooling Caches
+# ------------------------------------------------------------------------------
+.vercel
+.vercel/
+.vercel_build_output/
+
+# ------------------------------------------------------------------------------
+# 7. Logs & Temporary Files
+# ------------------------------------------------------------------------------
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+*.tmp
+*.temp
+*.bak
+*.swp
+*.swo
+*~
+scratch/
+
+# ------------------------------------------------------------------------------
+# 8. Archives & Compressed Bundles
+# ------------------------------------------------------------------------------
+*.zip
+*.tar
+*.tar.gz
+*.tgz
+*.7z
+*.rar
+*.gz
+*.bz2
+*.xz
+
+# ------------------------------------------------------------------------------
+# 9. IDE, Editor & OS Artifacts
+# ------------------------------------------------------------------------------
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+.DS_Store
+Thumbs.db

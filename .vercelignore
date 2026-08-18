@@ -1,0 +1,80 @@
+# Python virtual environments & packages
+venv/
+.venv/
+env/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+
+# Node dependencies & caches
+node_modules/
+frontend/node_modules/
+.npm/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Git & IDE configs
+.git/
+.github/
+.vscode/
+.idea/
+
+# Vercel local cache
+.vercel/cache/
+
+# Heavy Machine Learning Weights, Checkpoints & Model Caches
+*.pt
+*.pth
+*.bin
+*.safetensors
+*.onnx
+*.h5
+*.tflite
+*.ckpt
+*.weights
+*.pb
+*.pkl
+*.joblib
+*.tar
+*.tar.gz
+*.zip
+*.7z
+*.rar
+*.part*
+
+# Model subdirectories in backend & local caches
+backend/app/models/animalclap/
+backend/app/models/perch_v2/
+backend/app/models/perch_v2_v8_temp/
+backend/app/models/birdnet/
+backend/app/models/weights/
+backend/app/services/ai/weights/
+.cache/
+
+# Large Datasets, Satellite Imagery & GeoTIFFs
+*.SAFE/
+*.SAFE
+*.SAFE.zip
+*.tif
+*.tiff
+*.jp2
+*.nc
+*.hdf
+backend/storage/
+storage/
+
+# Miscellaneous Media, Notebooks, Documents & Logs
+*.ipynb
+*.pdf
+*.log
+*.mp3
+*.wav
+*.flac
+*.ogg
+*.mp4
+*.avi
+*.mov
+wildlife-cloud-deploy*

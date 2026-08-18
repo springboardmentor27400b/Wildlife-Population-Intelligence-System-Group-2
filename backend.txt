@@ -1,0 +1,59 @@
+Core Configuration & Security
+
+
+main.py
+: Registers all API modules, sets up CORS rules, and starts the main FastAPI application.
+
+
+config.py
+: Reads connection strings and secrets from the .env file to configure the application.
+
+
+database.py
+: Establishes active connections for both PostgreSQL (SQL) and MongoDB (NoSQL) databases.
+
+
+security.py
+: Handles password hashing using Bcrypt and generates JSON Web Tokens (JWT) for authentication.
+
+
+deps.py
+: Provides dependencies to extract the logged-in user and enforce Role-Based Access Control (RBAC) rules.
+Database Models & Data Validation
+
+
+sql.py
+: Defines the SQL database structures (tables, relationships, and foreign keys) in PostgreSQL.
+
+
+nosql.py
+: Defines Pydantic validation structures for storing sensor logs and weather readings in MongoDB.
+
+
+schemas.py
+: Holds Pydantic validation models that filter and check incoming request data and outgoing API responses.
+API Routes & Controllers
+
+
+auth.py
+: Handles user account registration and login authentication requests.
+
+
+profile.py
+: Allows authenticated users to view or update their name and password.
+
+
+sites.py
+: Performs CRUD actions to register, edit, and query PostGIS geographical research sites.
+
+
+surveys.py
+: Manages CRUD operations for scheduling and tracking active wildlife surveys.
+
+
+devices.py
+: Registers and manages hardware sensors (camera traps and audio recorders) deployed at monitoring sites.
+
+
+observations.py
+: Manages local media upload storage and logs observation activities linked to specific surveys and devices.
