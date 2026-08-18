@@ -1,0 +1,27 @@
+services:
+
+  db:
+    image: postgres:14
+    container_name: wildlife_db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: wildlife123
+      POSTGRES_DB: wildlife_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  backend:
+    build:
+      context: ./backend
+    container_name: wildlife_backend
+    environment:
+      DATABASE_URL: postgresql://postgres:wildlife123@db:5432/wildlife_db
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+
+volumes:
+  postgres_data:
