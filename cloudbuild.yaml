@@ -1,0 +1,17 @@
+steps:
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'build'
+      - '-f'
+      - 'Dockerfile'
+      - '-t'
+      - 'us-central1-docker.pkg.dev/wildlife-ai-prod-4821/wildlife-ai-repo/wildlife-backend:2e4a32b-v5'
+      - '-t'
+      - 'us-central1-docker.pkg.dev/wildlife-ai-prod-4821/wildlife-ai-repo/wildlife-backend:latest'
+      - '.'
+images:
+  - 'us-central1-docker.pkg.dev/wildlife-ai-prod-4821/wildlife-ai-repo/wildlife-backend:2e4a32b-v5'
+  - 'us-central1-docker.pkg.dev/wildlife-ai-prod-4821/wildlife-ai-repo/wildlife-backend:latest'
+options:
+  machineType: 'E2_HIGHCPU_8'
+  logging: CLOUD_LOGGING_ONLY
