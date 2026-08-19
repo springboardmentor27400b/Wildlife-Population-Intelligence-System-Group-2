@@ -12,9 +12,15 @@ try:
 except ImportError:
     librosa = None
 
+import logging
+from app.services.ai.gcs_model_sync import ensure_model_file
+
+logger = logging.getLogger("birdnet_engine")
+
 MODEL_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "models", "birdnet"))
 MODEL_PATH = os.path.join(MODEL_DIR, "BirdNET_GLOBAL_6K_V2.4_Model_FP32.tflite")
 LABELS_PATH = os.path.join(MODEL_DIR, "BirdNET_GLOBAL_6K_V2.4_Labels.txt")
+TAXONOMY_PATH = os.path.join(MODEL_DIR, "taxonomy.json")
 
 MODEL_URL = "https://huggingface.co/justinchuby/BirdNET-onnx/resolve/main/BirdNET_GLOBAL_6K_V2.4_Model_FP32.tflite"
 LABELS_URL = "https://huggingface.co/justinchuby/BirdNET-onnx/resolve/main/BirdNET_GLOBAL_6K_V2.4_Labels.txt"
@@ -22,26 +28,39 @@ LABELS_URL = "https://huggingface.co/justinchuby/BirdNET-onnx/resolve/main/BirdN
 def ensure_birdnet_model_downloaded():
     """
     Guarantees BirdNET model files are downloaded and stored locally.
+    1. Checks local cache.
+    2. Preferred source: Google Cloud Storage.
+    3. Fallback source: Hugging Face.
     Generates metadata.json, taxonomy.json, and configuration.json if missing.
     """
     if not os.path.exists(MODEL_DIR):
         os.makedirs(MODEL_DIR, exist_ok=True)
 
-    # 1. Download Model TFLite file
-    if not os.path.exists(MODEL_PATH):
-        print(f"Downloading BirdNET Model to {MODEL_PATH}...")
-        req = urllib.request.Request(MODEL_URL, headers={'User-Agent': 'Mozilla/5.0'})
-        with urllib.request.urlopen(req) as response, open(MODEL_PATH, 'wb') as out_file:
-            out_file.write(response.read())
-        print("Model downloaded successfully.")
+    # 1. Ensure Model TFLite file
+    if not os.path.exists(MODEL_PATH) or os.path.getsize(MODEL_PATH) < 1000000:
+        logger.info("[BirdNET] Checking GCS for BirdNET TFLite model...")
+        synced = ensure_model_file("birdnet/BirdNET_GLOBAL_6K_V2.4_Model_FP32.tflite", MODEL_PATH, min_bytes=1000000)
+        if not synced or not os.path.exists(MODEL_PATH):
+            logger.info(f"[BirdNET] GCS not available/empty. Downloading from Hugging Face ({MODEL_URL})...")
+            req = urllib.request.Request(MODEL_URL, headers={'User-Agent': 'Mozilla/5.0'})
+            with urllib.request.urlopen(req) as response, open(MODEL_PATH, 'wb') as out_file:
+                out_file.write(response.read())
+            logger.info("[BirdNET] Model downloaded successfully from Hugging Face.")
 
-    # 2. Download Labels file
-    if not os.path.exists(LABELS_PATH):
-        print(f"Downloading BirdNET Labels to {LABELS_PATH}...")
-        req = urllib.request.Request(LABELS_URL, headers={'User-Agent': 'Mozilla/5.0'})
-        with urllib.request.urlopen(req) as response, open(LABELS_PATH, 'wb') as out_file:
-            out_file.write(response.read())
-        print("Labels downloaded successfully.")
+    # 2. Ensure Labels file
+    if not os.path.exists(LABELS_PATH) or os.path.getsize(LABELS_PATH) < 1000:
+        logger.info("[BirdNET] Checking GCS for BirdNET Labels...")
+        synced_labels = ensure_model_file("birdnet/BirdNET_GLOBAL_6K_V2.4_Labels.txt", LABELS_PATH, min_bytes=1000)
+        if not synced_labels or not os.path.exists(LABELS_PATH):
+            logger.info(f"[BirdNET] Downloading labels from Hugging Face ({LABELS_URL})...")
+            req = urllib.request.Request(LABELS_URL, headers={'User-Agent': 'Mozilla/5.0'})
+            with urllib.request.urlopen(req) as response, open(LABELS_PATH, 'wb') as out_file:
+                out_file.write(response.read())
+            logger.info("[BirdNET] Labels downloaded successfully from Hugging Face.")
+
+    # 3. Ensure taxonomy.json from GCS if available
+    if not os.path.exists(TAXONOMY_PATH) or os.path.getsize(TAXONOMY_PATH) < 100:
+        ensure_model_file("birdnet/taxonomy.json", TAXONOMY_PATH, min_bytes=100)
 
     # 3. Create metadata.json if missing
     metadata_path = os.path.join(MODEL_DIR, "metadata.json")

@@ -40,36 +40,50 @@ CATEGORY_KEYWORDS = {
     ]
 }
 
+from app.services.ai.gcs_model_sync import ensure_model_file
+
 def ensure_yamnet_weights():
+    """
+    Ensures YAMNet model weights and label files exist locally.
+    1. Checks local cache.
+    2. Preferred source: Google Cloud Storage.
+    3. Fallback source: Hugging Face.
+    """
     os.makedirs(WEIGHTS_DIR, exist_ok=True)
 
     headers = {"User-Agent": "Mozilla/5.0"}
     if not os.path.exists(MODEL_PATH) or os.path.getsize(MODEL_PATH) < 1000:
-        logger.info(f"Downloading YAMNet TFLite weights to {MODEL_PATH}...")
-        try:
-            import requests
-            r = requests.get(MODEL_URL, headers=headers, timeout=30)
-            if r.status_code == 200:
-                with open(MODEL_PATH, "wb") as f:
-                    f.write(r.content)
-            else:
-                urllib.request.urlretrieve(MODEL_URL, MODEL_PATH)
-        except Exception as e:
-            logger.error(f"Failed to download YAMNet model weights: {e}")
-            raise IOError(f"Failed to download YAMNet model weights: {e}")
+        logger.info("[YAMNet] Checking GCS for YAMNet TFLite weights...")
+        synced = ensure_model_file("yamnet/yamnet.tflite", MODEL_PATH, min_bytes=1000)
+        if not synced or not os.path.exists(MODEL_PATH):
+            logger.info(f"[YAMNet] Downloading YAMNet TFLite weights from Hugging Face ({MODEL_URL})...")
+            try:
+                import requests
+                r = requests.get(MODEL_URL, headers=headers, timeout=30)
+                if r.status_code == 200:
+                    with open(MODEL_PATH, "wb") as f:
+                        f.write(r.content)
+                else:
+                    urllib.request.urlretrieve(MODEL_URL, MODEL_PATH)
+            except Exception as e:
+                logger.error(f"[YAMNet] Failed to download YAMNet model weights: {e}")
+                raise IOError(f"Failed to download YAMNet model weights: {e}")
 
     if not os.path.exists(LABELS_PATH) or os.path.getsize(LABELS_PATH) < 100:
-        logger.info(f"Downloading YAMNet label file to {LABELS_PATH}...")
-        try:
-            import requests
-            r = requests.get(LABELS_URL, headers=headers, timeout=30)
-            if r.status_code == 200:
-                with open(LABELS_PATH, "wb") as f:
-                    f.write(r.content)
-            else:
-                urllib.request.urlretrieve(LABELS_URL, LABELS_PATH)
-        except Exception as e:
-            logger.error(f"Failed to download YAMNet labels: {e}")
+        logger.info("[YAMNet] Checking GCS for YAMNet labels...")
+        synced_labels = ensure_model_file("yamnet/yamnet_labels.txt", LABELS_PATH, min_bytes=100)
+        if not synced_labels or not os.path.exists(LABELS_PATH):
+            logger.info(f"[YAMNet] Downloading YAMNet label file from Hugging Face ({LABELS_URL})...")
+            try:
+                import requests
+                r = requests.get(LABELS_URL, headers=headers, timeout=30)
+                if r.status_code == 200:
+                    with open(LABELS_PATH, "wb") as f:
+                        f.write(r.content)
+                else:
+                    urllib.request.urlretrieve(LABELS_URL, LABELS_PATH)
+            except Exception as e:
+                logger.error(f"[YAMNet] Failed to download YAMNet labels: {e}")
 
 def run_yamnet_inference(audio_path: str) -> dict:
     """

@@ -57,11 +57,33 @@ def run_audio_inference(audio_path: str, analysis_type: str = "bird") -> dict:
         return res
     elif analysis_type == "wildlife":
         logger.info("Selected inference engine: AnimalCLAP")
-        print("INFO: Selected inference engine: AnimalCLAP")
-        animalclap_res = run_animalclap_inference(audio_path)
-        raw_conf = animalclap_res.get("confidence", 0.0)
-        # Normalize confidence to decimal fraction [0.0, 1.0] regardless of scale (e.g. 25.2 vs 0.252)
-        conf = float(raw_conf) / 100.0 if float(raw_conf) > 1.0 else float(raw_conf)
+        try:
+            animalclap_res = run_animalclap_inference(audio_path)
+            raw_conf = animalclap_res.get("confidence", 0.0)
+            conf = float(raw_conf) / 100.0 if float(raw_conf) > 1.0 else float(raw_conf)
+        except Exception as e:
+            logger.warning(f"AnimalCLAP execution error: {e}. Gracefully falling back to YAMNet.")
+            print(f"WARNING: AnimalCLAP execution error: {e}. Gracefully falling back to YAMNet.")
+            conf = 0.0
+            animalclap_res = {
+                "detected_species": "Unknown Wildlife",
+                "scientific_name": "N/A",
+                "common_name": "Unknown Wildlife",
+                "confidence": 0.0,
+                "is_low_confidence": True,
+                "confidence_threshold": 60,
+                "status": "Inference Fallback",
+                "reason": f"AnimalCLAP fallback ({e})",
+                "source_model": "YAMNet (Fallback)",
+                "classification_source": "YAMNet",
+                "classification_level": "animal_category",
+                "animal_category": "Unknown Wildlife",
+                "fallback_used": True,
+                "top5_predictions": [],
+                "detected_events": [],
+                "audio_quality": {},
+                "taxonomy": {"species": "N/A", "scientific_name": "N/A", "common_name": "Unknown Wildlife"}
+            }
 
         # 60% Confidence Threshold check for AnimalCLAP (0.60)
         if conf >= 0.60:

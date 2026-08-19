@@ -5,8 +5,11 @@ logger = logging.getLogger(__name__)
 
 import tempfile
 
+from app.services.ai.gcs_model_sync import ensure_model_directory, get_gcs_config
+
 # Ensure cache directories reside safely in temporary/writable location
-CACHE_DIR = os.path.join(tempfile.gettempdir(), ".cache", "speciesnet")
+cfg = get_gcs_config()
+CACHE_DIR = cfg["local_cache_dir"] or os.path.join(tempfile.gettempdir(), ".cache", "speciesnet")
 try:
     os.makedirs(CACHE_DIR, exist_ok=True)
 except Exception:
@@ -20,16 +23,31 @@ _speciesnet_model = None
 
 def get_speciesnet_model():
     """
-    Singleton loader for SpeciesNet v4.0.2a model.
-    Loads the model once into memory and reuses it for requests.
+    Singleton loader for Google SpeciesNet (v4.0.2a) model.
+    Production fallback classifier when ViT confidence < 80%.
+    1. Checks local cache / GCS prepared mirror.
+    2. Falls back to KaggleHub automatic download.
     """
     global _speciesnet_model
     if _speciesnet_model is None:
         try:
-            logger.info("Initializing Google SpeciesNet (v4.0.2a) model...")
+            logger.info("Initializing Google SpeciesNet (v4.0.2a) fallback model...")
             from speciesnet import SpeciesNet
+
+            # Check if GCS-synced local mirror exists or can be downloaded
+            speciesnet_local_dir = os.path.join(CACHE_DIR, "speciesnet_v4_0_2a")
+            model_target = "kaggle:google/speciesnet/pyTorch/v4.0.2a/1"
+
+            # Attempt GCS sync if configured
+            synced_dir = ensure_model_directory("speciesnet/v4.0.2a", speciesnet_local_dir)
+            if synced_dir and os.path.exists(synced_dir) and os.listdir(synced_dir):
+                logger.info(f"[SpeciesNet] Using GCS-prepared local model directory: {synced_dir}")
+                model_target = synced_dir
+            else:
+                logger.info(f"[SpeciesNet] Using upstream KaggleHub source: {model_target}")
+
             _speciesnet_model = SpeciesNet(
-                "kaggle:google/speciesnet/pyTorch/v4.0.2a/1",
+                model_target,
                 components="all",
                 geofence=False
             )

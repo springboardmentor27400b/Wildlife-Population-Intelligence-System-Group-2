@@ -123,26 +123,81 @@ _class_texts = None
 _text_proj = None
 _device = None
 
+import logging
+from app.services.ai.gcs_model_sync import ensure_model_file, ensure_model_directory, get_gcs_config
+
+logger = logging.getLogger("animalclap_engine")
+
+def ensure_animalclap_assets():
+    """
+    Ensures all required AnimalCLAP assets are present locally:
+    1. Hugging Face backbone & RoBERTa snapshots
+    2. Model weights checkpoint (animalclap_epoch020.pth)
+    3. Species traits CSV (species_traits.csv)
+    Checks local files first, then attempts GCS download.
+    """
+    # 1. Hugging Face backbone snapshots
+    backbone_dir = os.path.join(MODEL_DIR, "models--laion--clap-htsat-unfused")
+    roberta_dir = os.path.join(MODEL_DIR, "models--roberta-base")
+
+    if not os.path.exists(backbone_dir) or not os.listdir(backbone_dir):
+        logger.info("[AnimalCLAP] Backbone snapshot missing locally. Checking GCS...")
+        ensure_model_directory("animalclap/models--laion--clap-htsat-unfused", backbone_dir)
+
+    if not os.path.exists(roberta_dir) or not os.listdir(roberta_dir):
+        logger.info("[AnimalCLAP] RoBERTa snapshot missing locally. Checking GCS...")
+        ensure_model_directory("animalclap/models--roberta-base", roberta_dir)
+
+    # 2. Checkpoint weights
+    if not os.path.exists(CKPT_PATH) or os.path.getsize(CKPT_PATH) < 1000000:
+        logger.info("[AnimalCLAP] Model checkpoint missing locally. Checking GCS...")
+        ensure_model_file("animalclap/animalclap_epoch020.pth", CKPT_PATH, min_bytes=10000000)
+
+    # 3. Traits CSV
+    if not os.path.exists(TRAITS_CSV_PATH) or os.path.getsize(TRAITS_CSV_PATH) < 1000:
+        logger.info("[AnimalCLAP] Species traits CSV missing locally. Checking GCS...")
+        ensure_model_file("animalclap/species_traits.csv", TRAITS_CSV_PATH, min_bytes=1000)
+
 def get_animalclap_resources():
     global _model, _class_texts, _text_proj, _device
-    if _model is not None:
+    if _model is not None and _text_proj is not None:
         return _model, _class_texts, _text_proj, _device
 
-    print("Initializing AnimalCLAP Model (HFCLAPContrastive)...")
-    _device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    _model = HFCLAPContrastive().to(_device)
+    # Ensure required model assets are present locally or synced from GCS
+    ensure_animalclap_assets()
 
-    print(f"Loading checkpoint from {CKPT_PATH}...")
+    logger.info("Initializing AnimalCLAP Model (HFCLAPContrastive)...")
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    
+    try:
+        model = HFCLAPContrastive().to(device)
+    except Exception as e:
+        logger.error(f"[AnimalCLAP] Failed to initialize HFCLAPContrastive backbone: {e}")
+        raise
+
+    logger.info(f"Loading checkpoint from {CKPT_PATH}...")
+    if not os.path.exists(CKPT_PATH):
+        raise FileNotFoundError(
+            f"AnimalCLAP checkpoint not found at {CKPT_PATH}. "
+            "Please provide the checkpoint locally or configure GCS_MODEL_BUCKET to download it."
+        )
+
     sd = torch.load(CKPT_PATH, map_location="cpu")
     if isinstance(sd, dict) and "state_dict" in sd:
         sd = sd["state_dict"]
     sd = {k.replace("module.", ""): v for k, v in sd.items()}
-    missing, unexpected = _model.load_state_dict(sd, strict=False)
-    print(f"AnimalCLAP weights loaded. Missing keys: {len(missing)}, Unexpected keys: {len(unexpected)}")
-    _model.eval()
+    missing, unexpected = model.load_state_dict(sd, strict=False)
+    logger.info(f"AnimalCLAP weights loaded. Missing keys: {len(missing)}, Unexpected keys: {len(unexpected)}")
+    model.eval()
 
     # Load candidate species list
-    print(f"Loading candidate species from {TRAITS_CSV_PATH}...")
+    logger.info(f"Loading candidate species from {TRAITS_CSV_PATH}...")
+    if not os.path.exists(TRAITS_CSV_PATH):
+        raise FileNotFoundError(
+            f"AnimalCLAP species traits CSV not found at {TRAITS_CSV_PATH}. "
+            "Please provide species_traits.csv locally or configure GCS_MODEL_BUCKET to download it."
+        )
+
     traits_df = pd.read_csv(TRAITS_CSV_PATH)
     name_col = None
     for c in ["common_name", "common", "name", "scientific_name"]:
@@ -152,22 +207,27 @@ def get_animalclap_resources():
     if name_col is None:
         raise ValueError(f"Couldn't find a name column in species_traits.csv. Columns: {list(traits_df.columns)}")
 
-    _class_texts = sorted(set(traits_df[name_col].dropna().astype(str).str.strip()))
-    _class_texts = [c for c in _class_texts if c]
-    print(f"Loaded {len(_class_texts)} candidate species texts.")
+    class_texts = sorted(set(traits_df[name_col].dropna().astype(str).str.strip()))
+    class_texts = [c for c in class_texts if c]
+    logger.info(f"Loaded {len(class_texts)} candidate species texts.")
 
     # Encode all candidate species names (batched)
-    print("Pre-computing text embeddings with text_head ProjectionMLP...")
+    logger.info("Pre-computing text embeddings with text_head ProjectionMLP...")
     text_feats = []
     B = 256
     with torch.no_grad():
-        for i in range(0, len(_class_texts), B):
-            batch = _class_texts[i:i+B]
-            feat = _model.encode_text(batch)
-            text_feats.append(_model.text_head(feat))
-        _text_proj = torch.cat(text_feats, dim=0)
-        _text_proj = nn.functional.normalize(_text_proj, dim=-1)
-    print("Candidate text projections computed successfully.")
+        for i in range(0, len(class_texts), B):
+            batch = class_texts[i:i+B]
+            feat = model.encode_text(batch)
+            text_feats.append(model.text_head(feat))
+        text_proj = torch.cat(text_feats, dim=0)
+        text_proj = nn.functional.normalize(text_proj, dim=-1)
+    logger.info("Candidate text projections computed successfully.")
+
+    _model = model
+    _class_texts = class_texts
+    _text_proj = text_proj
+    _device = device
 
     return _model, _class_texts, _text_proj, _device
 
