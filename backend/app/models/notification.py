@@ -47,6 +47,11 @@ class Notification(Base):
         default=False,
         nullable=False
     )
+    is_resolved: Mapped[bool] = mapped_column(
+        Boolean,
+        default=False,
+        nullable=False
+    )
     recipient_role: Mapped[str | None] = mapped_column(
         String(50),
         nullable=True

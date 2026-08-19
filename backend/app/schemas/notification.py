@@ -20,4 +20,5 @@ class NotificationResponse(NotificationBase):
     model_config = ConfigDict(from_attributes=True)
     id: uuid.UUID
     is_read: bool
+    is_resolved: bool
     created_at: datetime

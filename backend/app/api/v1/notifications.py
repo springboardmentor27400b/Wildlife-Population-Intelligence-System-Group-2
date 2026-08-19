@@ -48,6 +48,23 @@ def mark_notification_as_read(
         )
     return notif
 
+@router.put("/{notification_id}/unread", response_model=NotificationResponse)
+def mark_notification_as_unread(
+    notification_id: uuid.UUID,
+    current_user: User = Depends(get_current_active_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Mark a specific notification as unread.
+    """
+    notif = notification_service.mark_as_unread(db, notification_id)
+    if not notif:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Notification log not found."
+        )
+    return notif
+
 @router.put("/read-all", response_model=dict)
 def mark_all_notifications_as_read(
     current_user: User = Depends(get_current_active_user),
@@ -61,3 +78,37 @@ def mark_all_notifications_as_read(
         "message": "All notifications marked as read.",
         "count": count
     }
+
+@router.put("/{notification_id}/resolve", response_model=NotificationResponse)
+def mark_notification_as_resolved(
+    notification_id: uuid.UUID,
+    current_user: User = Depends(get_current_active_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Mark a specific notification as resolved.
+    """
+    notif = notification_service.mark_as_resolved(db, notification_id)
+    if not notif:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Notification log not found."
+        )
+    return notif
+
+@router.delete("/{notification_id}", response_model=dict)
+def delete_notification(
+    notification_id: uuid.UUID,
+    current_user: User = Depends(get_current_active_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Delete a specific notification log.
+    """
+    success = notification_service.delete_notification(db, notification_id)
+    if not success:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Notification log not found."
+        )
+    return {"message": "Notification log deleted successfully."}

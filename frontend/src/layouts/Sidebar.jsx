@@ -23,19 +23,25 @@ import { useAuth } from '../hooks/useAuth';
 export const Sidebar = ({ isOpen, toggleSidebar }) => {
   const { user, logout } = useAuth();
 
+  const monitoringItems = [
+    { name: 'Dashboard', path: '/', icon: LayoutDashboard },
+    { name: 'Surveys', path: '/surveys', icon: Milestone },
+    { name: 'Monitoring Sites', path: '/monitoring-sites', icon: MapPin },
+    { name: 'Camera Traps', path: '/camera-traps', icon: Camera },
+    { name: 'Audio Sensors', path: '/audio-sensors', icon: Volume2 },
+    { name: 'Observations', path: '/observations', icon: Eye },
+    { name: 'Notifications', path: '/notifications', icon: Bell },
+    { name: 'Reports', path: '/reports', icon: BookOpen }
+  ];
+
+  if (user?.role === 'Administrator') {
+    monitoringItems.push({ name: 'Users & Roles', path: '/users', icon: User });
+  }
+
   const sections = [
     {
       title: 'WILDLIFE MONITORING',
-      items: [
-        { name: 'Dashboard', path: '/', icon: LayoutDashboard },
-        { name: 'Surveys', path: '/surveys', icon: Milestone },
-        { name: 'Monitoring Sites', path: '/monitoring-sites', icon: MapPin },
-        { name: 'Camera Traps', path: '/camera-traps', icon: Camera },
-        { name: 'Audio Sensors', path: '/audio-sensors', icon: Volume2 },
-        { name: 'Observations', path: '/observations', icon: Eye },
-        { name: 'Notifications', path: '/notifications', icon: Bell },
-        { name: 'Reports', path: '/reports', icon: BookOpen }
-      ]
+      items: monitoringItems
     },
     {
       title: 'AI SPECIES INTELLIGENCE',

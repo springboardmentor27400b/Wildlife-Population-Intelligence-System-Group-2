@@ -76,6 +76,30 @@ class NotificationService:
             db.refresh(notif)
         return notif
 
+    def mark_as_unread(self, db: Session, notification_id: uuid.UUID) -> Optional[Notification]:
+        notif = db.query(Notification).filter(Notification.id == notification_id).first()
+        if notif:
+            notif.is_read = False
+            db.commit()
+            db.refresh(notif)
+        return notif
+
+    def mark_as_resolved(self, db: Session, notification_id: uuid.UUID) -> Optional[Notification]:
+        notif = db.query(Notification).filter(Notification.id == notification_id).first()
+        if notif:
+            notif.is_resolved = True
+            db.commit()
+            db.refresh(notif)
+        return notif
+
+    def delete_notification(self, db: Session, notification_id: uuid.UUID) -> bool:
+        notif = db.query(Notification).filter(Notification.id == notification_id).first()
+        if notif:
+            db.delete(notif)
+            db.commit()
+            return True
+        return False
+
     def mark_all_as_read(self, db: Session, role: Optional[str] = None) -> int:
         query = db.query(Notification).filter(Notification.is_read == False)
         if role and role != "Administrator":

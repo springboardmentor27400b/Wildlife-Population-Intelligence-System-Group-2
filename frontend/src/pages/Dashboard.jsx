@@ -67,6 +67,8 @@ export const Dashboard = () => {
             observations={observations}
             sites={sites}
             speciesList={speciesList}
+            cameras={cameras}
+            sensors={sensors}
             loading={loading}
           />
         );
@@ -78,6 +80,8 @@ export const Dashboard = () => {
             observations={observations}
             sites={sites}
             speciesList={speciesList}
+            cameras={cameras}
+            sensors={sensors}
             loading={loading}
           />
         );
@@ -101,6 +105,7 @@ export const Dashboard = () => {
             fetchMetrics={fetchMetrics}
             observations={observations}
             sites={sites}
+            speciesList={speciesList}
             cameras={cameras}
             sensors={sensors}
             loading={loading}

@@ -40,6 +40,7 @@ import HabitatIntelligence from '../pages/HabitatIntelligence';
 import ConservationRecommendation from '../pages/ConservationRecommendation';
 import EcosystemHealth from '../pages/EcosystemHealth';
 import Notifications from '../pages/Notifications';
+import UsersAdmin from '../pages/UsersAdmin';
 
 export const AppRoutes = () => {
   const allRoles = ['Administrator', 'Wildlife Researcher', 'Conservation Officer', 'Forest Department Officer'];
@@ -182,6 +183,16 @@ export const AppRoutes = () => {
 
         {/* Profile */}
         <Route path="profile" element={<Profile />} />
+
+        {/* Admin User Management */}
+        <Route
+          path="users"
+          element={
+            <ProtectedRoute allowedRoles={['Administrator']}>
+              <UsersAdmin />
+            </ProtectedRoute>
+          }
+        />
 
         {/* AI Species Intelligence Workspaces */}
         <Route path="species-recognition" element={<SpeciesRecognition />} />

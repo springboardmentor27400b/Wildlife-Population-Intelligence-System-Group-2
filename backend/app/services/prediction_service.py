@@ -93,6 +93,9 @@ class PredictionService:
         if media_file.observation_id:
             observation = db.query(Observation).filter(Observation.id == media_file.observation_id).first()
         
+        if self.model is None:
+            raise RuntimeError("YOLO model weights are missing or failed to load. Species recognition inference is unavailable.")
+
         # 1. Run YOLOv8 or fallback simulation
         if self.model is not None:
             try:

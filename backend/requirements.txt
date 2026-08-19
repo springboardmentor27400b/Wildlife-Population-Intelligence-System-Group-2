@@ -12,3 +12,14 @@ python-dotenv==1.0.1
 pytest==8.1.1
 httpx==0.27.0
 openpyxl==3.1.5
+reportlab==5.0.0
+ultralytics==8.4.115
+opencv-python-headless==5.0.0.93
+--extra-index-url https://download.pytorch.org/whl/cpu
+torch==2.1.2+cpu
+torchvision==0.16.2+cpu
+librosa==0.11.0
+soundfile==0.14.0
+scipy==1.17.1
+scikit-learn==1.9.0
+joblib==1.5.3

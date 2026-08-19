@@ -152,15 +152,17 @@ export const Reports = () => {
         return true;
       });
       const sightedCount = obsFilter.reduce((sum, o) => sum + (o.count || 0), 0);
-      const profile = speciesList.find(sp => sp.common_name?.toLowerCase() === selectedSpecies.toLowerCase() || sp.scientific_name?.toLowerCase() === selectedSpecies.toLowerCase());
+      const profile = selectedSpecies 
+        ? speciesList.find(sp => sp.common_name?.toLowerCase() === selectedSpecies.toLowerCase() || sp.scientific_name?.toLowerCase() === selectedSpecies.toLowerCase())
+        : null;
       
       summary = {
         title: 'Species Population Report',
         speciesName: selectedSpecies || 'All Sighted Species',
-        scientificName: profile?.scientific_name || 'N/A',
+        scientificName: selectedSpecies ? (profile?.scientific_name || 'N/A') : 'All Sighted / Multi-Species',
         totalSightings: obsFilter.length,
         sightedCount,
-        trend: profile?.population_trend || 'N/A',
+        trend: selectedSpecies ? (profile?.population_trend || 'N/A') : 'Varies by Species',
         distributionSites: Array.from(new Set(obsFilter.map(o => o.site_id))).length
       };
     } else if (reportType === 'biodiversity') {

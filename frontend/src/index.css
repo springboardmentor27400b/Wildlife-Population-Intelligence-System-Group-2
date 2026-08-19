@@ -8,6 +8,50 @@
   }
 }
 
+@layer components {
+  /* Premium Glassmorphic Cards */
+  .premium-card {
+    @apply relative overflow-hidden bg-gradient-to-br from-white via-slate-50/40 to-slate-50/70 
+           dark:from-forest-900 dark:via-forest-900/95 dark:to-forest-950/80 
+           border border-slate-200 dark:border-forest-850 
+           rounded-2xl p-4 flex flex-col justify-between 
+           transition-all duration-300 ease-out 
+           hover:-translate-y-1 hover:shadow-lg hover:shadow-emerald-500/5 hover:border-emerald-500/40 
+           active:scale-[0.98];
+  }
+  
+  .premium-card-glow {
+    @apply absolute -top-10 -right-10 w-24 h-24 bg-emerald-500/5 rounded-full filter blur-xl 
+           group-hover:scale-150 group-hover:bg-emerald-500/10 transition-all duration-500 pointer-events-none;
+  }
+  
+  .premium-icon-container {
+    @apply p-2.5 bg-gradient-to-br from-slate-100 to-slate-200/50 
+           dark:from-forest-950 dark:to-forest-900/60 rounded-xl 
+           group-hover:from-emerald-500 group-hover:to-teal-600 
+           group-hover:text-white transition-all duration-300 
+           transform group-hover:scale-105;
+  }
+  
+  .premium-icon {
+    @apply w-5 h-5 text-emerald-600 dark:text-emerald-400 
+           group-hover:text-white transition-colors duration-300;
+  }
+
+  /* Command Center Category Headers */
+  .category-header {
+    @apply flex items-center gap-2 pb-1 border-b border-slate-200 dark:border-forest-850 mb-3 mt-4;
+  }
+
+  .category-title {
+    @apply text-[10px] font-black uppercase tracking-wider font-mono text-emerald-600 dark:text-emerald-400;
+  }
+
+  .category-line {
+    @apply h-[1px] flex-grow bg-gradient-to-r from-emerald-500/25 to-transparent;
+  }
+}
+
 /* Custom Slide-In Animation for Toast notifications */
 @keyframes slide-in {
   from {

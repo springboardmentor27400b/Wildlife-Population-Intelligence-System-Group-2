@@ -9,11 +9,13 @@ if dotenv_path.exists():
     load_dotenv(dotenv_path)
 else:
     load_dotenv()
-
 class Settings:
     PROJECT_NAME: str = "Wildlife Population Intelligence System"
     API_V1_STR: str = "/api/v1"
-    
+    BACKEND_CORS_ORIGINS: list = os.getenv(
+        "BACKEND_CORS_ORIGINS",
+        "http://localhost:5173,http://127.0.0.1:5173,http://localhost:3000"
+    ).split(",")
     # Database
     POSTGRES_SERVER: str = os.getenv("POSTGRES_SERVER", "localhost")
     POSTGRES_USER: str = os.getenv("POSTGRES_USER", "postgres")

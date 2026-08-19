@@ -58,9 +58,7 @@ class AudioClassifier:
         ]
         """
         if self.model is None or self.label_encoder is None:
-            # Fallback mock prediction if weights could not be loaded
-            logger.warning("Audio model not loaded. Returning mock top-5 prediction.")
-            return self._mock_prediction()
+            raise RuntimeError("EfficientNet-B0 audio weights or label encoder are missing. Audio recognition inference is unavailable.")
             
         try:
             with torch.no_grad():

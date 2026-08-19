@@ -1,11 +1,11 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { AlertTriangle, ShieldAlert, Heart, Compass, ListChecks, ArrowRight, Eye } from 'lucide-react';
+import { AlertTriangle, ShieldAlert, Heart, Compass, ListChecks, ArrowRight, Eye, Milestone, MapPin, Camera, Volume2, BookOpen, Bell, Map, TrendingUp, Sprout, Shield, User, ArrowUpRight } from 'lucide-react';
 import Card from '../../components/common/Card';
 import PieChart from '../../components/charts/PieChart';
 import BarChart from '../../components/charts/BarChart';
 
-export const ConservationDashboardView = ({ observations, sites, speciesList, loading }) => {
+export const ConservationDashboardView = ({ observations, sites, speciesList, cameras = [], sensors = [], loading }) => {
   // Get observed species list
   const observedNames = Array.from(new Set(observations.map(o => o.species).filter(Boolean)));
   const observedSpecies = speciesList.filter(sp => 
@@ -201,28 +201,354 @@ export const ConservationDashboardView = ({ observations, sites, speciesList, lo
           </div>
         </Card>
 
-        {/* Vulnerable sites & Quick links */}
+        {/* Vulnerable sites & Diagnostics */}
         <Card className="p-6 bg-white dark:bg-forest-900 border border-slate-200 dark:border-forest-850 shadow-sm flex flex-col justify-between">
           <div className="space-y-4">
             <h3 className="text-xs font-semibold font-outfit text-slate-700 dark:text-slate-200 uppercase tracking-wider flex items-center gap-1.5">
               <Heart className="w-4.5 h-4.5 text-rose-500" />
-              Conservation Operations Links
+              Conservation Status Diagnostics
             </h3>
-            <div className="space-y-2 text-xs">
-              <Link to="/conservation" className="block p-3 rounded-xl bg-slate-50 dark:bg-forest-950 border hover:border-emerald-500 hover:text-emerald-700 transition-colors">
-                <span className="font-bold block">Conservation Recommendation</span>
-                <span className="text-[10px] text-slate-400">Establish anti-poaching boundaries and manage priority triggers.</span>
-              </Link>
-              <Link to="/health" className="block p-3 rounded-xl bg-slate-50 dark:bg-forest-955 border hover:border-emerald-500 hover:text-emerald-700 transition-colors">
-                <span className="font-bold block">Ecosystem Health Dashboard</span>
-                <span className="text-[10px] text-slate-400">View overall biological health indices and trigger alarms.</span>
-              </Link>
+            <div className="space-y-2.5 text-xs">
+              <div className="flex justify-between items-center p-2.5 bg-slate-50 dark:bg-forest-955 rounded-xl border">
+                <span className="font-semibold text-slate-750">Ecosystem Health</span>
+                <span className="px-2 py-0.5 rounded text-[9px] font-bold bg-emerald-100 text-emerald-805">Good</span>
+              </div>
+              <div className="flex justify-between items-center p-2.5 bg-slate-50 dark:bg-forest-955 rounded-xl border">
+                <span className="font-semibold text-slate-750">Decline Alarm Feed</span>
+                <span className={`px-2 py-0.5 rounded text-[9px] font-bold ${declineCount > 0 ? 'bg-amber-100 text-amber-805' : 'bg-emerald-100 text-emerald-805'}`}>
+                  {declineCount} Species Warning
+                </span>
+              </div>
+              <div className="flex justify-between items-center p-2.5 bg-slate-50 dark:bg-forest-955 rounded-xl border">
+                <span className="font-semibold text-slate-750">Vulnerable Sites</span>
+                <span className={`px-2 py-0.5 rounded text-[9px] font-bold ${vulnerableSitesCount > 0 ? 'bg-rose-100 text-rose-805' : 'bg-emerald-100 text-emerald-805'}`}>
+                  {vulnerableSitesCount} Site Alerts
+                </span>
+              </div>
             </div>
           </div>
           <div className="border-t border-slate-100 dark:border-forest-800 pt-4 mt-6 text-center text-[10px] text-slate-400 font-mono">
             Conservation Officer Control Port
           </div>
         </Card>
+      </div>
+
+      {/* QUICK ACTIONS COMMAND CENTER */}
+      <div className="space-y-4 border-t pt-6 border-slate-200 dark:border-forest-850">
+        <h3 className="text-sm font-bold font-outfit text-slate-800 dark:text-slate-200 uppercase tracking-wider flex items-center gap-2">
+          <Shield className="w-5 h-5 text-emerald-600" />
+          Conservation Command Center
+        </h3>
+        
+        {/* THREATS & CONSERVATION */}
+        <div className="space-y-2">
+          <div className="category-header">
+            <h4 className="category-title">THREAT and CONSERVATION MANAGEMENT</h4>
+            <div className="category-line" />
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+            <Link to="/conservation" className="group premium-card">
+              <div className="premium-card-glow" />
+              <div>
+                <div className="flex justify-between items-start">
+                  <div className="premium-icon-container">
+                    <AlertTriangle className="premium-icon" />
+                  </div>
+                  <ArrowUpRight className="w-3.5 h-3.5 text-slate-350 group-hover:text-emerald-600 transition-colors" />
+                </div>
+                <div className="mt-3">
+                  <span className="font-bold text-xs text-slate-855 dark:text-slate-250 block">Threat Monitoring</span>
+                  <span className="text-[10px] text-slate-400 mt-1 block">Anti-poaching and conflict logs</span>
+                </div>
+              </div>
+            </Link>
+            <Link to="/conservation" className="group premium-card">
+              <div className="premium-card-glow" />
+              <div>
+                <div className="flex justify-between items-start">
+                  <div className="premium-icon-container">
+                    <ShieldAlert className="premium-icon" />
+                  </div>
+                  <span className="absolute top-3 right-8 bg-emerald-100 text-emerald-800 dark:bg-emerald-950/65 dark:text-emerald-400 px-1.5 py-0.5 rounded text-[9px] font-mono font-bold">{criticalSpeciesCount} Sighted</span>
+                </div>
+                <div className="mt-3">
+                  <span className="font-bold text-xs text-slate-855 dark:text-slate-250 block">Endangered Species</span>
+                  <span className="text-[10px] text-slate-400 mt-1 block">Status lists details dashboard</span>
+                </div>
+              </div>
+            </Link>
+            <Link to="/conservation" className="group premium-card">
+              <div className="premium-card-glow" />
+              <div>
+                <div className="flex justify-between items-start">
+                  <div className="premium-icon-container">
+                    <Shield className="premium-icon" />
+                  </div>
+                  <ArrowUpRight className="w-3.5 h-3.5 text-slate-350 group-hover:text-emerald-600 transition-colors" />
+                </div>
+                <div className="mt-3">
+                  <span className="font-bold text-xs text-slate-855 dark:text-slate-250 block">Conservation Priorities</span>
+                  <span className="text-[10px] text-slate-400 mt-1 block">Establish target recovery triggers</span>
+                </div>
+              </div>
+            </Link>
+            <Link to="/conservation" className="group premium-card">
+              <div className="premium-card-glow" />
+              <div>
+                <div className="flex justify-between items-start">
+                  <div className="premium-icon-container">
+                    <Shield className="premium-icon" />
+                  </div>
+                  <ArrowUpRight className="w-3.5 h-3.5 text-slate-350 group-hover:text-emerald-600 transition-colors" />
+                </div>
+                <div className="mt-3">
+                  <span className="font-bold text-xs text-slate-855 dark:text-slate-250 block">Recommendations</span>
+                  <span className="text-[10px] text-slate-400 mt-1 block">Actions suggested by species status</span>
+                </div>
+              </div>
+            </Link>
+            <Link to="/conservation" className="group premium-card">
+              <div className="premium-card-glow" />
+              <div>
+                <div className="flex justify-between items-start">
+                  <div className="premium-icon-container">
+                    <Shield className="premium-icon" />
+                  </div>
+                  <ArrowUpRight className="w-3.5 h-3.5 text-slate-350 group-hover:text-emerald-600 transition-colors" />
+                </div>
+                <div className="mt-3">
+                  <span className="font-bold text-xs text-slate-855 dark:text-slate-250 block">Restoration Actions</span>
+                  <span className="text-[10px] text-slate-400 mt-1 block">Track local active reintroductions</span>
+                </div>
+              </div>
+            </Link>
+          </div>
+        </div>
+
+        {/* WILDLIFE INTELLIGENCE */}
+        <div className="space-y-2 pt-2">
+          <div className="category-header">
+            <h4 className="category-title">WILDLIFE INTELLIGENCE</h4>
+            <div className="category-line" />
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+            <Link to="/species" className="group premium-card">
+              <div className="premium-card-glow" />
+              <div>
+                <div className="flex justify-between items-start">
+                  <div className="premium-icon-container">
+                    <Eye className="premium-icon" />
+                  </div>
+                  <span className="absolute top-3 right-8 bg-emerald-100 text-emerald-800 dark:bg-emerald-955/65 dark:text-emerald-400 px-1.5 py-0.5 rounded text-[9px] font-mono font-bold">{speciesList.length} Species</span>
+                </div>
+                <div className="mt-3">
+                  <span className="font-bold text-xs text-slate-855 dark:text-slate-250 block">Species Registry</span>
+                  <span className="text-[10px] text-slate-400 mt-1 block">General profiles taxonomy</span>
+                </div>
+              </div>
+            </Link>
+            <Link to="/research-trends" className="group premium-card">
+              <div className="premium-card-glow" />
+              <div>
+                <div className="flex justify-between items-start">
+                  <div className="premium-icon-container">
+                    <TrendingUp className="premium-icon" />
+                  </div>
+                  <ArrowUpRight className="w-3.5 h-3.5 text-slate-350 group-hover:text-emerald-600 transition-colors" />
+                </div>
+                <div className="mt-3">
+                  <span className="font-bold text-xs text-slate-855 dark:text-slate-250 block">Population Trends</span>
+                  <span className="text-[10px] text-slate-400 mt-1 block">Demographics regressions</span>
+                </div>
+              </div>
+            </Link>
+            <Link to="/ecological" className="group premium-card">
+              <div className="premium-card-glow" />
+              <div>
+                <div className="flex justify-between items-start">
+                  <div className="premium-icon-container">
+                    <Sprout className="premium-icon" />
+                  </div>
+                  <ArrowUpRight className="w-3.5 h-3.5 text-slate-350 group-hover:text-emerald-600 transition-colors" />
+                </div>
+                <div className="mt-3">
+                  <span className="font-bold text-xs text-slate-855 dark:text-slate-250 block">Biodiversity</span>
+                  <span className="text-[10px] text-slate-400 mt-1 block">Shannon & Simpson metrics</span>
+                </div>
+              </div>
+            </Link>
+            <Link to="/habitat" className="group premium-card">
+              <div className="premium-card-glow" />
+              <div>
+                <div className="flex justify-between items-start">
+                  <div className="premium-icon-container">
+                    <Compass className="premium-icon" />
+                  </div>
+                  <ArrowUpRight className="w-3.5 h-3.5 text-slate-350 group-hover:text-emerald-600 transition-colors" />
+                </div>
+                <div className="mt-3">
+                  <span className="font-bold text-xs text-slate-855 dark:text-slate-250 block">Habitat Suitability</span>
+                  <span className="text-[10px] text-slate-400 mt-1 block">Assess ecosystems health parameters</span>
+                </div>
+              </div>
+            </Link>
+            <Link to="/ecosystem-health" className="group premium-card">
+              <div className="premium-card-glow" />
+              <div>
+                <div className="flex justify-between items-start">
+                  <div className="premium-icon-container">
+                    <Heart className="premium-icon" />
+                  </div>
+                  <ArrowUpRight className="w-3.5 h-3.5 text-slate-350 group-hover:text-emerald-600 transition-colors" />
+                </div>
+                <div className="mt-3">
+                  <span className="font-bold text-xs text-slate-855 dark:text-slate-250 block">Wildlife Health</span>
+                  <span className="text-[10px] text-slate-400 mt-1 block">Eco parameters score</span>
+                </div>
+              </div>
+            </Link>
+          </div>
+        </div>
+
+        {/* FIELD & GIS */}
+        <div className="space-y-2 pt-2">
+          <div className="category-header">
+            <h4 className="category-title">FIELD OPERATIONS and GIS</h4>
+            <div className="category-line" />
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+            <Link to="/observations" className="group premium-card">
+              <div className="premium-card-glow" />
+              <div>
+                <div className="flex justify-between items-start">
+                  <div className="premium-icon-container">
+                    <Eye className="premium-icon" />
+                  </div>
+                  <span className="absolute top-3 right-8 bg-emerald-100 text-emerald-800 dark:bg-emerald-955/65 dark:text-emerald-400 px-1.5 py-0.5 rounded text-[9px] font-mono font-bold">{observations.length} Logs</span>
+                </div>
+                <div className="mt-3">
+                  <span className="font-bold text-xs text-slate-855 dark:text-slate-250 block">Observations</span>
+                  <span className="text-[10px] text-slate-400 mt-1 block">View dynamic field records</span>
+                </div>
+              </div>
+            </Link>
+            <Link to="/monitoring-sites" className="group premium-card">
+              <div className="premium-card-glow" />
+              <div>
+                <div className="flex justify-between items-start">
+                  <div className="premium-icon-container">
+                    <MapPin className="premium-icon" />
+                  </div>
+                  <span className="absolute top-3 right-8 bg-emerald-100 text-emerald-800 dark:bg-emerald-955/65 dark:text-emerald-400 px-1.5 py-0.5 rounded text-[9px] font-mono font-bold">{sites.length} Sites</span>
+                </div>
+                <div className="mt-3">
+                  <span className="font-bold text-xs text-slate-855 dark:text-slate-250 block">Monitoring Sites</span>
+                  <span className="text-[10px] text-slate-400 mt-1 block">Locate territorial coordinates</span>
+                </div>
+              </div>
+            </Link>
+            <Link to="/camera-traps" className="group premium-card">
+              <div className="premium-card-glow" />
+              <div>
+                <div className="flex justify-between items-start">
+                  <div className="premium-icon-container">
+                    <Camera className="premium-icon" />
+                  </div>
+                  <span className="absolute top-3 right-8 bg-emerald-100 text-emerald-800 dark:bg-emerald-950/65 dark:text-emerald-400 px-1.5 py-0.5 rounded text-[9px] font-mono font-bold">{cameras.length} Active</span>
+                </div>
+                <div className="mt-3">
+                  <span className="font-bold text-xs text-slate-855 dark:text-slate-250 block">Camera Traps</span>
+                  <span className="text-[10px] text-slate-400 mt-1 block">Review camera telemetry diagnostic</span>
+                </div>
+              </div>
+            </Link>
+            <Link to="/audio-sensors" className="group premium-card">
+              <div className="premium-card-glow" />
+              <div>
+                <div className="flex justify-between items-start">
+                  <div className="premium-icon-container">
+                    <Volume2 className="premium-icon" />
+                  </div>
+                  <span className="absolute top-3 right-8 bg-emerald-100 text-emerald-800 dark:bg-emerald-955/65 dark:text-emerald-400 px-1.5 py-0.5 rounded text-[9px] font-mono font-bold">{sensors.length} Active</span>
+                </div>
+                <div className="mt-3">
+                  <span className="font-bold text-xs text-slate-855 dark:text-slate-250 block">Audio Sensors</span>
+                  <span className="text-[10px] text-slate-400 mt-1 block">Acoustic sensors list audit</span>
+                </div>
+              </div>
+            </Link>
+            <Link to="/map" className="group premium-card">
+              <div className="premium-card-glow" />
+              <div>
+                <div className="flex justify-between items-start">
+                  <div className="premium-icon-container">
+                    <Map className="premium-icon" />
+                  </div>
+                  <ArrowUpRight className="w-3.5 h-3.5 text-slate-350 group-hover:text-emerald-600 transition-colors" />
+                </div>
+                <div className="mt-3">
+                  <span className="font-bold text-xs text-slate-855 dark:text-slate-250 block">GIS Command Map</span>
+                  <span className="text-[10px] text-slate-400 mt-1 block">Tactical species overlays</span>
+                </div>
+              </div>
+            </Link>
+          </div>
+        </div>
+
+        {/* REPORTING & ALERTS */}
+        <div className="space-y-2 pt-2">
+          <div className="category-header">
+            <h4 className="category-title">REPORTING and ALERTS</h4>
+            <div className="category-line" />
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <Link to="/notifications" className="group premium-card">
+              <div className="premium-card-glow" />
+              <div>
+                <div className="flex justify-between items-start">
+                  <div className="premium-icon-container">
+                    <Bell className="premium-icon" />
+                  </div>
+                  <ArrowUpRight className="w-3.5 h-3.5 text-slate-350 group-hover:text-emerald-600 transition-colors" />
+                </div>
+                <div className="mt-3">
+                  <span className="font-bold text-xs text-slate-855 dark:text-slate-250 block">Notifications and Alerts</span>
+                  <span className="text-[10px] text-slate-400 mt-1 block">Critically endangered alerts feed</span>
+                </div>
+              </div>
+            </Link>
+            <Link to="/reports" className="group premium-card">
+              <div className="premium-card-glow" />
+              <div>
+                <div className="flex justify-between items-start">
+                  <div className="premium-icon-container">
+                    <BookOpen className="premium-icon" />
+                  </div>
+                  <ArrowUpRight className="w-3.5 h-3.5 text-slate-350 group-hover:text-emerald-600 transition-colors" />
+                </div>
+                <div className="mt-3">
+                  <span className="font-bold text-xs text-slate-855 dark:text-slate-250 block">Reports Compiler</span>
+                  <span className="text-[10px] text-slate-400 mt-1 block">Generate biological audit files</span>
+                </div>
+              </div>
+            </Link>
+            <Link to="/profile" className="group premium-card">
+              <div className="premium-card-glow" />
+              <div>
+                <div className="flex justify-between items-start">
+                  <div className="premium-icon-container">
+                    <User className="premium-icon" />
+                  </div>
+                  <ArrowUpRight className="w-3.5 h-3.5 text-slate-350 group-hover:text-emerald-600 transition-colors" />
+                </div>
+                <div className="mt-3">
+                  <span className="font-bold text-xs text-slate-855 dark:text-slate-250 block">Profile Settings</span>
+                  <span className="text-[10px] text-slate-400 mt-1 block">Manage your auth credentials settings</span>
+                </div>
+              </div>
+            </Link>
+          </div>
+        </div>
       </div>
     </div>
   );
