@@ -63,6 +63,15 @@ export default function AudioAnalysis() {
         setProgress(100);
 
         setAnalysisResult(res.data);
+        setHistory(prev => [
+          {
+            species: res.data.species,
+            duration: res.data.duration,
+            confidence: res.data.confidence,
+            created_at: new Date().toISOString(),
+          },
+          ...prev
+        ]);
         localStorage.setItem(
           "audioAnalysis",
           JSON.stringify({
@@ -95,20 +104,7 @@ export default function AudioAnalysis() {
     if (progress >= start) return "Running";
     return "Waiting";
   };
-  const [history, setHistory] = useState([
-  {
-    species: "Elephant",
-    duration: "12 sec",
-    confidence: 97,
-    created_at: new Date().toISOString(),
-  },
-  {
-    species: "Tiger",
-    duration: "9 sec",
-    confidence: 95,
-    created_at: new Date().toISOString(),
-  },
-  ]);
+  const [history, setHistory] = useState([]);
 
   return (
     <div className="min-h-screen bg-slate-100">
