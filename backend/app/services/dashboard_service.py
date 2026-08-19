@@ -90,15 +90,42 @@ def dashboard_metrics(db: Session):
             distribution["species_distribution"]
 
     }
-def population_history():
+from sqlalchemy import extract
 
-        return [
-            {"month": "Jan", "population": 18},
-            {"month": "Feb", "population": 22},
-            {"month": "Mar", "population": 19},
-            {"month": "Apr", "population": 25},
-            {"month": "May", "population": 28},
-            {"month": "Jun", "population": 31},
-        ]
 
-   
+def population_history(db: Session):
+
+    results = (
+        db.query(
+            extract("month", Observation.observation_date).label("month"),
+            Observation.count
+        )
+        .filter(Observation.observation_date.isnot(None))
+        .all()
+    )
+
+    monthly_population = {}
+
+    for month, count in results:
+
+        month_number = int(month)
+
+        monthly_population[month_number] = (
+            monthly_population.get(month_number, 0)
+            + (count or 0)
+        )
+
+    month_names = [
+        "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+        "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+    ]
+
+    return [
+        {
+            "month": month_names[month - 1],
+            "population": monthly_population.get(month, 0)
+        }
+        for month in sorted(monthly_population)
+    ]
+
+

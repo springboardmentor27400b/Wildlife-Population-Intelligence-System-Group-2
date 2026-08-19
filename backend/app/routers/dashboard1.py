@@ -24,10 +24,10 @@ def dashboard(
     return dashboard_metrics(db)
 
 @router.get("/history")
-async def history():
-    return population_history()
-from app.services.map_service import get_species_locations
-
+async def history(
+    db: Session = Depends(get_db)
+):
+    return population_history(db)
 @router.get("/species-map")
 async def species_map():
     return get_species_locations()
