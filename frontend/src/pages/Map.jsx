@@ -28,7 +28,12 @@ function Map() {
 
   useEffect(() => {
     fetch("/data/wildlife_data.json")
-      .then((res) => res.json())
+      .then((res) => {
+        if (!res.ok) {
+          throw new Error(`Failed to load wildlife data: ${res.status}`);
+        }
+        return res.json();
+      })
       .then((data) => setAnimals(Array.isArray(data) ? data : []))
       .catch((err) => {
         console.log("Unable to load wildlife map data:", err);
@@ -79,9 +84,7 @@ function Map() {
 
   const getColor = (status) => {
     if (status === "Healthy") return "#16a34a";
-
     if (status === "Monitoring") return "#f59e0b";
-
     if (status === "Endangered") return "#dc2626";
 
     return "#64748b";
@@ -93,9 +96,7 @@ function Map() {
 
   const getStatusIcon = (status) => {
     if (status === "Healthy") return "🟢";
-
     if (status === "Monitoring") return "🟠";
-
     if (status === "Endangered") return "🔴";
 
     return "⚪";
@@ -103,15 +104,12 @@ function Map() {
 
   return (
     <div className="map-page">
-
       {/* =========================
           HEADER
       ========================= */}
 
       <div className="map-header">
-
         <div className="map-title">
-
           <div className="map-title-icon">
             <FaMapMarkedAlt />
           </div>
@@ -124,63 +122,52 @@ function Map() {
               and habitat visualization
             </p>
           </div>
-
         </div>
 
         <div className="map-period">
           <FaEye />
           Wildlife Monitoring Map
         </div>
-
       </div>
-
 
       {/* =========================
           SEARCH
       ========================= */}
 
       <div className="map-toolbar">
-
         <div className="map-search">
-
           <FaSearch />
 
           <input
             type="text"
             placeholder="Search species, forest, status or camera..."
             value={search}
-            onChange={(e) =>
-              setSearch(e.target.value)
-            }
+            onChange={(e) => setSearch(e.target.value)}
           />
 
           {search && (
             <button
+              type="button"
               className="clear-search"
               onClick={() => setSearch("")}
+              aria-label="Clear search"
             >
               <FaTimes />
             </button>
           )}
-
         </div>
 
         <div className="map-result-count">
-          Showing <strong>{filteredAnimals.length}</strong>{" "}
-          locations
+          Showing <strong>{filteredAnimals.length}</strong> locations
         </div>
-
       </div>
-
 
       {/* =========================
           SUMMARY CARDS
       ========================= */}
 
       <div className="map-summary-grid">
-
         <div className="map-summary-card total">
-
           <div className="map-card-icon">
             <FaPaw />
           </div>
@@ -190,12 +177,9 @@ function Map() {
             <h2>{total}</h2>
             <small>Wildlife locations</small>
           </div>
-
         </div>
 
-
         <div className="map-summary-card healthy">
-
           <div className="map-card-icon">
             <FaTree />
           </div>
@@ -205,12 +189,9 @@ function Map() {
             <h2>{healthy}</h2>
             <small>Healthy locations</small>
           </div>
-
         </div>
 
-
         <div className="map-summary-card monitoring">
-
           <div className="map-card-icon">
             <FaEye />
           </div>
@@ -220,12 +201,9 @@ function Map() {
             <h2>{monitoring}</h2>
             <small>Needs observation</small>
           </div>
-
         </div>
 
-
         <div className="map-summary-card endangered">
-
           <div className="map-card-icon">
             <FaExclamationTriangle />
           </div>
@@ -235,20 +213,15 @@ function Map() {
             <h2>{endangered}</h2>
             <small>Priority locations</small>
           </div>
-
         </div>
-
       </div>
-
 
       {/* =========================
           MAP SECTION
       ========================= */}
 
       <div className="gis-section">
-
         <div className="gis-header">
-
           <div>
             <h2>
               <FaMapMarkedAlt />
@@ -262,7 +235,6 @@ function Map() {
           </div>
 
           <div className="gis-legend">
-
             <span>
               <i className="legend-dot healthy-dot"></i>
               Healthy
@@ -277,21 +249,16 @@ function Map() {
               <i className="legend-dot endangered-dot"></i>
               Endangered
             </span>
-
           </div>
-
         </div>
 
-
         <div className="map-wrapper">
-
           <MapContainer
             center={[19.7515, 75.7139]}
             zoom={7}
             zoomControl={false}
             className="wildlife-map"
           >
-
             <ZoomControl position="topright" />
 
             <TileLayer
@@ -300,14 +267,8 @@ function Map() {
             />
 
             {filteredAnimals.map((item, index) => {
-
-              const latitude = Number(
-                item.latitude
-              );
-
-              const longitude = Number(
-                item.longitude
-              );
+              const latitude = Number(item.latitude);
+              const longitude = Number(item.longitude);
 
               if (
                 Number.isNaN(latitude) ||
@@ -316,20 +277,15 @@ function Map() {
                 return null;
               }
 
-              const color = getColor(
-                item.status
-              );
+              const color = getColor(item.status);
 
               return (
                 <CircleMarker
                   key={
                     item.id ||
-                    `${item.species}-${index}`
+                    `${item.species || "wildlife"}-${index}`
                   }
-                  center={[
-                    latitude,
-                    longitude,
-                  ]}
+                  center={[latitude, longitude]}
                   radius={10}
                   pathOptions={{
                     color,
@@ -338,136 +294,97 @@ function Map() {
                     weight: 3,
                   }}
                   eventHandlers={{
-                    click: () =>
-                      setSelectedAnimal(item),
+                    click: () => setSelectedAnimal(item),
                   }}
                 >
-
                   <Popup>
-
                     <div className="map-popup">
-
                       <h3>
-                        {getStatusIcon(
-                          item.status
-                        )}{" "}
-                        {item.species}
+                        {getStatusIcon(item.status)}{" "}
+                        {item.species || "Wildlife"}
                       </h3>
 
                       <div className="popup-status">
-                        {item.status}
+                        {item.status || "Unknown"}
                       </div>
 
                       <div className="popup-row">
                         <strong>Forest</strong>
-                        <span>
-                          {item.forest || "-"}
-                        </span>
+                        <span>{item.forest || "-"}</span>
                       </div>
 
                       <div className="popup-row">
                         <strong>Camera ID</strong>
-                        <span>
-                          {item.cameraId || "-"}
-                        </span>
+                        <span>{item.cameraId || "-"}</span>
                       </div>
 
                       <div className="popup-row">
                         <strong>Detection</strong>
-                        <span>
-                          {item.detectionType || "-"}
-                        </span>
+                        <span>{item.detectionType || "-"}</span>
                       </div>
 
                       <div className="popup-row">
                         <strong>AI Confidence</strong>
-                        <span>
-                          {item.confidence ?? "-"}%
-                        </span>
+                        <span>{item.confidence ?? "-"}%</span>
                       </div>
 
                       <div className="popup-row">
                         <strong>Population</strong>
-                        <span>
-                          {item.population ?? "-"}
-                        </span>
+                        <span>{item.population ?? "-"}</span>
                       </div>
 
                       <div className="popup-row">
                         <strong>Health</strong>
-                        <span>
-                          {item.health ?? "-"}%
-                        </span>
+                        <span>{item.health ?? "-"}%</span>
                       </div>
 
                       <div className="popup-row">
                         <strong>Disease</strong>
-                        <span>
-                          {item.disease || "None"}
-                        </span>
+                        <span>{item.disease || "None"}</span>
                       </div>
-
                     </div>
-
                   </Popup>
-
                 </CircleMarker>
               );
             })}
-
           </MapContainer>
-
         </div>
-
       </div>
-
 
       {/* =========================
           SELECTED LOCATION
       ========================= */}
 
       {selectedAnimal && (
-
         <div className="selected-location">
-
           <div className="selected-location-header">
-
             <div>
-              <span>
-                Selected Monitoring Location
-              </span>
+              <span>Selected Monitoring Location</span>
 
               <h2>
-                {selectedAnimal.species}
+                {selectedAnimal.species || "Wildlife"}
               </h2>
             </div>
 
             <button
-              onClick={() =>
-                setSelectedAnimal(null)
-              }
+              type="button"
+              onClick={() => setSelectedAnimal(null)}
+              aria-label="Close selected location"
             >
               <FaTimes />
             </button>
-
           </div>
 
-
           <div className="selected-grid">
-
             <div>
               <span>Forest</span>
-              <strong>
-                {selectedAnimal.forest || "-"}
-              </strong>
+              <strong>{selectedAnimal.forest || "-"}</strong>
             </div>
 
             <div>
               <span>Status</span>
               <strong>
-                {getStatusIcon(
-                  selectedAnimal.status
-                )}{" "}
+                {getStatusIcon(selectedAnimal.status)}{" "}
                 {selectedAnimal.status || "-"}
               </strong>
             </div>
@@ -499,35 +416,26 @@ function Map() {
                 {selectedAnimal.cameraId || "-"}
               </strong>
             </div>
-
           </div>
-
         </div>
-
       )}
-
 
       {/* =========================
           EMPTY STATE
       ========================= */}
 
-      {animals.length > 0 &&
-        filteredAnimals.length === 0 && (
+      {animals.length > 0 && filteredAnimals.length === 0 && (
+        <div className="map-empty">
+          <FaSearch />
 
-          <div className="map-empty">
+          <h3>No wildlife records found</h3>
 
-            <FaSearch />
-
-            <h3>No wildlife records found</h3>
-
-            <p>
-              Try searching with another species,
-              forest or monitoring status.
-            </p>
-
-          </div>
-        )}
-
+          <p>
+            Try searching with another species,
+            forest or monitoring status.
+          </p>
+        </div>
+      )}
     </div>
   );
 }

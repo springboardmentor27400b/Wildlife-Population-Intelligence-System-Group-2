@@ -5,6 +5,10 @@
   color: #17231a;
 }
 
+/* =========================
+   HEADER
+========================= */
+
 .reports-header {
   display: flex;
   justify-content: space-between;
@@ -36,6 +40,7 @@
   margin: 0;
   color: #14532d;
   font-size: 30px;
+  font-weight: 700;
 }
 
 .reports-title p {
@@ -54,7 +59,12 @@
   border-radius: 12px;
   color: #166534;
   font-weight: 600;
+  white-space: nowrap;
 }
+
+/* =========================
+   TOOLBAR
+========================= */
 
 .reports-toolbar {
   display: flex;
@@ -78,15 +88,22 @@
 
 .reports-search svg {
   color: #6b7280;
+  flex-shrink: 0;
 }
 
 .reports-search input {
   flex: 1;
+  min-width: 0;
   border: none;
   outline: none;
   padding: 13px 0;
   background: transparent;
+  color: #17231a;
   font-size: 14px;
+}
+
+.reports-search input::placeholder {
+  color: #9ca3af;
 }
 
 .reports-filters {
@@ -111,6 +128,7 @@
 .reports-filters button:hover {
   border-color: #86a98f;
   color: #166534;
+  background: #f7fcf8;
 }
 
 .reports-filters button.active {
@@ -118,6 +136,10 @@
   border-color: #166534;
   color: white;
 }
+
+/* =========================
+   SUMMARY CARDS
+========================= */
 
 .reports-summary {
   display: grid;
@@ -135,6 +157,12 @@
   border: 1px solid #e5ebe7;
   border-radius: 16px;
   box-shadow: 0 7px 22px rgba(0, 0, 0, 0.06);
+  transition: 0.2s ease;
+}
+
+.report-summary-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.08);
 }
 
 .report-summary-icon {
@@ -143,6 +171,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
   border-radius: 13px;
   background: #f0fdf4;
   color: #16a34a;
@@ -159,7 +188,12 @@
   margin: 4px 0 0;
   color: #17231a;
   font-size: 27px;
+  font-weight: 700;
 }
+
+/* =========================
+   REPORT SECTION
+========================= */
 
 .reports-section {
   padding: 22px;
@@ -180,6 +214,7 @@
   margin: 0;
   color: #14532d;
   font-size: 21px;
+  font-weight: 700;
 }
 
 .reports-section-header p {
@@ -187,6 +222,10 @@
   color: #7b857e;
   font-size: 13px;
 }
+
+/* =========================
+   REPORT GRID
+========================= */
 
 .reports-grid {
   display: grid;
@@ -224,6 +263,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
   background: #f0fdf4;
   color: #166534;
   border-radius: 12px;
@@ -258,6 +298,7 @@
   margin: 0 0 8px;
   color: #17231a;
   font-size: 17px;
+  font-weight: 700;
 }
 
 .report-card-content p {
@@ -266,6 +307,10 @@
   font-size: 13px;
   line-height: 1.6;
 }
+
+/* =========================
+   CARD FOOTER
+========================= */
 
 .report-card-footer {
   display: flex;
@@ -289,8 +334,9 @@
 .report-actions button {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 5px;
-  padding: 7px 9px;
+  padding: 7px 10px;
   border: 1px solid #dce5de;
   border-radius: 8px;
   background: white;
@@ -306,6 +352,22 @@
   border-color: #86a98f;
   color: #166534;
 }
+
+.report-actions button:first-child:hover {
+  color: #b91c1c;
+  border-color: #fecaca;
+  background: #fef2f2;
+}
+
+.report-actions button:last-child:hover {
+  color: #15803d;
+  border-color: #bbf7d0;
+  background: #f0fdf4;
+}
+
+/* =========================
+   EMPTY STATE
+========================= */
 
 .reports-empty {
   padding: 55px 20px;
@@ -323,6 +385,7 @@
 .reports-empty h3 {
   margin: 12px 0 5px;
   color: #374151;
+  font-size: 18px;
 }
 
 .reports-empty p {
@@ -330,6 +393,10 @@
   color: #9ca3af;
   font-size: 13px;
 }
+
+/* =========================
+   TABLET
+========================= */
 
 @media (max-width: 1100px) {
   .reports-summary {
@@ -348,7 +415,15 @@
   .reports-search {
     width: 100%;
   }
+
+  .reports-filters {
+    width: 100%;
+  }
 }
+
+/* =========================
+   MOBILE
+========================= */
 
 @media (max-width: 800px) {
   .reports-page {
@@ -377,22 +452,48 @@
   }
 }
 
+/* =========================
+   SMALL MOBILE
+========================= */
+
 @media (max-width: 500px) {
+  .reports-page {
+    padding: 14px;
+  }
+
+  .reports-title {
+    gap: 10px;
+  }
+
   .reports-title h1 {
     font-size: 23px;
+  }
+
+  .reports-title p {
+    font-size: 12px;
   }
 
   .reports-title-icon {
     width: 45px;
     height: 45px;
+    font-size: 20px;
+    border-radius: 12px;
   }
 
   .reports-filters {
     width: 100%;
+    gap: 6px;
   }
 
   .reports-filters button {
     flex: 1;
+    min-width: 70px;
+    padding: 8px 9px;
+    font-size: 11px;
+  }
+
+  .report-card {
+    padding: 16px;
   }
 
   .report-card-footer {
