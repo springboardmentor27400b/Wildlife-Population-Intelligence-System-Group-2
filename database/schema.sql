@@ -1,0 +1,57 @@
+CREATE TABLE IF NOT EXISTS users (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  full_name TEXT NOT NULL,
+  email TEXT NOT NULL UNIQUE,
+  password_hash TEXT NOT NULL,
+  role TEXT NOT NULL DEFAULT 'wildlife_researcher',
+  created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS monitoring_sites (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  site_name TEXT NOT NULL,
+  latitude REAL NOT NULL,
+  longitude REAL NOT NULL,
+  habitat TEXT NOT NULL,
+  country TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS surveys (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  site_id INTEGER NOT NULL,
+  user_id INTEGER NOT NULL,
+  survey_date TEXT NOT NULL,
+  device TEXT NOT NULL,
+  remarks TEXT
+);
+
+CREATE TABLE IF NOT EXISTS wildlife_images (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  survey_id INTEGER NOT NULL,
+  image_path TEXT NOT NULL,
+  species TEXT,
+  confidence TEXT
+);
+
+CREATE TABLE IF NOT EXISTS wildlife_audio (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  survey_id INTEGER NOT NULL,
+  audio_path TEXT NOT NULL,
+  species TEXT
+);
+
+CREATE TABLE IF NOT EXISTS species (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  common_name TEXT NOT NULL,
+  scientific_name TEXT NOT NULL,
+  category TEXT NOT NULL,
+  iucn_status TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS observations (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  species_id INTEGER NOT NULL,
+  site_id INTEGER NOT NULL,
+  observation_date TEXT NOT NULL,
+  count INTEGER NOT NULL
+);
