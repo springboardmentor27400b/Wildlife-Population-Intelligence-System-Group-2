@@ -36,6 +36,77 @@ class AIRepository:
         self.db.refresh(detection)
         return detection
 
+    def create_image_detection_with_record(
+        self,
+        *,
+        user_id: int,
+        image_path: str,
+        species: str,
+        confidence: str,
+        bounding_box: str,
+        location: Optional[str] = None,
+        scientific_name: Optional[str] = None,
+        family: Optional[str] = None,
+        genus: Optional[str] = None,
+        habitat: Optional[str] = None,
+        diet: Optional[str] = None,
+        lifespan: Optional[str] = None,
+        status: Optional[str] = None,
+        annotated_image_path: Optional[str] = None,
+        crop_image_path: Optional[str] = None,
+        thumbnail_path: Optional[str] = None,
+        detection_date: Optional[str] = None,
+        detection_time: Optional[str] = None,
+        inference_time: Optional[str] = None,
+    ) -> ImageDetection:
+        try:
+            detection = ImageDetection(
+                user_id=user_id,
+                image_path=image_path,
+                species=species,
+                confidence=confidence,
+                bounding_box=bounding_box,
+                location=location,
+                scientific_name=scientific_name,
+                family=family,
+                genus=genus,
+                habitat=habitat,
+                diet=diet,
+                lifespan=lifespan,
+                status=status,
+                annotated_image_path=annotated_image_path,
+                crop_image_path=crop_image_path,
+                thumbnail_path=thumbnail_path,
+                detection_date=detection_date,
+                detection_time=detection_time,
+                inference_time=inference_time,
+            )
+            self.db.add(detection)
+
+            conf_float = 0.94
+            try:
+                conf_float = float(confidence)
+            except Exception:
+                pass
+
+            record = SpeciesRecord(
+                common_name=species,
+                scientific_name=scientific_name,
+                family=family,
+                genus=genus,
+                habitat=habitat,
+                status=status,
+                confidence=conf_float,
+            )
+            self.db.add(record)
+
+            self.db.commit()
+            self.db.refresh(detection)
+            return detection
+        except Exception:
+            self.db.rollback()
+            raise
+
     def list_image_detections(self, user_id: Optional[int] = None, limit: int = 50, offset: int = 0) -> list[ImageDetection]:
         query = self.db.query(ImageDetection)
         if user_id is not None:

@@ -85,9 +85,8 @@ def save_upload(file: UploadFile, kind: str) -> dict[str, Any]:
         raise ValueError("Unsupported audio format. Allowed: wav, mp3, flac")
 
     max_bytes = MAX_IMAGE_SIZE_BYTES if kind == "image" else MAX_AUDIO_SIZE_BYTES
-    file.file.seek(0, os.SEEK_END)
-    size_bytes = file.file.tell()
-    file.file.seek(0)
+    contents = file.file.read()
+    size_bytes = len(contents)
     if size_bytes > max_bytes:
         raise ValueError(f"{kind.title()} file exceeds the maximum allowed size of {max_bytes // (1024 * 1024)}MB")
 
@@ -95,12 +94,7 @@ def save_upload(file: UploadFile, kind: str) -> dict[str, Any]:
     target_name = f"{uuid4().hex}{extension}"
     destination = target_dir / target_name
 
-    while destination.exists():
-        target_name = f"{uuid4().hex}{extension}"
-        destination = target_dir / target_name
-
-    with destination.open("wb") as handle:
-        shutil.copyfileobj(file.file, handle)
+    destination.write_bytes(contents)
 
     return {
         "storage_path": str(destination),

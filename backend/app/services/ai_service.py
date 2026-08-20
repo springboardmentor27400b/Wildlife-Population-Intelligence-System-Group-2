@@ -146,6 +146,7 @@ def infer_species_from_image(image_path: str, original_filename: str | None = No
         "detected_boxes": prediction.get("detected_boxes", []),
         "annotated_image_path": prediction.get("annotated_image_path"),
         "crop_image_path": prediction.get("crop_image_path"),
+        "thumbnail_path": prediction.get("thumbnail_path"),
         "prediction_time": prediction.get("prediction_time", round(perf_counter() - start, 3)),
         "detection_date": det_date,
         "detection_time": det_time,

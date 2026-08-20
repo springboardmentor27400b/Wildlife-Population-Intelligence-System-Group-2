@@ -61,6 +61,7 @@ ORIGINAL_DIR = UPLOAD_ROOT / "original"
 PREDICTIONS_DIR = UPLOAD_ROOT / "detections"
 CROPS_DIR = UPLOAD_ROOT / "crops"
 AUDIO_PLOTS_DIR = UPLOAD_ROOT / "audio_plots"
+THUMBNAILS_DIR = UPLOAD_ROOT / "thumbnails"
 
 REAL_SPECIES = [
     "Lion", "Tiger", "Leopard", "Cheetah", "Elephant",
@@ -142,8 +143,9 @@ class ModelManager:
 
     def ensure_image_model(self) -> None:
         """Lazy-load only the lightweight image detection model when requested."""
-        if os.getenv("ENABLE_CPU_YOLO", "false").lower() != "true" and self.device == "cpu":
+        if self.device == "cpu" or os.getenv("ENVIRONMENT") == "production":
             self._yolo_model = None
+            self._clip_model = None
             self._image_backend = "vision_heuristics"
             return
 
@@ -241,6 +243,7 @@ class ModelManager:
         ORIGINAL_DIR.mkdir(parents=True, exist_ok=True)
         PREDICTIONS_DIR.mkdir(parents=True, exist_ok=True)
         CROPS_DIR.mkdir(parents=True, exist_ok=True)
+        THUMBNAILS_DIR.mkdir(parents=True, exist_ok=True)
         start_time = perf_counter()
 
         orig_path = Path(image_path)
@@ -259,6 +262,8 @@ class ModelManager:
         annotated_path = PREDICTIONS_DIR / annotated_filename
         crop_filename = f"{uuid4().hex}_crop{ext}"
         crop_path = CROPS_DIR / crop_filename
+        thumb_filename = f"{uuid4().hex}_thumb.jpg"
+        thumb_path = THUMBNAILS_DIR / thumb_filename
 
         detected_boxes = []
         species_detected = "African Elephant"
@@ -347,6 +352,13 @@ class ModelManager:
                             crop_cv = img_cv[y1:y2, x1:x2]
                             if crop_cv.size > 0:
                                 cv2.imwrite(str(crop_path), crop_cv)
+                                # Save thumbnail directly from crop
+                                try:
+                                    crop_pil = Image.fromarray(cv2.cvtColor(crop_cv, cv2.COLOR_BGR2RGB))
+                                    crop_pil.thumbnail((200, 200), Image.Resampling.BILINEAR)
+                                    crop_pil.save(str(thumb_path), "JPEG", quality=85)
+                                except Exception:
+                                    pass
                             
                             # Draw bounding box and label
                             cv2.rectangle(img_cv, (x1, y1), (x2, y2), (0, 255, 0), 2)
@@ -387,6 +399,14 @@ class ModelManager:
                 crop_pil = full_pil.crop((x1, y1, x2, y2))
                 crop_pil.save(str(crop_path))
 
+                # Save thumbnail directly from crop_pil in memory
+                try:
+                    thumb_pil = crop_pil.copy()
+                    thumb_pil.thumbnail((200, 200))
+                    thumb_pil.save(str(thumb_path), format="JPEG", quality=85)
+                except Exception as exc:
+                    logger.warning("Thumbnail creation exception: %s", exc)
+
                 annotated_pil = full_pil.copy()
                 draw = ImageDraw.Draw(annotated_pil)
                 draw.rectangle([x1, y1, x2, y2], outline="#059669", width=3)
@@ -407,6 +427,7 @@ class ModelManager:
             "image_path": str(original_saved_path),
             "annotated_image_path": str(annotated_path) if annotated_path.exists() else None,
             "crop_image_path": str(crop_path) if crop_path.exists() else None,
+            "thumbnail_path": str(thumb_path) if thumb_path.exists() else None,
             "annotated_filename": annotated_filename,
             "prediction_time": elapsed,
         }

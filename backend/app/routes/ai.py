@@ -52,13 +52,15 @@ def upload_image(file: UploadFile = File(...), location: Optional[str] = Form(No
     detection_id = 0
     created_at = datetime.now()
 
-    # Generate resized thumbnail image (150x150) in uploads/thumbnails/
-    thumb_source = prediction.get("crop_image_path") or storage["storage_path"]
-    raw_thumb_path = create_image_thumbnail(thumb_source)
+    # Reuse in-memory generated thumbnail if present; fallback to helper if absent
+    raw_thumb_path = prediction.get("thumbnail_path")
+    if not raw_thumb_path:
+        thumb_source = prediction.get("crop_image_path") or storage["storage_path"]
+        raw_thumb_path = create_image_thumbnail(thumb_source)
 
-    # Save every prediction unconditionally
+    # Save prediction and species record in a single atomic database transaction
     bbox_db_str = ",".join(map(str, prediction["bounding_box"])) if isinstance(prediction["bounding_box"], list) else str(prediction.get("bounding_box", ""))
-    detection = repo.create_image_detection(
+    detection = repo.create_image_detection_with_record(
         user_id=current_user.id,
         image_path=prediction.get("image_path") or storage["storage_path"],
         species=prediction["species"],
@@ -81,21 +83,7 @@ def upload_image(file: UploadFile = File(...), location: Optional[str] = Form(No
     )
     detection_id = detection.id
     created_at = detection.created_at
-    logger.info("Database saved")
-
-    # Persist species record into PostgreSQL/SQLite species_records table
-    try:
-        repo.create_species_record(
-            common_name=prediction["species"],
-            scientific_name=prediction.get("scientific_name"),
-            family=prediction.get("family"),
-            genus=prediction.get("genus"),
-            habitat=prediction.get("habitat"),
-            status=prediction.get("status"),
-            confidence=float(prediction["confidence"]) if isinstance(prediction["confidence"], (int, float)) else 0.94,
-        )
-    except Exception as exc:
-        logger.warning("Failed to save species record to database: %s", exc)
+    logger.info("Database saved in single transaction")
 
     logger.info("Image upload completed for user %s (%s)", current_user.id, current_user.role, extra={"context": {"image_path": storage["storage_path"], "species": prediction["species"]}})
 
