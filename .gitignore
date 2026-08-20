@@ -1,5 +1,6 @@
 # Python
 __pycache__/
+*.pyc
 *.py[cod]
 *$py.class
 *.so
@@ -32,6 +33,8 @@ htmlcov/
 # Node & Frontend
 node_modules/
 frontend/node_modules/
+dist/
+build/
 frontend/dist/
 .vite/
 
@@ -44,15 +47,13 @@ backend/wildlife.db
 
 # Environment & Credentials
 .env
-.env.local
-.env.*.local
+.env.*
 !.env.example
 *.pem
 *.key
 *.log
 backend/logs/
 logs/
-
 
 # Large AI Model Weights
 *.pt
@@ -72,11 +73,13 @@ datasets/processed/
 datasets/train/
 datasets/test/
 datasets/validation/
+backend/datasets/processed/
+backend/datasets/train/
+backend/datasets/test/
+backend/datasets/validation/
 
 # IDE & OS
 .vscode/
 .idea/
 .DS_Store
 Thumbs.db
-
-

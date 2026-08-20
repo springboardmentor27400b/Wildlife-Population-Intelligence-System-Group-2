@@ -14,6 +14,8 @@ from app.models.user import User
 from app.repositories.ai_repository import AIRepository
 from app.schemas.ai import AudioDetectionOut, AudioUploadRequest, BiodiversitySummary, ImageDetectionOut, ImageUploadRequest, SpeciesClassificationRequest, SpeciesRecordOut
 from app.services.ai_service import build_biodiversity_summary, classify_species, infer_audio_features, infer_species_from_image, validate_upload, resolve_species_thumbnail, format_detection_datetime
+from app.utils.datetime_utils import format_iso_utc
+
 from app.services.storage_service import save_upload, to_relative_upload_path, to_public_upload_url, create_image_thumbnail
 
 router = APIRouter(prefix="/ai", tags=["ai"])
@@ -115,7 +117,7 @@ def upload_image(file: UploadFile = File(...), location: Optional[str] = Form(No
     url_crop = to_public_upload_url(rel_crop)
 
     thumb_url = to_public_upload_url(to_relative_upload_path(raw_thumb_path)) if raw_thumb_path else resolve_species_thumbnail(prediction["species"])
-    formatted_time = format_detection_datetime(prediction.get("detection_date"), prediction.get("detection_time"), created_at)
+    formatted_time = format_iso_utc(created_at, prediction.get("detection_date"), prediction.get("detection_time"))
 
     boxes_out = []
     if prediction.get("detected_boxes"):
@@ -182,7 +184,7 @@ def image_history(current_user: User = Depends(get_current_user), db: Session = 
             thumb_url = to_public_upload_url(to_relative_upload_path(item.thumbnail_path))
         else:
             thumb_url = resolve_species_thumbnail(item.species)
-        formatted_time = format_detection_datetime(item.detection_date, item.detection_time, item.created_at)
+        formatted_time = format_iso_utc(item.created_at, item.detection_date, item.detection_time)
 
         boxes_out = []
         if item.bounding_box:
@@ -335,7 +337,7 @@ def upload_audio(
     url_spec = to_public_upload_url(rel_spec)
 
     thumb_url = resolve_species_thumbnail(prediction["species"])
-    formatted_time = format_detection_datetime(detection_date, detection_time, created_at)
+    formatted_time = format_iso_utc(created_at, detection_date, detection_time)
 
     return AudioDetectionOut(
         id=detection_id,
@@ -396,7 +398,7 @@ def audio_history(current_user: User = Depends(get_current_user), db: Session = 
             thumb_url = to_public_upload_url(to_relative_upload_path(item.thumbnail_path))
         else:
             thumb_url = resolve_species_thumbnail(item.species)
-        formatted_time = format_detection_datetime(item.detection_date, item.detection_time, item.created_at)
+        formatted_time = format_iso_utc(item.created_at, item.detection_date, item.detection_time)
 
         out.append(AudioDetectionOut(
             id=item.id,
@@ -485,8 +487,8 @@ def biodiversity_summary(current_user: User = Depends(get_current_user), db: Ses
         image_detections = db.query(ImageDetection).all()
         audio_detections = db.query(AudioDetection).all()
 
-    image_payload = [{"species": item.species, "confidence": item.confidence, "created_at": str(item.detection_date or item.created_at)} for item in image_detections]
-    audio_payload = [{"species": item.species, "confidence": item.confidence, "created_at": str(item.detection_date or item.created_at)} for item in audio_detections]
+    image_payload = [{"species": item.species, "confidence": item.confidence, "created_at": format_iso_utc(item.created_at)} for item in image_detections]
+    audio_payload = [{"species": item.species, "confidence": item.confidence, "created_at": format_iso_utc(item.created_at)} for item in audio_detections]
     summary = build_biodiversity_summary(image_payload, audio_payload, [])
     return BiodiversitySummary(**summary)
 
@@ -497,8 +499,8 @@ def get_biodiversity_confidence_trend(current_user: User = Depends(get_current_u
     from app.models.audio_detection import AudioDetection
     image_detections = db.query(ImageDetection).all()
     audio_detections = db.query(AudioDetection).all()
-    image_payload = [{"species": item.species, "confidence": item.confidence, "created_at": str(item.detection_date or item.created_at)} for item in image_detections]
-    audio_payload = [{"species": item.species, "confidence": item.confidence, "created_at": str(item.detection_date or item.created_at)} for item in audio_detections]
+    image_payload = [{"species": item.species, "confidence": item.confidence, "created_at": format_iso_utc(item.created_at)} for item in image_detections]
+    audio_payload = [{"species": item.species, "confidence": item.confidence, "created_at": format_iso_utc(item.created_at)} for item in audio_detections]
     summary = build_biodiversity_summary(image_payload, audio_payload, [])
     return summary.get("confidence_trend", [])
 
@@ -509,8 +511,8 @@ def get_biodiversity_daily_velocity(current_user: User = Depends(get_current_use
     from app.models.audio_detection import AudioDetection
     image_detections = db.query(ImageDetection).all()
     audio_detections = db.query(AudioDetection).all()
-    image_payload = [{"species": item.species, "confidence": item.confidence, "created_at": str(item.detection_date or item.created_at)} for item in image_detections]
-    audio_payload = [{"species": item.species, "confidence": item.confidence, "created_at": str(item.detection_date or item.created_at)} for item in audio_detections]
+    image_payload = [{"species": item.species, "confidence": item.confidence, "created_at": format_iso_utc(item.created_at)} for item in image_detections]
+    audio_payload = [{"species": item.species, "confidence": item.confidence, "created_at": format_iso_utc(item.created_at)} for item in audio_detections]
     summary = build_biodiversity_summary(image_payload, audio_payload, [])
     return summary.get("daily_trends", [])
 
@@ -521,8 +523,8 @@ def get_biodiversity_monthly_velocity(current_user: User = Depends(get_current_u
     from app.models.audio_detection import AudioDetection
     image_detections = db.query(ImageDetection).all()
     audio_detections = db.query(AudioDetection).all()
-    image_payload = [{"species": item.species, "confidence": item.confidence, "created_at": str(item.detection_date or item.created_at)} for item in image_detections]
-    audio_payload = [{"species": item.species, "confidence": item.confidence, "created_at": str(item.detection_date or item.created_at)} for item in audio_detections]
+    image_payload = [{"species": item.species, "confidence": item.confidence, "created_at": format_iso_utc(item.created_at)} for item in image_detections]
+    audio_payload = [{"species": item.species, "confidence": item.confidence, "created_at": format_iso_utc(item.created_at)} for item in audio_detections]
     summary = build_biodiversity_summary(image_payload, audio_payload, [])
     return summary.get("monthly_trends", [])
 
@@ -539,8 +541,8 @@ def generate_report_pdf(current_user: User = Depends(get_current_user), db: Sess
         audio_detections = db.query(AudioDetection).all()
 
     summary = build_biodiversity_summary(
-        [{"species": item.species, "confidence": item.confidence, "created_at": str(item.created_at)} for item in image_detections],
-        [{"species": item.species, "confidence": item.confidence, "created_at": str(item.created_at)} for item in audio_detections],
+        [{"species": item.species, "confidence": item.confidence, "created_at": format_iso_utc(item.created_at)} for item in image_detections],
+        [{"species": item.species, "confidence": item.confidence, "created_at": format_iso_utc(item.created_at)} for item in audio_detections],
         [],
     )
 

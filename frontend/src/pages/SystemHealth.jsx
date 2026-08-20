@@ -5,7 +5,10 @@ import {
     Clock, RefreshCw, Zap, ShieldCheck, AlertCircle
 } from 'lucide-react';
 
+import { formatISTTime } from '../utils/dateTime';
+
 export default function SystemHealth() {
+
     const [data, setData] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -71,7 +74,7 @@ export default function SystemHealth() {
                         <span>Refresh Metrics</span>
                     </button>
                     <span className="text-xs text-slate-400">
-                        Auto-syncing every 3s • Last: {lastUpdated.toLocaleTimeString()}
+                        Auto-syncing every 3s • Last: {formatISTTime(lastUpdated)} IST
                     </span>
                 </div>
             </div>

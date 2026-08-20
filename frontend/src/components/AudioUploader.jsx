@@ -9,7 +9,10 @@ function getStatusBadgeClass(status) {
     return 'bg-emerald-100 text-emerald-800 border-emerald-200';
 }
 
+import { formatToIST } from '../utils/dateTime';
+
 export default function AudioUploader({ onUpload }) {
+
     const [files, setFiles] = useState([]);
     const [location, setLocation] = useState('');
     const [message, setMessage] = useState('');
@@ -202,8 +205,10 @@ export default function AudioUploader({ onUpload }) {
                                     <span className="font-bold text-slate-800 text-sm">{res.prediction_time ? `${res.prediction_time}s` : 'N/A'}</span>
                                 </div>
                                 <div className="col-span-2">
-                                    <span className="text-slate-400 block font-medium">Observation Date &amp; Time</span>
-                                    <span className="font-bold text-slate-800 text-sm">{res.detection_date || 'N/A'} at {res.detection_time || 'N/A'}</span>
+                                    <span className="text-slate-400 block font-medium">Observation Date &amp; Time (IST)</span>
+                                    <span className="font-bold text-slate-800 text-sm">
+                                        {formatToIST(res.created_at || (res.detection_date && res.detection_time ? `${res.detection_date}T${res.detection_time}Z` : (res.detection_date || null)))}
+                                    </span>
                                 </div>
                             </div>
                         </div>
