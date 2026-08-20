@@ -314,7 +314,7 @@ export default function Layout({ children }) {
                 {/* App Footer */}
                 <footer className="border-t border-slate-200/80 bg-white/70 px-6 py-3.5 text-xs text-slate-500 flex flex-wrap items-center justify-between gap-2">
                     <div>
-                        <span className="font-semibold text-slate-700">Wildlife Intelligence System</span> • Milestone 3 Complete
+                        <span className="font-semibold text-slate-700">Wildlife Intelligence System</span> • Production Live
                     </div>
                     <div className="flex items-center gap-4 text-[11px] text-slate-400">
                         <span>Population</span> • <span>Habitat</span> • <span>Conservation</span> • <span>Ecosystem</span>

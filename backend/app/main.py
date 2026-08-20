@@ -342,7 +342,8 @@ def health_check() -> dict:
 
 @app.get("/api/models/status")
 def model_status() -> dict:
-    return model_manager.get_status()
+    from dataclasses import asdict
+    return asdict(model_manager.get_status())
 
 
 @app.get("/api/biodiversity/confidence-trend")
