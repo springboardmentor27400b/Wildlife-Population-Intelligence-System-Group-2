@@ -7,6 +7,7 @@ import ConfidenceChart from '../components/ConfidenceChart';
 import TopSpeciesTable from '../components/TopSpeciesTable';
 import DetectionTimeline from '../components/DetectionTimeline';
 import AIPageLayout from '../components/AIPageLayout';
+import { api } from '../services/api';
 
 export default function Biodiversity() {
     const [summary, setSummary] = useState(null);
@@ -19,41 +20,35 @@ export default function Biodiversity() {
     useEffect(() => {
         const load = async () => {
             try {
-                const token = localStorage.getItem('token');
-                const headers = { Authorization: `Bearer ${token}` };
-
-                const [summaryRes, confRes, dailyRes, monthlyRes] = await Promise.all([
-                    fetch('/api/ai/biodiversity', { headers }),
-                    fetch('/api/biodiversity/confidence-trend', { headers }),
-                    fetch('/api/biodiversity/daily-velocity', { headers }),
-                    fetch('/api/biodiversity/monthly-velocity', { headers })
+                const [summaryRes, confRes, dailyRes, monthlyRes] = await Promise.allSettled([
+                    api.get('/ai/biodiversity'),
+                    api.get('/biodiversity/confidence-trend'),
+                    api.get('/biodiversity/daily-velocity'),
+                    api.get('/biodiversity/monthly-velocity')
                 ]);
 
                 let summaryData = null;
-                if (summaryRes.ok) {
-                    summaryData = await summaryRes.json();
+                if (summaryRes.status === 'fulfilled') {
+                    summaryData = summaryRes.value.data;
                     setSummary(summaryData);
                 } else {
                     setError("Failed to fetch biodiversity summary.");
                 }
 
-                if (confRes.ok) {
-                    const cData = await confRes.json();
-                    setConfidenceTrend(cData);
+                if (confRes.status === 'fulfilled') {
+                    setConfidenceTrend(confRes.value.data);
                 } else if (summaryData?.confidence_trend) {
                     setConfidenceTrend(summaryData.confidence_trend);
                 }
 
-                if (dailyRes.ok) {
-                    const dData = await dailyRes.json();
-                    setDailyVelocity(dData);
+                if (dailyRes.status === 'fulfilled') {
+                    setDailyVelocity(dailyRes.value.data);
                 } else if (summaryData?.daily_trends) {
                     setDailyVelocity(summaryData.daily_trends);
                 }
 
-                if (monthlyRes.ok) {
-                    const mData = await monthlyRes.json();
-                    setMonthlyVelocity(mData);
+                if (monthlyRes.status === 'fulfilled') {
+                    setMonthlyVelocity(monthlyRes.value.data);
                 } else if (summaryData?.monthly_trends) {
                     setMonthlyVelocity(summaryData.monthly_trends);
                 }

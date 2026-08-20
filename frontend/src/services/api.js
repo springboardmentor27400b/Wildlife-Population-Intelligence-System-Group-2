@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const backendUrl = import.meta.env.VITE_API_URL;
-const baseURL = backendUrl ? (backendUrl.endsWith('/') ? `${backendUrl}api` : `${backendUrl}/api`) : '/api';
+export const baseURL = backendUrl ? (backendUrl.endsWith('/') ? `${backendUrl}api` : `${backendUrl}/api`) : '/api';
 
 export const api = axios.create({ baseURL });
 

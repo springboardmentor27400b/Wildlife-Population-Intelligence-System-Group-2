@@ -2,16 +2,17 @@ import { useEffect, useState } from 'react';
 import AudioUploader from '../components/AudioUploader';
 import DetectionTable from '../components/DetectionTable';
 import AIPageLayout from '../components/AIPageLayout';
+import { api } from '../services/api';
 
 export default function AudioRecognition() {
     const [history, setHistory] = useState([]);
 
     const load = async () => {
-        const token = localStorage.getItem('token');
-        const response = await fetch('/api/ai/audio/history', { headers: { Authorization: `Bearer ${token}` } });
-        if (response.ok) {
-            const data = await response.json();
-            setHistory(data);
+        try {
+            const response = await api.get('/ai/audio/history');
+            setHistory(response.data || []);
+        } catch (e) {
+            console.error('Failed to load audio history:', e);
         }
     };
 

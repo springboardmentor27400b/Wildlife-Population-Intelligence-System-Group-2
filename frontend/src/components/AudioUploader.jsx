@@ -1,4 +1,6 @@
 import { useState } from 'react';
+import { formatToIST } from '../utils/dateTime';
+import { api } from '../services/api';
 
 function getStatusBadgeClass(status) {
     if (!status) return 'bg-slate-100 text-slate-800 border-slate-200';
@@ -8,8 +10,6 @@ function getStatusBadgeClass(status) {
     if (s.includes('threatened')) return 'bg-yellow-100 text-yellow-800 border-yellow-200';
     return 'bg-emerald-100 text-emerald-800 border-emerald-200';
 }
-
-import { formatToIST } from '../utils/dateTime';
 
 export default function AudioUploader({ onUpload }) {
 
@@ -34,24 +34,18 @@ export default function AudioUploader({ onUpload }) {
         let finalResults = [];
 
         try {
-            const token = localStorage.getItem('token');
             for (let i = 0; i < files.length; i++) {
                 const currentFile = files[i];
                 const formData = new FormData();
                 formData.append('file', currentFile);
                 if (location) formData.append('location', location);
 
-                const response = await fetch('/api/ai/audio/upload', {
-                    method: 'POST',
-                    headers: { Authorization: `Bearer ${token}` },
-                    body: formData,
-                });
+                const response = await api.post('/ai/audio/upload', formData);
+                const data = response.data;
                 
-                const data = await response.json();
-                
-                if (!response.ok || data.success === false) {
-                    console.error(`Upload failed for ${currentFile.name}: ${data.message || 'Error'}`);
-                    setMessage(`Error processing ${currentFile.name}: ${data.message || 'Upload failed'}`);
+                if (!data || data.success === false) {
+                    console.error(`Upload failed for ${currentFile.name}: ${data?.message || 'Error'}`);
+                    setMessage(`Error processing ${currentFile.name}: ${data?.message || 'Upload failed'}`);
                     continue;
                 }
                 

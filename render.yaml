@@ -41,4 +41,4 @@ databases:
   - name: wildlife-db
     databaseName: wildlife_prod
     user: wildlife_admin
-    plan: starter
+    plan: free
