@@ -21,6 +21,10 @@ try:
 except Exception:
     HAS_TORCH = False
 
+os.environ["YOLO_VERBOSE"] = "False"
+os.environ["ULTRALYTICS_AUTOINSTALL"] = "0"
+os.environ["YOLO_OFFLINE"] = "1"
+
 try:
     from PIL import Image, ImageDraw
     HAS_PIL = True
@@ -29,6 +33,8 @@ except ImportError:
 
 try:
     import cv2
+    if hasattr(cv2, "setNumThreads"):
+        cv2.setNumThreads(1)
     HAS_CV2 = True
 except ImportError:
     HAS_CV2 = False
@@ -264,7 +270,7 @@ class ModelManager:
                 img_cv = cv2.cvtColor(np.array(full_pil), cv2.COLOR_RGB2BGR) if HAS_CV2 else None
                 
                 # Run lightweight YOLO inference
-                results = self._yolo_model(
+                results = self._yolo_model.predict(
                     img_cv if img_cv is not None else image_path,
                     imgsz=384,
                     conf=0.15,
@@ -417,7 +423,21 @@ class ModelManager:
 
         if HAS_LIBROSA:
             try:
-                samples, sr = librosa.load(str(audio_file), sr=16000, duration=5.0, mono=True)
+                try:
+                    import soundfile as sf
+                    raw_data, orig_sr = sf.read(str(audio_file), dtype="float32", always_2d=False)
+                    if hasattr(raw_data, "ndim") and raw_data.ndim > 1:
+                        raw_data = np.mean(raw_data, axis=1)
+                    if orig_sr != 16000:
+                        samples = librosa.resample(raw_data, orig_sr=orig_sr, target_sr=16000)
+                    else:
+                        samples = raw_data
+                    if len(samples) > 16000 * 5:
+                        samples = samples[:16000 * 5]
+                    sr = 16000
+                except Exception:
+                    samples, sr = librosa.load(str(audio_file), sr=16000, duration=5.0, mono=True)
+                
                 duration_sec = float(len(samples)) / float(sr) if len(samples) > 0 else 1.0
                 
                 # Extract lightweight features
@@ -426,7 +446,7 @@ class ModelManager:
                     rms_energy = float(np.mean(librosa.feature.rms(y=samples)))
                     zcr_mean = float(np.mean(librosa.feature.zero_crossing_rate(samples)))
             except Exception as exc:
-                logger.warning("Librosa audio loading exception: %s", exc)
+                logger.warning("Audio feature extraction exception: %s", exc)
 
         # 2. Species identification via AST transformer, acoustic signature & keywords
         fname_search = f"{original_filename or ''} {audio_file.name}".lower()

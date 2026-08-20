@@ -222,7 +222,15 @@ async def lifespan(app: FastAPI):
         logger.info("Ensuring upload directories exist...")
         ensure_upload_directories()
         
-        logger.info("AI models will load lazily on first inference request.")
+        logger.info("Pre-warming lightweight AI models...")
+        try:
+            from app.services.model_manager import model_manager
+            model_manager.ensure_image_model()
+            model_manager.ensure_audio_model()
+            logger.info("AI models pre-warmed successfully.")
+        except Exception as err:
+            logger.warning(f"Non-blocking model pre-warm notice: {err}")
+
         logger.info("Ingesting dataset metadata...")
         with SessionLocal() as db:
             ingest_dataset_metadata(db)
