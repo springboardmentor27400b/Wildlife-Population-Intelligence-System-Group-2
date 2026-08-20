@@ -3,7 +3,8 @@ import { AuthContext } from '../context/AuthContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Plus, Search, Edit2, Trash2, MapPin, Map, Navigation, 
-  Activity, AlertTriangle, ChevronDown, X, Leaf, Globe
+  Activity, AlertTriangle, ChevronDown, X, Leaf, Globe,
+  ArrowUpDown, ArrowUp, ArrowDown, ChevronLeft, ChevronRight
 } from 'lucide-react';
 import { Card, CardContent } from '../components/ui/card';
 import { Button } from '../components/ui/button';
@@ -41,6 +42,10 @@ const SitesPage = () => {
   const [statusFilter, setStatusFilter] = useState('All');
   const [habitatFilter, setHabitatFilter] = useState('All');
   
+  const [sortConfig, setSortConfig] = useState({ key: 'site_name', direction: 'asc' });
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(10);
+  
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   
@@ -77,14 +82,42 @@ const SitesPage = () => {
   }, [sites]);
 
   const filteredSites = useMemo(() => {
-    return sites.filter(s => {
+    let filtered = sites.filter(s => {
       const matchesSearch = s.site_name.toLowerCase().includes(searchQuery.toLowerCase()) || 
                             s.location.toLowerCase().includes(searchQuery.toLowerCase());
       const matchesStatus = statusFilter === 'All' || s.status === statusFilter;
       const matchesHabitat = habitatFilter === 'All' || s.habitat_type === habitatFilter;
       return matchesSearch && matchesStatus && matchesHabitat;
     });
-  }, [sites, searchQuery, statusFilter, habitatFilter]);
+
+    if (sortConfig.key) {
+      filtered.sort((a, b) => {
+        let aValue = a[sortConfig.key];
+        let bValue = b[sortConfig.key];
+        
+        if (aValue < bValue) return sortConfig.direction === 'asc' ? -1 : 1;
+        if (aValue > bValue) return sortConfig.direction === 'asc' ? 1 : -1;
+        return 0;
+      });
+    }
+
+    return filtered;
+  }, [sites, searchQuery, statusFilter, habitatFilter, sortConfig]);
+
+  const paginatedSites = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    return filteredSites.slice(startIndex, startIndex + itemsPerPage);
+  }, [filteredSites, currentPage, itemsPerPage]);
+
+  const totalPages = Math.ceil(filteredSites.length / itemsPerPage);
+
+  const requestSort = (key) => {
+    let direction = 'asc';
+    if (sortConfig.key === key && sortConfig.direction === 'asc') {
+      direction = 'desc';
+    }
+    setSortConfig({ key, direction });
+  };
 
   const handleOpenModal = (site = null) => {
     setFormErrors({});
@@ -198,9 +231,12 @@ const SitesPage = () => {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-foreground">Monitoring Sites</h1>
-          <p className="text-muted-foreground mt-1 text-sm md:text-base">
-            Register and manage ecological monitoring locations.
+          <h1 className="text-3xl font-bold text-slate-900 flex items-center gap-2">
+            <MapPin className="w-8 h-8 text-green-600" />
+            Monitoring Sites
+          </h1>
+          <p className="text-slate-500 text-sm mt-1 max-w-2xl">
+            Manage geographical locations equipped with camera traps and sensors.
           </p>
         </div>
         <Button onClick={() => handleOpenModal()} className="gap-2 bg-primary text-white hover:bg-primary/90">
@@ -211,7 +247,7 @@ const SitesPage = () => {
 
       {/* Summary Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card className="border-0 soft-shadow bg-white rounded-xl">
+        <Card className="border-0 soft-shadow bg-white shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300 rounded-2xl">
           <CardContent className="p-6 flex items-center gap-4">
             <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
               <MapPin className="h-6 w-6 text-primary" />
@@ -222,7 +258,7 @@ const SitesPage = () => {
             </div>
           </CardContent>
         </Card>
-        <Card className="border-0 soft-shadow bg-white rounded-xl">
+        <Card className="border-0 soft-shadow bg-white shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300 rounded-2xl">
           <CardContent className="p-6 flex items-center gap-4">
             <div className="h-12 w-12 rounded-full bg-green-100 flex items-center justify-center">
               <Activity className="h-6 w-6 text-green-600" />
@@ -233,7 +269,7 @@ const SitesPage = () => {
             </div>
           </CardContent>
         </Card>
-        <Card className="border-0 soft-shadow bg-white rounded-xl">
+        <Card className="border-0 soft-shadow bg-white shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300 rounded-2xl">
           <CardContent className="p-6 flex items-center gap-4">
             <div className="h-12 w-12 rounded-full bg-blue-100 flex items-center justify-center">
               <Globe className="h-6 w-6 text-blue-600" />
@@ -244,7 +280,7 @@ const SitesPage = () => {
             </div>
           </CardContent>
         </Card>
-        <Card className="border-0 soft-shadow bg-white rounded-xl">
+        <Card className="border-0 soft-shadow bg-white shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300 rounded-2xl">
           <CardContent className="p-6 flex items-center gap-4">
             <div className="h-12 w-12 rounded-full bg-purple-100 flex items-center justify-center">
               <Leaf className="h-6 w-6 text-purple-600" />
@@ -322,65 +358,142 @@ const SitesPage = () => {
           </Button>
         </motion.div>
       ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          <AnimatePresence>
-            {filteredSites.map(site => (
-              <motion.div 
-                key={site.id || site._id} 
-                layout
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.95 }}
-                transition={{ duration: 0.2 }}
-              >
-                <Card className="h-full border border-gray-100 shadow-sm hover:shadow-md transition-shadow bg-white rounded-xl overflow-hidden group">
-                  <div className="p-5">
-                    <div className="flex justify-between items-start mb-3">
-                      <div>
-                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold border ${getStatusColor(site.status)}`}>
+        <div className="bg-white rounded-xl soft-shadow overflow-hidden">
+          <div className="overflow-x-auto rounded-xl border border-border/50 shadow-sm">
+            <table className="w-full text-sm text-left whitespace-nowrap">
+              <thead className="text-xs text-muted-foreground uppercase bg-gray-50 border-b border-gray-100 sticky top-0 bg-white/95 dark:bg-gray-900/95 backdrop-blur z-10">
+                <tr>
+                  <th className="px-6 py-4 font-medium cursor-pointer hover:text-primary transition-colors select-none" onClick={() => requestSort('site_name')}>
+                    <div className="flex items-center gap-1">
+                      Site Info
+                      {sortConfig.key === 'site_name' ? (sortConfig.direction === 'asc' ? <ArrowUp className="w-3 h-3" /> : <ArrowDown className="w-3 h-3" />) : <ArrowUpDown className="w-3 h-3 opacity-30" />}
+                    </div>
+                  </th>
+                  <th className="px-6 py-4 font-medium cursor-pointer hover:text-primary transition-colors select-none" onClick={() => requestSort('location')}>
+                    <div className="flex items-center gap-1">
+                      Location Details
+                      {sortConfig.key === 'location' ? (sortConfig.direction === 'asc' ? <ArrowUp className="w-3 h-3" /> : <ArrowDown className="w-3 h-3" />) : <ArrowUpDown className="w-3 h-3 opacity-30" />}
+                    </div>
+                  </th>
+                  <th className="px-6 py-4 font-medium cursor-pointer hover:text-primary transition-colors select-none" onClick={() => requestSort('habitat_type')}>
+                    <div className="flex items-center gap-1">
+                      Habitat & Area
+                      {sortConfig.key === 'habitat_type' ? (sortConfig.direction === 'asc' ? <ArrowUp className="w-3 h-3" /> : <ArrowDown className="w-3 h-3" />) : <ArrowUpDown className="w-3 h-3 opacity-30" />}
+                    </div>
+                  </th>
+                  <th className="px-6 py-4 font-medium cursor-pointer hover:text-primary transition-colors select-none" onClick={() => requestSort('status')}>
+                    <div className="flex items-center gap-1">
+                      Status
+                      {sortConfig.key === 'status' ? (sortConfig.direction === 'asc' ? <ArrowUp className="w-3 h-3" /> : <ArrowDown className="w-3 h-3" />) : <ArrowUpDown className="w-3 h-3 opacity-30" />}
+                    </div>
+                  </th>
+                  <th className="px-6 py-4 font-medium text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <AnimatePresence>
+                  {paginatedSites.map(site => (
+                    <motion.tr 
+                      key={site.id || site._id} 
+                      layout
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      className="border-b border-gray-50 hover:bg-gray-50/50 transition-colors"
+                    >
+                      <td className="px-6 py-4">
+                        <div className="flex items-center gap-3">
+                          <div className="p-2 bg-primary/10 rounded-lg shrink-0">
+                            <MapPin className="h-5 w-5 text-primary" />
+                          </div>
+                          <div>
+                            <p className="font-semibold text-foreground">{site.site_name}</p>
+                            <p className="text-xs text-muted-foreground w-48 truncate" title={site.description}>{site.description || 'No description'}</p>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="flex flex-col gap-1">
+                          <div className="flex items-center gap-1.5 font-medium text-foreground">
+                            <Map className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                            <span>{site.location}, {site.state}</span>
+                          </div>
+                          <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                            <Globe className="h-3.5 w-3.5 shrink-0" />
+                            <span>Lat: {site.latitude}, Lng: {site.longitude}</span>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="flex flex-col gap-1">
+                          <div className="flex items-center gap-1.5 font-medium text-foreground">
+                            <Navigation className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                            <span>{site.habitat_type}</span>
+                          </div>
+                          <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                            <span>Area: {site.area_sq_km} sq km</span>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full border text-xs font-medium ${getStatusColor(site.status)}`}>
                           {site.status}
                         </span>
-                      </div>
-                      {isAdmin && (
-                        <div className="flex gap-1">
-                          <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-primary" onClick={() => handleOpenModal(site)}>
-                            <Edit2 className="h-4 w-4" />
-                          </Button>
-                          <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive" onClick={() => confirmDelete(site.id || site._id)}>
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      )}
-                    </div>
-                    
-                    <h3 className="text-lg font-bold text-foreground line-clamp-1 mb-1">{site.site_name}</h3>
-                    <p className="text-sm text-muted-foreground line-clamp-2 min-h-[40px] mb-4">
-                      {site.description || "No description provided."}
-                    </p>
-                    
-                    <div className="grid grid-cols-2 gap-y-3 mt-2 text-sm border-t border-gray-100 pt-4">
-                      <div className="flex items-center gap-2 text-muted-foreground">
-                        <Map className="h-4 w-4 shrink-0" />
-                        <span className="truncate">{site.location}, {site.state}</span>
-                      </div>
-                      <div className="flex items-center gap-2 text-muted-foreground">
-                        <Navigation className="h-4 w-4 shrink-0" />
-                        <span className="truncate">{site.habitat_type}</span>
-                      </div>
-                      <div className="flex items-center gap-2 text-muted-foreground">
-                        <Globe className="h-4 w-4 shrink-0" />
-                        <span>Lat: {site.latitude}, Lng: {site.longitude}</span>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="bg-gray-50 px-5 py-3 border-t border-gray-100 flex justify-between items-center text-xs font-medium text-muted-foreground">
-                    <span>District: {site.district}</span>
-                    <span className="shrink-0 font-bold">{site.area_sq_km} sq km</span>
-                  </div>
-                </Card>
-              </motion.div>
-            ))}
-          </AnimatePresence>
+                      </td>
+                      <td className="px-6 py-4 text-right">
+                        {isAdmin && (
+                          <div className="flex gap-1 justify-end">
+                            <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-primary" onClick={() => handleOpenModal(site)} title="Edit">
+                              <Edit2 className="h-4 w-4" />
+                            </Button>
+                            <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive" onClick={() => confirmDelete(site.id || site._id)} title="Delete">
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        )}
+                      </td>
+                    </motion.tr>
+                  ))}
+                </AnimatePresence>
+              </tbody>
+            </table>
+          </div>
+          
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div className="flex items-center justify-between px-6 py-3 border-t border-gray-100 bg-gray-50/50">
+              <div className="text-sm text-muted-foreground">
+                Showing <span className="font-medium text-foreground">{((currentPage - 1) * itemsPerPage) + 1}</span> to <span className="font-medium text-foreground">{Math.min(currentPage * itemsPerPage, filteredSites.length)}</span> of <span className="font-medium text-foreground">{filteredSites.length}</span> results
+              </div>
+              <div className="flex items-center gap-1">
+                <Button 
+                  variant="outline" size="sm" className="h-8 w-8 p-0" 
+                  onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                  disabled={currentPage === 1}
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                </Button>
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                  <Button
+                    key={page}
+                    variant={currentPage === page ? "default" : "outline"}
+                    size="sm"
+                    className={`h-8 w-8 p-0 ${currentPage === page ? 'bg-primary text-white' : ''}`}
+                    onClick={() => setCurrentPage(page)}
+                  >
+                    {page}
+                  </Button>
+                ))}
+                <Button 
+                  variant="outline" size="sm" className="h-8 w-8 p-0" 
+                  onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                  disabled={currentPage === totalPages}
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          )}
         </div>
       )}
 

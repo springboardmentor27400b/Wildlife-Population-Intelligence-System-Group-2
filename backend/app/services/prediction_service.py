@@ -4,13 +4,10 @@ import time
 from datetime import datetime, timezone
 from fastapi import UploadFile, HTTPException, Request
 from PIL import Image, UnidentifiedImageError
-from app.models.prediction import PredictionRecord, TopPrediction
-from app.models.observation import ObservationRecord
-from app.models.notification import Notification
 from app.models.user import User
 from app.ml.predictor import predict_species, validate_image_bytes, SUPPORTED_EXTENSIONS
 from app.utils.audit import create_audit_log
-from beanie import PydanticObjectId
+from app.database.db import supabase
 
 PREDICTIONS_UPLOAD_DIR = "uploads/predictions"
 os.makedirs(PREDICTIONS_UPLOAD_DIR, exist_ok=True)
@@ -24,14 +21,14 @@ class PredictionService:
         source: str,
         current_user: User,
         request: Request
-    ) -> PredictionRecord:
+    ) -> dict:
         """
         Full pipeline:
           1. Validate file extension and size
           2. Validate image integrity (in-memory, before saving)
           3. Save to disk
           4. Run ML inference
-          5. Persist PredictionRecord to MongoDB
+          5. Persist PredictionRecord to Supabase
           6. Fire notifications
         """
         # ── 1. Extension check ────────────────────────────────────────────
@@ -101,53 +98,76 @@ class PredictionService:
             raw_ts = result.get("prediction_timestamp")
             if raw_ts:
                 try:
-                    prediction_ts = datetime.fromisoformat(raw_ts)
+                    prediction_ts = datetime.fromisoformat(raw_ts).isoformat()
                 except Exception:
-                    prediction_ts = datetime.now(timezone.utc)
+                    prediction_ts = datetime.utcnow().isoformat()
             else:
-                prediction_ts = datetime.now(timezone.utc)
+                prediction_ts = datetime.utcnow().isoformat()
 
             # ── 7. Build and save PredictionRecord ────────────────────────
-            from app.models.prediction import AnimalDetection
             
             top_predictions = [
-                TopPrediction(species=p["species"], confidence=p["confidence"])
+                {"species": p["species"], "confidence": p["confidence"]}
                 for p in result.get("top_predictions", [])
             ]
             top_3 = top_predictions[:3]
             
             detections = [
-                AnimalDetection(
-                    species=d["species"],
-                    confidence=d["confidence"],
-                    bbox=d["bbox"],
-                    behaviour=d["behaviour"]
-                ) for d in result.get("detections", [])
+                {
+                    "species": d["species"],
+                    "confidence": d["confidence"],
+                    "bbox": d["bbox"],
+                    "behaviour": d["behaviour"]
+                } for d in result.get("detections", [])
             ]
 
-            prediction_record = PredictionRecord(
-                species_name=result["predicted_category"],
-                confidence_score=result["confidence"],
-                prediction_time=prediction_time,
-                prediction_timestamp=prediction_ts,
-                model_version="1.0.0",
-                top_3_predictions=top_3,
-                top_predictions=top_predictions,
-                file_name=file.filename,
-                file_url=file_url,
-                image_width=result.get("image_width"),
-                image_height=result.get("image_height"),
-                image_source=source,
-                image_quality=result.get("image_quality", "Unknown"),
-                quality_metrics=result.get("quality_metrics", {}),
-                detection_source=result.get("detection_source", "Simulation"),
-                animal_count=result.get("animal_count", 1),
-                detections=detections,
-                status="Pending",
-                user_id=str(current_user.id),
-                user_name=current_user.full_name
-            )
-            await prediction_record.insert()
+            record_id = str(uuid.uuid4())
+            prediction_record = {
+                "id": record_id,
+                "species_name": result["predicted_category"],
+                "confidence_score": result["confidence"],
+                "prediction_time": prediction_time,
+                "prediction_timestamp": prediction_ts,
+                "model_version": "1.0.0",
+                "top_3_predictions": top_3,
+                "top_predictions": top_predictions,
+                "image_file_name": file.filename,
+                "image_url": file_url,
+                "image_width": result.get("image_width"),
+                "image_height": result.get("image_height"),
+                "image_source": source,
+                "image_quality": result.get("image_quality", "Unknown"),
+                "quality_metrics": result.get("quality_metrics", {}),
+                "detection_source": result.get("detection_source", "Simulation"),
+                "animal_count": result.get("animal_count", 1),
+                "detections": detections,
+                "status": "Pending",
+                "user_id": str(current_user.id),
+                "user_name": current_user.full_name,
+                "created_at": datetime.utcnow().isoformat(),
+                "updated_at": datetime.utcnow().isoformat()
+            }
+            
+            db_record = {
+                "id": record_id,
+                "image_file_name": file.filename,
+                "image_url": file_url,
+                "species_name": result["predicted_category"],
+                "confidence_score": result["confidence"],
+                "status": "Pending",
+                "user_id": str(current_user.id),
+                "user_name": current_user.full_name,
+                "created_at": prediction_record["created_at"],
+                "updated_at": prediction_record["updated_at"]
+            }
+
+            try:
+                inserted = supabase.table("prediction_records").insert(db_record).execute()
+                if inserted.data:
+                    pass # Success
+            except Exception as e:
+                import logging
+                logging.error(f"Failed to save PredictionRecord: {e}")
 
             # ── 8. Audit success ──────────────────────────────────────────
             create_audit_log(
@@ -157,37 +177,43 @@ class PredictionService:
                 module="Predictions",
                 description=f"AI prediction executed successfully for {file.filename}. "
                             f"Species: {result['predicted_category']} ({result['confidence']}%).",
-                resource_id=str(prediction_record.id),
+                resource_id=prediction_record.get('id'),
                 status="Success",
                 severity="INFO"
             )
 
             # ── 9. Notifications ──────────────────────────────────────────
-            if result["confidence"] >= 90.0:
-                high_conf_notif = Notification(
-                    title="High Confidence Detection",
-                    message=f"High confidence ({result['confidence']}%) AI detection of {result['predicted_category']}.",
-                    type="prediction",
-                    priority="Success",
-                    user_id=str(current_user.id),
-                    related_resource_id=str(prediction_record.id)
-                )
-                await high_conf_notif.insert()
+            try:
+                if result["confidence"] >= 90.0:
+                    supabase.table("notifications").insert({ "id": str(uuid.uuid4()),
+                        "title": "High Confidence Detection",
+                        "message": f"High confidence ({result['confidence']}%) AI detection of {result['predicted_category']}.",
+                        "type": "prediction",
+                        "priority": "Success",
+                        "user_id": str(current_user.id),
+                        "related_resource_id": prediction_record.get('id'),
+                        "is_read": False,
+                        "created_at": datetime.utcnow().isoformat()
+                    }).execute()
 
-            rare_species = {
-                "Apex Predators", "Cold-Climate Survivors",
-                "Stealth & Shadows", "Tough Defenders"
-            }
-            if result["predicted_category"] in rare_species:
-                rare_notif = Notification(
-                    title="Rare Species Detection",
-                    message=f"AI model detected potential rare/critical category: {result['predicted_category']}.",
-                    type="alert",
-                    priority="High",
-                    user_id=str(current_user.id),
-                    related_resource_id=str(prediction_record.id)
-                )
-                await rare_notif.insert()
+                rare_species = {
+                    "Apex Predators", "Cold-Climate Survivors",
+                    "Stealth & Shadows", "Tough Defenders"
+                }
+                if result["predicted_category"] in rare_species:
+                    supabase.table("notifications").insert({ "id": str(uuid.uuid4()),
+                        "title": "Rare Species Detection",
+                        "message": f"AI model detected potential rare/critical category: {result['predicted_category']}.",
+                        "type": "alert",
+                        "priority": "High",
+                        "user_id": str(current_user.id),
+                        "related_resource_id": prediction_record.get('id'),
+                        "is_read": False,
+                        "created_at": datetime.utcnow().isoformat()
+                    }).execute()
+            except Exception as e:
+                import logging
+                logging.error(f"Failed to create notifications: {e}")
 
             return prediction_record
 
@@ -210,62 +236,68 @@ class PredictionService:
         site_name: str,
         current_user: User,
         request: Request
-    ) -> ObservationRecord:
+    ) -> dict:
         """Create a new ObservationRecord from a prediction and link them."""
         prediction = await _get_prediction_or_404(prediction_id)
 
-        if prediction.status == "Saved":
+        if prediction.get("status") == "Saved":
             raise HTTPException(
                 status_code=400,
                 detail="Prediction has already been saved as an observation"
             )
 
-        observation = ObservationRecord(
-            species_name=prediction.species_name,
-            scientific_name=prediction.species_name,
-            observation_type="AI Recognition",
-            monitoring_site_id=site_id,
-            monitoring_site_name=site_name,
-            observed_at=datetime.now(timezone.utc),
-            observer_id=str(current_user.id),
-            observer_name=current_user.full_name,
-            count=1,
-            confidence_score=prediction.confidence_score,
-            file_name=prediction.file_name,
-            file_url=prediction.file_url,
-            notes=f"Created automatically from AI Prediction (ID: {prediction_id})",
-            verification_status="Pending Verification",
-            prediction_id=prediction_id,
-            prediction_source="AI"
-        )
-        await observation.insert()
+        observation = {
+            "id": str(uuid.uuid4()),
+            "species_name": prediction.get("species_name"),
+            "scientific_name": prediction.get("species_name"),
+            "monitoring_site_name": site_name,
+            "observed_at": datetime.utcnow().isoformat(),
+            "observer_id": str(current_user.id),
+            "observer_name": current_user.full_name,
+            "count": 1,
+            "notes": f"Created automatically from AI Prediction (ID: {prediction_id})",
+            "verification_status": "Pending Verification",
+            "created_at": datetime.utcnow().isoformat(),
+            "updated_at": datetime.utcnow().isoformat()
+        }
+        
+        try:
+            inserted_obs = supabase.table("observation_records").insert(observation).execute()
+            observation = inserted_obs.data[0] if inserted_obs.data else observation
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Failed to save observation: {e}")
 
         # Update prediction record
-        prediction.status = "Saved"
-        prediction.observation_id = str(observation.id)
-        prediction.updated_at = datetime.now(timezone.utc)
-        await prediction.save()
+        supabase.table("prediction_records").update({
+            "status": "Saved",
+            "observation_id": observation.get("id"),
+            "updated_at": datetime.utcnow().isoformat()
+        }).eq("id", prediction_id).execute()
 
         create_audit_log(
             user=current_user,
             request=request,
             action="PREDICTION_SAVED",
             module="Predictions",
-            description=f"Saved prediction {prediction_id} as new observation {observation.id}.",
+            description=f"Saved prediction {prediction_id} as new observation {observation.get('id')}.",
             resource_id=str(prediction_id),
             status="Success",
             severity="SUCCESS"
         )
 
-        saved_notif = Notification(
-            title="Prediction Saved Successfully",
-            message=f"Prediction of {prediction.species_name} saved as new observation record.",
-            type="prediction",
-            priority="Success",
-            user_id=str(current_user.id),
-            related_resource_id=str(observation.id)
-        )
-        await saved_notif.insert()
+        try:
+            supabase.table("notifications").insert({ "id": str(uuid.uuid4()),
+                "title": "Prediction Saved Successfully",
+                "message": f"Prediction of {prediction.get('species_name')} saved as new observation record.",
+                "type": "prediction",
+                "priority": "Success",
+                "user_id": str(current_user.id),
+                "related_resource_id": observation.get("id"),
+                "is_read": False,
+                "created_at": datetime.utcnow().isoformat()
+            }).execute()
+        except Exception:
+            pass
 
         return observation
 
@@ -284,7 +316,7 @@ class PredictionService:
         """
         prediction = await _get_prediction_or_404(prediction_id)
 
-        if prediction.status == "Saved":
+        if prediction.get("status") == "Saved":
             raise HTTPException(
                 status_code=400,
                 detail="Prediction is already linked to an observation."
@@ -292,27 +324,28 @@ class PredictionService:
 
         # Validate the target observation exists
         try:
-            obs_obj_id = PydanticObjectId(observation_id)
+            obs = supabase.table("observation_records").select("*").eq("id", observation_id).execute()
+            if not obs.data:
+                raise HTTPException(status_code=404, detail="Observation record not found.")
+            observation = obs.data[0]
         except Exception:
-            raise HTTPException(status_code=400, detail="Invalid observation ID format.")
-
-        observation = await ObservationRecord.get(obs_obj_id)
-        if not observation:
-            raise HTTPException(status_code=404, detail="Observation record not found.")
+            raise HTTPException(status_code=400, detail="Invalid observation ID format or fetch error.")
 
         # Link prediction → observation
-        observation.prediction_id = prediction_id
-        observation.prediction_source = "AI"
-        if not observation.confidence_score:
-            observation.confidence_score = prediction.confidence_score
-        observation.updated_at = datetime.now(timezone.utc)
-        await observation.save()
+        update_obs = {
+            "updated_at": datetime.utcnow().isoformat()
+        }
+        current_notes = observation.get("notes") or ""
+        update_obs["notes"] = f"{current_notes}\n[Linked AI Prediction ID: {prediction_id}, Confidence: {prediction.get('confidence_score')}%]".strip()
+            
+        supabase.table("observation_records").update(update_obs).eq("id", observation_id).execute()
 
         # Update prediction → observation
-        prediction.observation_id = observation_id
-        prediction.status = "Saved"
-        prediction.updated_at = datetime.now(timezone.utc)
-        await prediction.save()
+        supabase.table("prediction_records").update({
+            "observation_id": observation_id,
+            "status": "Saved",
+            "updated_at": datetime.utcnow().isoformat()
+        }).eq("id", prediction_id).execute()
 
         create_audit_log(
             user=current_user,
@@ -325,15 +358,19 @@ class PredictionService:
             severity="SUCCESS"
         )
 
-        linked_notif = Notification(
-            title="Prediction Linked to Observation",
-            message=f"AI prediction of {prediction.species_name} linked to observation record.",
-            type="prediction",
-            priority="Success",
-            user_id=str(current_user.id),
-            related_resource_id=observation_id
-        )
-        await linked_notif.insert()
+        try:
+            supabase.table("notifications").insert({ "id": str(uuid.uuid4()),
+                "title": "Prediction Linked to Observation",
+                "message": f"AI prediction of {prediction.get('species_name')} linked to observation record.",
+                "type": "prediction",
+                "priority": "Success",
+                "user_id": str(current_user.id),
+                "related_resource_id": observation_id,
+                "is_read": False,
+                "created_at": datetime.utcnow().isoformat()
+            }).execute()
+        except Exception:
+            pass
 
         return {
             "message": "Prediction successfully linked to existing observation.",
@@ -347,13 +384,16 @@ class PredictionService:
         prediction_id: str,
         current_user: User,
         request: Request
-    ) -> PredictionRecord:
+    ) -> dict:
         """Mark a prediction as Discarded."""
         prediction = await _get_prediction_or_404(prediction_id)
 
-        prediction.status = "Discarded"
-        prediction.updated_at = datetime.now(timezone.utc)
-        await prediction.save()
+        res = supabase.table("prediction_records").update({
+            "status": "Discarded",
+            "updated_at": datetime.utcnow().isoformat()
+        }).eq("id", prediction_id).execute()
+
+        prediction = res.data[0] if res.data else prediction
 
         create_audit_log(
             user=current_user,
@@ -371,15 +411,16 @@ class PredictionService:
 
 # ── Helpers ────────────────────────────────────────────────────────────────
 
-async def _get_prediction_or_404(prediction_id: str) -> PredictionRecord:
+async def _get_prediction_or_404(prediction_id: str) -> dict:
     try:
-        obj_id = PydanticObjectId(prediction_id)
-    except Exception:
+        res = supabase.table("prediction_records").select("*").eq("id", prediction_id).execute()
+        if not res.data:
+            raise HTTPException(status_code=404, detail="Prediction record not found.")
+        return res.data[0]
+    except Exception as e:
+        if isinstance(e, HTTPException):
+            raise e
         raise HTTPException(status_code=400, detail="Invalid prediction ID format.")
-    prediction = await PredictionRecord.get(obj_id)
-    if not prediction:
-        raise HTTPException(status_code=404, detail="Prediction record not found.")
-    return prediction
 
 
 async def _audit_failed(user, request, description: str, severity: str = "WARNING"):

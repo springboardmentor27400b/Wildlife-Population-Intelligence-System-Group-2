@@ -1,7 +1,6 @@
 from pydantic import BaseModel, EmailStr, Field
 from datetime import datetime
 from typing import Optional, Dict, Any
-from beanie import PydanticObjectId
 
 class UserCreate(BaseModel):
     full_name: str = Field(..., min_length=2, max_length=100)
@@ -15,7 +14,7 @@ class UserLogin(BaseModel):
     password: str
 
 class UserRead(BaseModel):
-    id: PydanticObjectId
+    id: str
     full_name: str
     email: EmailStr
     role: str

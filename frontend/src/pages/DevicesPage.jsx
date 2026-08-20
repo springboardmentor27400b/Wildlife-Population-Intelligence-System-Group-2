@@ -4,7 +4,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Plus, Search, Edit2, Trash2, MapPin, 
   Activity, AlertTriangle, ChevronDown, X, Camera, Mic, 
-  Wifi, WifiOff, Battery, BatteryMedium, BatteryLow, Clock, ShieldAlert, Droplets, CloudRain
+  Wifi, WifiOff, Battery, BatteryMedium, BatteryLow, Clock, ShieldAlert, Droplets, CloudRain,
+  ArrowUpDown, ArrowUp, ArrowDown, ChevronLeft, ChevronRight
 } from 'lucide-react';
 import { Card, CardContent } from '../components/ui/card';
 import { Button } from '../components/ui/button';
@@ -39,6 +40,10 @@ const DevicesPage = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('All');
   const [typeFilter, setTypeFilter] = useState('All');
+  
+  const [sortConfig, setSortConfig] = useState({ key: 'device_name', direction: 'asc' });
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(10);
   
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -79,7 +84,7 @@ const DevicesPage = () => {
   }, [devices]);
 
   const filteredDevices = useMemo(() => {
-    return devices.filter(d => {
+    let filtered = devices.filter(d => {
       const q = searchQuery.toLowerCase();
       const matchesSearch = d.device_name.toLowerCase().includes(q) || 
                             d.device_id.toLowerCase().includes(q) ||
@@ -88,7 +93,35 @@ const DevicesPage = () => {
       const matchesType = typeFilter === 'All' || d.device_type === typeFilter;
       return matchesSearch && matchesStatus && matchesType;
     });
-  }, [devices, searchQuery, statusFilter, typeFilter]);
+
+    if (sortConfig.key) {
+      filtered.sort((a, b) => {
+        let aValue = a[sortConfig.key];
+        let bValue = b[sortConfig.key];
+        
+        if (aValue < bValue) return sortConfig.direction === 'asc' ? -1 : 1;
+        if (aValue > bValue) return sortConfig.direction === 'asc' ? 1 : -1;
+        return 0;
+      });
+    }
+
+    return filtered;
+  }, [devices, searchQuery, statusFilter, typeFilter, sortConfig]);
+
+  const paginatedDevices = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    return filteredDevices.slice(startIndex, startIndex + itemsPerPage);
+  }, [filteredDevices, currentPage, itemsPerPage]);
+
+  const totalPages = Math.ceil(filteredDevices.length / itemsPerPage);
+
+  const requestSort = (key) => {
+    let direction = 'asc';
+    if (sortConfig.key === key && sortConfig.direction === 'asc') {
+      direction = 'desc';
+    }
+    setSortConfig({ key, direction });
+  };
 
   const handleOpenModal = (device = null) => {
     setFormErrors({});
@@ -255,9 +288,12 @@ const DevicesPage = () => {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-foreground">Sensor Devices</h1>
-          <p className="text-muted-foreground mt-1 text-sm md:text-base">
-            Register, monitor, and manage field sensing equipment.
+          <h1 className="text-3xl font-bold text-slate-900 flex items-center gap-2">
+            <Camera className="w-8 h-8 text-green-600" />
+            Sensor Devices
+          </h1>
+          <p className="text-slate-500 text-sm mt-1 max-w-2xl">
+            Status and configuration of camera traps and bioacoustic recorders.
           </p>
         </div>
         {isAdmin && (
@@ -270,7 +306,7 @@ const DevicesPage = () => {
 
       {/* Summary Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card className="border-0 soft-shadow bg-white rounded-xl">
+        <Card className="border-0 soft-shadow bg-white shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300 rounded-2xl">
           <CardContent className="p-6 flex items-center gap-4">
             <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
               <Activity className="h-6 w-6 text-primary" />
@@ -281,7 +317,7 @@ const DevicesPage = () => {
             </div>
           </CardContent>
         </Card>
-        <Card className="border-0 soft-shadow bg-white rounded-xl">
+        <Card className="border-0 soft-shadow bg-white shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300 rounded-2xl">
           <CardContent className="p-6 flex items-center gap-4">
             <div className="h-12 w-12 rounded-full bg-green-100 flex items-center justify-center">
               <Wifi className="h-6 w-6 text-green-600" />
@@ -292,7 +328,7 @@ const DevicesPage = () => {
             </div>
           </CardContent>
         </Card>
-        <Card className="border-0 soft-shadow bg-white rounded-xl">
+        <Card className="border-0 soft-shadow bg-white shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300 rounded-2xl">
           <CardContent className="p-6 flex items-center gap-4">
             <div className="h-12 w-12 rounded-full bg-blue-100 flex items-center justify-center">
               <Camera className="h-6 w-6 text-blue-600" />
@@ -303,7 +339,7 @@ const DevicesPage = () => {
             </div>
           </CardContent>
         </Card>
-        <Card className="border-0 soft-shadow bg-white rounded-xl">
+        <Card className="border-0 soft-shadow bg-white shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300 rounded-2xl">
           <CardContent className="p-6 flex items-center gap-4">
             <div className="h-12 w-12 rounded-full bg-red-100 flex items-center justify-center">
               <ShieldAlert className="h-6 w-6 text-red-600" />
@@ -376,77 +412,149 @@ const DevicesPage = () => {
           </Button>
         </motion.div>
       ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-2 gap-4">
-          <AnimatePresence>
-            {filteredDevices.map(device => (
-              <motion.div 
-                key={device.id || device._id} 
-                layout
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.95 }}
-                transition={{ duration: 0.2 }}
-              >
-                <Card className="h-full border border-gray-100 shadow-sm hover:shadow-md transition-shadow bg-white rounded-xl overflow-hidden group">
-                  <div className="p-5">
-                    <div className="flex justify-between items-start mb-4">
-                      <div className="flex items-center gap-3">
-                        <div className="p-2 bg-gray-50 rounded-lg border border-gray-100">
-                          {getTypeIcon(device.device_type)}
-                        </div>
-                        <div>
-                          <h3 className="text-base font-bold text-foreground line-clamp-1">{device.device_name}</h3>
-                          <p className="text-xs font-mono text-muted-foreground uppercase">{device.device_id}</p>
-                        </div>
-                      </div>
-                      
-                      {isAdmin && (
-                        <div className="flex gap-1 ml-2 shrink-0">
-                          <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-primary" onClick={() => handleOpenModal(device)}>
-                            <Edit2 className="h-4 w-4" />
-                          </Button>
-                          <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive" onClick={() => confirmDelete(device.id || device._id)}>
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      )}
+        <div className="bg-white rounded-xl soft-shadow overflow-hidden">
+          <div className="overflow-x-auto rounded-xl border border-border/50 shadow-sm">
+            <table className="w-full text-sm text-left whitespace-nowrap">
+              <thead className="text-xs text-muted-foreground uppercase bg-gray-50 border-b border-gray-100 sticky top-0 bg-white/95 dark:bg-gray-900/95 backdrop-blur z-10">
+                <tr>
+                  <th className="px-6 py-4 font-medium cursor-pointer hover:text-primary transition-colors select-none" onClick={() => requestSort('device_name')}>
+                    <div className="flex items-center gap-1">
+                      Device Info
+                      {sortConfig.key === 'device_name' ? (sortConfig.direction === 'asc' ? <ArrowUp className="w-3 h-3" /> : <ArrowDown className="w-3 h-3" />) : <ArrowUpDown className="w-3 h-3 opacity-30" />}
                     </div>
-                    
-                    <div className="grid grid-cols-2 gap-y-3 mt-4 text-sm">
-                      <div className="flex items-center gap-2 text-muted-foreground">
-                        <MapPin className="h-4 w-4 shrink-0" />
-                        <span className="truncate">{device.monitoring_site_name}</span>
-                      </div>
-                      <div className="flex items-center gap-2 text-muted-foreground">
-                        {getBatteryIcon(device.battery_level)}
-                        <div className="flex items-center gap-2 w-full">
-                          <span>{device.battery_level}%</span>
-                          <div className="w-16 h-1.5 bg-gray-200 rounded-full overflow-hidden shrink-0">
-                            <div className={`h-full ${device.battery_level > 60 ? 'bg-green-500' : device.battery_level > 20 ? 'bg-orange-500' : 'bg-red-500'}`} style={{ width: `${device.battery_level}%` }}></div>
+                  </th>
+                  <th className="px-6 py-4 font-medium cursor-pointer hover:text-primary transition-colors select-none" onClick={() => requestSort('monitoring_site_name')}>
+                    <div className="flex items-center gap-1">
+                      Location & Type
+                      {sortConfig.key === 'monitoring_site_name' ? (sortConfig.direction === 'asc' ? <ArrowUp className="w-3 h-3" /> : <ArrowDown className="w-3 h-3" />) : <ArrowUpDown className="w-3 h-3 opacity-30" />}
+                    </div>
+                  </th>
+                  <th className="px-6 py-4 font-medium cursor-pointer hover:text-primary transition-colors select-none" onClick={() => requestSort('battery_level')}>
+                    <div className="flex items-center gap-1">
+                      Battery & Activity
+                      {sortConfig.key === 'battery_level' ? (sortConfig.direction === 'asc' ? <ArrowUp className="w-3 h-3" /> : <ArrowDown className="w-3 h-3" />) : <ArrowUpDown className="w-3 h-3 opacity-30" />}
+                    </div>
+                  </th>
+                  <th className="px-6 py-4 font-medium cursor-pointer hover:text-primary transition-colors select-none" onClick={() => requestSort('status')}>
+                    <div className="flex items-center gap-1">
+                      Status
+                      {sortConfig.key === 'status' ? (sortConfig.direction === 'asc' ? <ArrowUp className="w-3 h-3" /> : <ArrowDown className="w-3 h-3" />) : <ArrowUpDown className="w-3 h-3 opacity-30" />}
+                    </div>
+                  </th>
+                  <th className="px-6 py-4 font-medium text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <AnimatePresence>
+                  {paginatedDevices.map(device => (
+                    <motion.tr 
+                      key={device.id || device._id} 
+                      layout
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      className="border-b border-gray-50 hover:bg-gray-50/50 transition-colors"
+                    >
+                      <td className="px-6 py-4">
+                        <div className="flex items-center gap-3">
+                          <div className="p-2 bg-gray-50 rounded-lg border border-gray-100 shrink-0">
+                            {getTypeIcon(device.device_type)}
+                          </div>
+                          <div>
+                            <p className="font-semibold text-foreground line-clamp-1">{device.device_name}</p>
+                            <p className="text-xs font-mono text-muted-foreground uppercase">{device.device_id}</p>
                           </div>
                         </div>
-                      </div>
-                      <div className="flex items-center gap-2 text-muted-foreground">
-                        <Activity className="h-4 w-4 shrink-0" />
-                        <span className="truncate">{device.device_type}</span>
-                      </div>
-                      <div className="flex items-center gap-2 text-muted-foreground">
-                        <Clock className="h-4 w-4 shrink-0" />
-                        <span className="truncate">{device.last_active}</span>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="bg-gray-50 px-5 py-3 border-t border-gray-100 flex justify-between items-center text-xs font-medium">
-                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full border ${getStatusColor(device.status)}`}>
-                      {getStatusIcon(device.status)}
-                      {device.status}
-                    </span>
-                    <span className="text-muted-foreground">Installed: {new Date(device.created_at).toLocaleDateString() || 'Unknown'}</span>
-                  </div>
-                </Card>
-              </motion.div>
-            ))}
-          </AnimatePresence>
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="flex flex-col gap-1">
+                          <div className="flex items-center gap-1.5 font-medium text-foreground">
+                            <MapPin className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                            <span className="truncate">{device.monitoring_site_name}</span>
+                          </div>
+                          <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                            <Activity className="h-3.5 w-3.5 shrink-0" />
+                            <span className="truncate">{device.device_type}</span>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="flex flex-col gap-1 w-32">
+                          <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                            {getBatteryIcon(device.battery_level)}
+                            <div className="flex items-center gap-2 w-full">
+                              <span>{device.battery_level}%</span>
+                              <div className="w-16 h-1.5 bg-gray-200 rounded-full overflow-hidden shrink-0">
+                                <div className={`h-full ${device.battery_level > 60 ? 'bg-green-500' : device.battery_level > 20 ? 'bg-orange-500' : 'bg-red-500'}`} style={{ width: `${device.battery_level}%` }}></div>
+                              </div>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-1.5 text-xs text-muted-foreground mt-1">
+                            <Clock className="h-3.5 w-3.5 shrink-0" />
+                            <span className="truncate">{device.last_active}</span>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full border text-xs font-medium ${getStatusColor(device.status)}`}>
+                          {getStatusIcon(device.status)}
+                          {device.status}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 text-right">
+                        {isAdmin && (
+                          <div className="flex gap-1 justify-end">
+                            <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-primary" onClick={() => handleOpenModal(device)} title="Edit">
+                              <Edit2 className="h-4 w-4" />
+                            </Button>
+                            <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive" onClick={() => confirmDelete(device.id || device._id)} title="Delete">
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        )}
+                      </td>
+                    </motion.tr>
+                  ))}
+                </AnimatePresence>
+              </tbody>
+            </table>
+          </div>
+          
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div className="flex items-center justify-between px-6 py-3 border-t border-gray-100 bg-gray-50/50">
+              <div className="text-sm text-muted-foreground">
+                Showing <span className="font-medium text-foreground">{((currentPage - 1) * itemsPerPage) + 1}</span> to <span className="font-medium text-foreground">{Math.min(currentPage * itemsPerPage, filteredDevices.length)}</span> of <span className="font-medium text-foreground">{filteredDevices.length}</span> results
+              </div>
+              <div className="flex items-center gap-1">
+                <Button 
+                  variant="outline" size="sm" className="h-8 w-8 p-0" 
+                  onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                  disabled={currentPage === 1}
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                </Button>
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                  <Button
+                    key={page}
+                    variant={currentPage === page ? "default" : "outline"}
+                    size="sm"
+                    className={`h-8 w-8 p-0 ${currentPage === page ? 'bg-primary text-white' : ''}`}
+                    onClick={() => setCurrentPage(page)}
+                  >
+                    {page}
+                  </Button>
+                ))}
+                <Button 
+                  variant="outline" size="sm" className="h-8 w-8 p-0" 
+                  onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                  disabled={currentPage === totalPages}
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          )}
         </div>
       )}
 

@@ -1,3 +1,4 @@
+from app.database.adapter import find_one, find_all, insert, save, delete, get, count_documents
 from fastapi import APIRouter, Depends, HTTPException, status, Request
 from app.models.user import User
 from app.schemas.user import UserRead, UserProfileUpdate, UserPreferencesUpdate, PasswordChange
@@ -26,7 +27,7 @@ async def update_profile(
         setattr(current_user, key, value)
         
     current_user.updated_at = datetime.now(timezone.utc)
-    await current_user.save()
+    await save(current_user)
     
     create_audit_log(user=current_user, request=request, action="UPDATE_PROFILE", module="Settings", description="User updated profile details", severity="INFO")
     return current_user
@@ -45,7 +46,7 @@ async def update_preferences(
     """Update user preferences."""
     current_user.preferences.update(prefs_data.preferences)
     current_user.updated_at = datetime.now(timezone.utc)
-    await current_user.save()
+    await save(current_user)
     
     create_audit_log(user=current_user, request=request, action="UPDATE_PREFERENCES", module="Settings", description="User updated settings preferences", severity="INFO")
     return current_user.preferences
@@ -66,7 +67,7 @@ async def change_password(
         
     current_user.password_hash = get_password_hash(password_data.new_password)
     current_user.updated_at = datetime.now(timezone.utc)
-    await current_user.save()
+    await save(current_user)
     
     create_audit_log(user=current_user, request=request, action="PASSWORD_CHANGED", module="Settings", description="User changed their password", severity="SUCCESS")
     return {"message": "Password updated successfully"}

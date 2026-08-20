@@ -4,8 +4,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Plus, Search, Edit2, Trash2, Camera,
   FileText, Activity, MapPin, Target, CheckCircle2,
-  Clock, X, Check, XCircle, ChevronDown, User, AlertTriangle
-} from 'lucide-react';
+  Clock, X, Check, XCircle, ChevronDown, User, AlertTriangle, ArrowUpDown, ArrowUp, ArrowDown, ChevronLeft, ChevronRight
+, ClipboardList} from 'lucide-react';
 import { Card, CardContent } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
@@ -60,6 +60,10 @@ const ObservationsPage = () => {
   const [statusFilter, setStatusFilter] = useState('All');
   const [typeFilter, setTypeFilter] = useState('All');
   const [siteFilter, setSiteFilter] = useState('All');
+  
+  const [sortConfig, setSortConfig] = useState({ key: 'observed_at', direction: 'desc' });
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(10);
   
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -122,7 +126,7 @@ const ObservationsPage = () => {
   }, [observations]);
 
   const displayObservations = useMemo(() => {
-    return observations.filter(o => {
+    let filtered = observations.filter(o => {
       const q = searchQuery.toLowerCase();
       const matchesSearch = o.species_name.toLowerCase().includes(q) || 
                             o.observer_name.toLowerCase().includes(q) ||
@@ -133,7 +137,41 @@ const ObservationsPage = () => {
       const matchesSite = siteFilter === 'All' || o.monitoring_site_id === siteFilter;
       return matchesSearch && matchesStatus && matchesType && matchesSite;
     });
-  }, [observations, searchQuery, statusFilter, typeFilter, siteFilter]);
+
+    if (sortConfig.key) {
+      filtered.sort((a, b) => {
+        let aValue = a[sortConfig.key];
+        let bValue = b[sortConfig.key];
+        
+        if (sortConfig.key === 'observed_at') {
+          aValue = new Date(aValue).getTime();
+          bValue = new Date(bValue).getTime();
+        }
+        
+        if (aValue < bValue) return sortConfig.direction === 'asc' ? -1 : 1;
+        if (aValue > bValue) return sortConfig.direction === 'asc' ? 1 : -1;
+        return 0;
+      });
+    }
+
+    return filtered;
+  }, [observations, searchQuery, statusFilter, typeFilter, siteFilter, sortConfig]);
+
+  // Pagination logic
+  const paginatedObservations = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    return displayObservations.slice(startIndex, startIndex + itemsPerPage);
+  }, [displayObservations, currentPage, itemsPerPage]);
+
+  const totalPages = Math.ceil(displayObservations.length / itemsPerPage);
+
+  const requestSort = (key) => {
+    let direction = 'asc';
+    if (sortConfig.key === key && sortConfig.direction === 'asc') {
+      direction = 'desc';
+    }
+    setSortConfig({ key, direction });
+  };
 
   const canModify = (obs) => isAdmin || obs.observer_id === userId;
 
@@ -289,9 +327,12 @@ const ObservationsPage = () => {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-foreground">Observation Records</h1>
-          <p className="text-muted-foreground mt-1 text-sm md:text-base">
-            Log and verify wildlife sightings, tracks, and sensor detections.
+          <h1 className="text-3xl font-bold text-slate-900 flex items-center gap-2">
+            <ClipboardList className="w-8 h-8 text-green-600" />
+            Observation Records
+          </h1>
+          <p className="text-slate-500 text-sm mt-1 max-w-2xl">
+            Verified wildlife sightings and manual field data entries.
           </p>
         </div>
         <Button onClick={() => handleOpenModal()} className="gap-2 bg-primary text-white hover:bg-primary/90">
@@ -302,7 +343,7 @@ const ObservationsPage = () => {
 
       {/* Summary Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card className="border-0 soft-shadow bg-white rounded-xl">
+        <Card className="border-0 soft-shadow bg-white shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300 rounded-2xl">
           <CardContent className="p-6 flex items-center gap-4">
             <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
               <Activity className="h-6 w-6 text-primary" />
@@ -313,7 +354,7 @@ const ObservationsPage = () => {
             </div>
           </CardContent>
         </Card>
-        <Card className="border-0 soft-shadow bg-white rounded-xl">
+        <Card className="border-0 soft-shadow bg-white shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300 rounded-2xl">
           <CardContent className="p-6 flex items-center gap-4">
             <div className="h-12 w-12 rounded-full bg-green-100 flex items-center justify-center">
               <CheckCircle2 className="h-6 w-6 text-green-600" />
@@ -324,7 +365,7 @@ const ObservationsPage = () => {
             </div>
           </CardContent>
         </Card>
-        <Card className="border-0 soft-shadow bg-white rounded-xl">
+        <Card className="border-0 soft-shadow bg-white shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300 rounded-2xl">
           <CardContent className="p-6 flex items-center gap-4">
             <div className="h-12 w-12 rounded-full bg-orange-100 flex items-center justify-center">
               <Clock className="h-6 w-6 text-orange-600" />
@@ -335,7 +376,7 @@ const ObservationsPage = () => {
             </div>
           </CardContent>
         </Card>
-        <Card className="border-0 soft-shadow bg-white rounded-xl">
+        <Card className="border-0 soft-shadow bg-white shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300 rounded-2xl">
           <CardContent className="p-6 flex items-center gap-4">
             <div className="h-12 w-12 rounded-full bg-purple-100 flex items-center justify-center">
               <Target className="h-6 w-6 text-purple-600" />
@@ -420,21 +461,46 @@ const ObservationsPage = () => {
         </motion.div>
       ) : (
         <div className="bg-white rounded-xl soft-shadow overflow-hidden">
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto rounded-xl border border-border/50 shadow-sm">
             <table className="w-full text-sm text-left whitespace-nowrap">
-              <thead className="text-xs text-muted-foreground uppercase bg-gray-50 border-b border-gray-100">
+              <thead className="text-xs text-muted-foreground uppercase bg-gray-50 border-b border-gray-100 sticky top-0 bg-white/95 dark:bg-gray-900/95 backdrop-blur z-10">
                 <tr>
-                  <th className="px-6 py-4 font-medium">Species Info</th>
-                  <th className="px-6 py-4 font-medium">Location & Type</th>
-                  <th className="px-6 py-4 font-medium">Date & Observer</th>
-                  <th className="px-6 py-4 font-medium text-center">Score</th>
-                  <th className="px-6 py-4 font-medium">Status</th>
+                  <th className="px-6 py-4 font-medium cursor-pointer hover:text-primary transition-colors select-none" onClick={() => requestSort('species_name')}>
+                    <div className="flex items-center gap-1">
+                      Species Info
+                      {sortConfig.key === 'species_name' ? (sortConfig.direction === 'asc' ? <ArrowUp className="w-3 h-3" /> : <ArrowDown className="w-3 h-3" />) : <ArrowUpDown className="w-3 h-3 opacity-30" />}
+                    </div>
+                  </th>
+                  <th className="px-6 py-4 font-medium cursor-pointer hover:text-primary transition-colors select-none" onClick={() => requestSort('monitoring_site_name')}>
+                    <div className="flex items-center gap-1">
+                      Location & Type
+                      {sortConfig.key === 'monitoring_site_name' ? (sortConfig.direction === 'asc' ? <ArrowUp className="w-3 h-3" /> : <ArrowDown className="w-3 h-3" />) : <ArrowUpDown className="w-3 h-3 opacity-30" />}
+                    </div>
+                  </th>
+                  <th className="px-6 py-4 font-medium cursor-pointer hover:text-primary transition-colors select-none" onClick={() => requestSort('observed_at')}>
+                    <div className="flex items-center gap-1">
+                      Date & Observer
+                      {sortConfig.key === 'observed_at' ? (sortConfig.direction === 'asc' ? <ArrowUp className="w-3 h-3" /> : <ArrowDown className="w-3 h-3" />) : <ArrowUpDown className="w-3 h-3 opacity-30" />}
+                    </div>
+                  </th>
+                  <th className="px-6 py-4 font-medium text-center cursor-pointer hover:text-primary transition-colors select-none" onClick={() => requestSort('confidence_score')}>
+                    <div className="flex items-center justify-center gap-1">
+                      Score
+                      {sortConfig.key === 'confidence_score' ? (sortConfig.direction === 'asc' ? <ArrowUp className="w-3 h-3" /> : <ArrowDown className="w-3 h-3" />) : <ArrowUpDown className="w-3 h-3 opacity-30" />}
+                    </div>
+                  </th>
+                  <th className="px-6 py-4 font-medium cursor-pointer hover:text-primary transition-colors select-none" onClick={() => requestSort('verification_status')}>
+                    <div className="flex items-center gap-1">
+                      Status
+                      {sortConfig.key === 'verification_status' ? (sortConfig.direction === 'asc' ? <ArrowUp className="w-3 h-3" /> : <ArrowDown className="w-3 h-3" />) : <ArrowUpDown className="w-3 h-3 opacity-30" />}
+                    </div>
+                  </th>
                   <th className="px-6 py-4 font-medium text-right">Actions</th>
                 </tr>
               </thead>
               <tbody>
                 <AnimatePresence>
-                  {displayObservations.map(obs => (
+                  {paginatedObservations.map(obs => (
                     <motion.tr 
                       key={obs.id || obs._id} 
                       layout
@@ -523,6 +589,42 @@ const ObservationsPage = () => {
               </tbody>
             </table>
           </div>
+          
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div className="flex items-center justify-between px-6 py-3 border-t border-gray-100 bg-gray-50/50">
+              <div className="text-sm text-muted-foreground">
+                Showing <span className="font-medium text-foreground">{((currentPage - 1) * itemsPerPage) + 1}</span> to <span className="font-medium text-foreground">{Math.min(currentPage * itemsPerPage, displayObservations.length)}</span> of <span className="font-medium text-foreground">{displayObservations.length}</span> results
+              </div>
+              <div className="flex items-center gap-1">
+                <Button 
+                  variant="outline" size="sm" className="h-8 w-8 p-0" 
+                  onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                  disabled={currentPage === 1}
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                </Button>
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                  <Button
+                    key={page}
+                    variant={currentPage === page ? "default" : "outline"}
+                    size="sm"
+                    className={`h-8 w-8 p-0 ${currentPage === page ? 'bg-primary text-white' : ''}`}
+                    onClick={() => setCurrentPage(page)}
+                  >
+                    {page}
+                  </Button>
+                ))}
+                <Button 
+                  variant="outline" size="sm" className="h-8 w-8 p-0" 
+                  onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                  disabled={currentPage === totalPages}
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          )}
         </div>
       )}
 
@@ -629,7 +731,7 @@ const ObservationsPage = () => {
                       {selectedUpload && (
                         <div className="shrink-0 w-24 h-24 border border-gray-200 rounded overflow-hidden bg-white flex items-center justify-center">
                           {selectedUpload.upload_type === 'Image' ? (
-                            <img src={selectedUpload.file_url} alt="Preview" className="w-full h-full object-cover" />
+                            <img loading="lazy" src={selectedUpload.file_url} alt="Preview" className="w-full h-full object-cover" />
                           ) : (
                             <div className="text-center p-2 text-xs text-muted-foreground flex flex-col items-center">
                               <FileText className="w-6 h-6 mb-1 text-primary" />

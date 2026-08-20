@@ -7,7 +7,7 @@ import { Label } from '../components/ui/label';
 import { Avatar, AvatarFallback, AvatarImage } from '../components/ui/avatar';
 import api from '../services/api';
 import { motion } from 'framer-motion';
-import { Shield, Mail, Calendar, Key, User, CheckCircle2, AlertCircle, Loader2 } from 'lucide-react';
+import { Shield, Mail, Calendar, Key, User, CheckCircle2, AlertCircle, Loader2 , UserCircle} from 'lucide-react';
 
 const ProfilePage = () => {
   const { user, login } = useContext(AuthContext);
@@ -63,8 +63,13 @@ const ProfilePage = () => {
       
       <motion.div variants={item} className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-foreground">Account Settings</h1>
-          <p className="text-muted-foreground mt-1">Manage your profile and security preferences.</p>
+          <h1 className="text-3xl font-bold text-slate-900 flex items-center gap-2">
+            <UserCircle className="w-8 h-8 text-green-600" />
+            Profile
+          </h1>
+          <p className="text-slate-500 text-sm mt-1 max-w-2xl">
+            Manage your user account details and preferences.
+          </p>
         </div>
       </motion.div>
 
@@ -72,7 +77,7 @@ const ProfilePage = () => {
         
         {/* Left Column: Profile Card */}
         <motion.div variants={item} className="md:col-span-4 space-y-6">
-          <Card className="border-0 soft-shadow rounded-2xl bg-white overflow-hidden">
+          <Card className="border-0 soft-shadow bg-white overflow-hidden shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300 rounded-2xl">
             <div className="h-32 bg-gradient-to-r from-primary/80 to-secondary/80 relative"></div>
             <CardContent className="px-6 pb-6 pt-0 flex flex-col items-center text-center relative -mt-16">
               <Avatar className="h-32 w-32 ring-4 ring-white shadow-lg mb-4">
@@ -105,7 +110,7 @@ const ProfilePage = () => {
         <motion.div variants={item} className="md:col-span-8 space-y-6">
           
           {/* Edit Profile Form */}
-          <Card className="border-0 soft-shadow rounded-2xl bg-white">
+          <Card className="border-0 soft-shadow bg-white shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300 rounded-2xl">
             <CardHeader className="px-8 pt-8 pb-4">
               <CardTitle className="text-xl flex items-center gap-2">
                 <User className="w-5 h-5 text-primary" /> Personal Information
@@ -147,7 +152,7 @@ const ProfilePage = () => {
           </Card>
 
           {/* Change Password Form */}
-          <Card className="border-0 soft-shadow rounded-2xl bg-white">
+          <Card className="border-0 soft-shadow bg-white shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300 rounded-2xl">
             <CardHeader className="px-8 pt-8 pb-4">
               <CardTitle className="text-xl flex items-center gap-2">
                 <Key className="w-5 h-5 text-primary" /> Security

@@ -185,7 +185,9 @@ const ReportsPage = () => {
           <AlertCircle className="w-10 h-10 text-red-500" />
         </div>
         <h2 className="text-2xl font-bold mb-2">Failed to Load Reports</h2>
-        <p className="text-muted-foreground mb-6">{error}</p>
+        <p className="text-slate-500 text-sm mt-1 max-w-2xl">
+            Legacy report generation and data extraction utilities.
+          </p>
         <Button onClick={loadAll} className="gap-2"><RotateCcw className="w-4 h-4" /> Retry</Button>
       </div>
     );
@@ -208,7 +210,10 @@ const ReportsPage = () => {
       {/* ── Page Header ── */}
       <motion.div variants={item} className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-foreground">Reports & Exports</h1>
+          <h1 className="text-3xl font-bold text-slate-900 flex items-center gap-2">
+            <FileText className="w-8 h-8 text-green-600" />
+            Reports & Exports
+          </h1>
           <p className="text-muted-foreground mt-1 text-sm">
             Generate, filter, and export wildlife observation analytics.
           </p>
@@ -255,7 +260,7 @@ const ReportsPage = () => {
             transition={{ duration: 0.25 }}
             className="overflow-hidden"
           >
-            <Card className="border-0 shadow-sm bg-white">
+            <Card className="border-0 bg-white shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300 rounded-2xl">
               <CardContent className="p-5">
                 <form onSubmit={applyFilters}>
                   {/* Search bar spanning full width */}
@@ -294,8 +299,7 @@ const ReportsPage = () => {
                     </div>
                     <div className="space-y-1.5">
                       <Label>Monitoring Site</Label>
-                      <select
-                        className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:ring-primary focus:border-primary"
+                      <select className="flex w-full border bg-background text-sm focus: h-11 rounded-xl px-4 py-2.5 border-border/60 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all duration-300"
                         value={draftFilters.monitoring_site_id}
                         onChange={e => setDraftFilters(f => ({ ...f, monitoring_site_id: e.target.value }))}
                       >
@@ -305,8 +309,7 @@ const ReportsPage = () => {
                     </div>
                     <div className="space-y-1.5">
                       <Label>Verification Status</Label>
-                      <select
-                        className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:ring-primary focus:border-primary"
+                      <select className="flex w-full border bg-background text-sm focus: h-11 rounded-xl px-4 py-2.5 border-border/60 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all duration-300"
                         value={draftFilters.verification_status}
                         onChange={e => setDraftFilters(f => ({ ...f, verification_status: e.target.value }))}
                       >
@@ -342,7 +345,7 @@ const ReportsPage = () => {
               { label: 'Pending Validation',  value: summary?.pending_observations, icon: Clock,         bg: 'bg-orange-100',  ic: 'text-orange-600' },
             ].map(({ label, value, icon: Icon, bg, ic }) => (
               <motion.div key={label} whileHover={{ scale: 1.02, y: -3 }} transition={{ type: 'spring', stiffness: 400, damping: 25 }}>
-                <Card className="border-0 shadow-sm bg-white h-full">
+                <Card className="border-0 bg-white h-full shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300 rounded-2xl">
                   <CardContent className="p-5 flex flex-col justify-between h-full">
                     <div className={`w-10 h-10 rounded-xl ${bg} flex items-center justify-center mb-3`}>
                       <Icon className={`w-5 h-5 ${ic}`} />
@@ -368,7 +371,7 @@ const ReportsPage = () => {
               { label: 'Field Uploads',    value: summary?.total_uploads,           icon: Download,bg: 'bg-pink-100',   ic: 'text-pink-600' },
               { label: 'Registered Users', value: summary?.total_users,             icon: Users,   bg: 'bg-amber-100',  ic: 'text-amber-600' },
             ].map(({ label, value, icon: Icon, bg, ic }) => (
-              <Card key={label} className="border-0 shadow-sm bg-white">
+              <Card key={label} className="border-0 bg-white shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300 rounded-2xl">
                 <CardContent className="p-5 flex items-center gap-4">
                   <div className={`w-10 h-10 rounded-xl ${bg} flex items-center justify-center shrink-0`}>
                     <Icon className={`w-5 h-5 ${ic}`} />
@@ -386,7 +389,7 @@ const ReportsPage = () => {
       {/* ── Charts Row ── */}
       <motion.div variants={item} className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Species Distribution Pie */}
-        <Card className="border-0 shadow-sm bg-white lg:col-span-1">
+        <Card className="border-0 bg-white lg:col-span-1 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300 rounded-2xl">
           <CardHeader className="border-b border-gray-50 pb-3">
             <CardTitle className="text-base flex items-center gap-2">
               <BarChart2 className="w-4 h-4 text-primary" /> Species Distribution
@@ -426,7 +429,7 @@ const ReportsPage = () => {
         </Card>
 
         {/* Monthly Area Chart */}
-        <Card className="border-0 shadow-sm bg-white lg:col-span-2">
+        <Card className="border-0 bg-white lg:col-span-2 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300 rounded-2xl">
           <CardHeader className="border-b border-gray-50 pb-3">
             <CardTitle className="text-base flex items-center gap-2">
               <TrendingUp className="w-4 h-4 text-primary" /> Monthly Observations
@@ -460,7 +463,7 @@ const ReportsPage = () => {
       {/* ── Verification Status Donut ── */}
       {!isLoadingCharts && verificationData.length > 0 && (
         <motion.div variants={item}>
-          <Card className="border-0 shadow-sm bg-white">
+          <Card className="border-0 bg-white shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300 rounded-2xl">
             <CardHeader className="border-b border-gray-50 pb-3">
               <CardTitle className="text-base flex items-center gap-2">
                 <CheckCircle2 className="w-4 h-4 text-primary" /> Verification Status Breakdown
@@ -493,7 +496,7 @@ const ReportsPage = () => {
 
       {/* ── Observation Table ── */}
       <motion.div variants={item}>
-        <Card className="border-0 shadow-sm bg-white overflow-hidden">
+        <Card className="border-0 bg-white overflow-hidden shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300 rounded-2xl">
           <CardHeader className="border-b border-gray-100 flex flex-row items-center justify-between py-4">
             <CardTitle className="text-base flex items-center gap-2">
               <Target className="w-4 h-4 text-primary" /> Observation Records
@@ -523,9 +526,9 @@ const ReportsPage = () => {
                 </Button>
               </div>
             ) : (
-              <div className="overflow-x-auto">
+              <div className="overflow-x-auto rounded-xl border border-border/50 shadow-sm">
                 <table className="w-full text-sm text-left">
-                  <thead className="text-xs text-muted-foreground uppercase bg-gray-50 border-b border-gray-100">
+                  <thead className="text-xs text-muted-foreground uppercase bg-gray-50 border-b border-gray-100 sticky top-0 bg-white/95 dark:bg-gray-900/95 backdrop-blur z-10">
                     <tr>
                       {/* Thumbnail */}
                       <th className="px-4 py-3 font-medium w-14">Img</th>
@@ -567,7 +570,7 @@ const ReportsPage = () => {
                           <td className="px-4 py-3">
                             {obs.file_url ? (
                               <div className="w-10 h-10 rounded-lg overflow-hidden border border-gray-100 bg-gray-50 shrink-0">
-                                <img
+                                <img loading="lazy"
                                   src={obs.file_url}
                                   alt={obs.species_name}
                                   className="w-full h-full object-cover"

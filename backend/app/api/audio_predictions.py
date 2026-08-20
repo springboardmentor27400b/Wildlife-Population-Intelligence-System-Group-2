@@ -1,3 +1,4 @@
+from app.database.adapter import find_one, find_all, insert, save, delete, get, count_documents
 import os
 from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, Request, Query
 from pydantic import BaseModel, Field
@@ -6,7 +7,7 @@ from app.api.auth import get_current_user
 from app.models.user import User
 from app.models.audio_prediction import AudioPredictionRecord
 from app.services.audio_prediction_service import AudioPredictionService
-from beanie import PydanticObjectId
+
 from bson.errors import InvalidId
 
 router = APIRouter()
@@ -31,17 +32,7 @@ async def predict_audio_species_endpoint(
         request=request
     )
     
-    return {
-        "predicted_species": prediction_record.species_name,
-        "confidence": prediction_record.confidence_score,
-        "top_predictions": [
-            {
-                "species": tp.species,
-                "confidence": tp.confidence
-            }
-            for tp in prediction_record.top_predictions
-        ]
-    }
+    return prediction_record
 
 
 @router.get("/")
@@ -51,45 +42,64 @@ async def get_audio_predictions_history(
     limit: int = Query(10, ge=1, le=100),
     search: Optional[str] = None,
     status: Optional[str] = None,
-    sort_by: Optional[str] = Query(
+    sort_by: str = Query(
         "created_at",
         pattern="^(created_at|confidence_score|prediction_time|species_name|prediction_timestamp)$"
     ),
-    sort_order: Optional[str] = Query("desc", pattern="^(asc|desc)$")
+    sort_order: str = Query("desc", pattern="^(asc|desc)$")
 ):
     """
     Fetch audio prediction history records with search, filtering, and sorting.
     """
-    conditions = []
+    from app.database.db import supabase
+
+    # Build Supabase query
+    query = supabase.table("audio_prediction_records").select("*", count="exact")
+    
+    if hasattr(sort_by, "default"):
+        sort_by = sort_by.default
+    if hasattr(sort_order, "default"):
+        sort_order = sort_order.default
+    
+    if status:
+        query = query.eq("status", status)
 
     if search:
-        search_regex = {"$regex": search, "$options": "i"}
-        conditions.append({
-            "$or": [
-                {"species_name": search_regex},
-                {"file_name": search_regex},
-                {"user_name": search_regex}
-            ]
-        })
+        search_term = f"%{search}%"
+        # Supabase OR syntax: or=(col1.ilike.val,col2.ilike.val)
+        query = query.or_(
+            f"species_name.ilike.{search_term},"
+            f"file_name.ilike.{search_term},"
+            f"user_name.ilike.{search_term}"
+        )
 
+    # First get count
+    count_res = query.limit(0).execute()
+    total = count_res.count if count_res.count is not None else 0
+
+    # Then get data
+    data_query = supabase.table("audio_prediction_records").select("*")
     if status:
-        conditions.append({"status": status})
-
-    query = {}
-    if conditions:
-        query = conditions[0] if len(conditions) == 1 else {"$and": conditions}
-
-    total = await AudioPredictionRecord.find(query).count()
+        data_query = data_query.eq("status", status)
+    if search:
+        data_query = data_query.or_(
+            f"species_name.ilike.{search_term},"
+            f"file_name.ilike.{search_term},"
+            f"user_name.ilike.{search_term}"
+        )
+        
     skip = (page - 1) * limit
-
-    sort_field = sort_by if sort_order == "asc" else f"-{sort_by}"
-    predictions = (
-        await AudioPredictionRecord.find(query)
-        .sort(sort_field)
-        .skip(skip)
-        .limit(limit)
-        .to_list()
-    )
+    
+    # Supabase sorting
+    is_desc = sort_order == "desc"
+    data_query = data_query.order(sort_by, desc=is_desc)
+    
+    # Pagination
+    data_query = data_query.range(skip, skip + limit - 1)
+    
+    res = data_query.execute()
+    
+    predictions = [AudioPredictionRecord(**d) for d in res.data]
 
     return {
         "total": total,

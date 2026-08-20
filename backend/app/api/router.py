@@ -17,6 +17,12 @@ from app.api.notifications import router as notifications_router
 from app.api.settings import router as settings_router
 from app.api.audit_logs import router as audit_logs_router
 
+from app.api.population_estimation import router as population_estimation_router
+from app.api.habitat_intelligence import router as habitat_intelligence_router
+from app.api.ecosystem_health import router as ecosystem_health_router
+from app.api.conservation_recommendation import router as conservation_recommendation_router
+from app.api.wildlife_dashboard import router as wildlife_dashboard_router
+
 api_router = APIRouter()
 
 api_router.include_router(auth_router, prefix="/auth", tags=["Authentication"])
@@ -35,3 +41,9 @@ api_router.include_router(map_router, prefix="/map", tags=["Map"])
 api_router.include_router(notifications_router, prefix="/notifications", tags=["Notifications"])
 api_router.include_router(settings_router, prefix="/settings", tags=["Settings"])
 api_router.include_router(audit_logs_router, prefix="/audit-logs", tags=["Audit Logs"])
+
+api_router.include_router(population_estimation_router, prefix="/population-estimation", tags=["Population Estimation"])
+api_router.include_router(habitat_intelligence_router, prefix="/habitat-intelligence", tags=["Habitat Intelligence"])
+api_router.include_router(ecosystem_health_router, prefix="/ecosystem-health", tags=["Ecosystem Health"])
+api_router.include_router(conservation_recommendation_router, prefix="/conservation-recommendations", tags=["Conservation Recommendations"])
+api_router.include_router(wildlife_dashboard_router, prefix="/wildlife-dashboard", tags=["Wildlife Dashboard"])

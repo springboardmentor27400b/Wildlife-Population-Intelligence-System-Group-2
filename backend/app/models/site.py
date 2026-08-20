@@ -1,8 +1,9 @@
-from beanie import Document
-from pydantic import Field
+import uuid
+from pydantic import BaseModel, Field
 from datetime import datetime, timezone
 
-class MonitoringSite(Document):
+class MonitoringSite(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     site_name: str
     location: str
     state: str
@@ -14,8 +15,6 @@ class MonitoringSite(Document):
     description: str = ""
     status: str = "Active"
     created_by: str
-    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
-    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    created_at: datetime = Field(default_factory=lambda: datetime.utcnow())
+    updated_at: datetime = Field(default_factory=lambda: datetime.utcnow())
 
-    class Settings:
-        name = "monitoring_sites"

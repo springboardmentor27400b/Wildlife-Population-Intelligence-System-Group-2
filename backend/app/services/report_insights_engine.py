@@ -1,3 +1,4 @@
+import uuid
 from typing import Dict, Any, List
 
 class ReportInsightsEngine:
@@ -68,7 +69,7 @@ class ReportInsightsEngine:
             "total_predictions": total_preds,
             "total_endangered_species": summary.get("endangered_count", 0),
             "total_habitats": len(data.get("distributions", {}).get("habitat", [])),
-            "generation_time_ms": int(time.time() * 1000) % 1000 # Mock gen time
+            "generation_time_ms": None
         }
 
         return {
@@ -82,3 +83,4 @@ class ReportInsightsEngine:
             "report_quality": report_quality,
             "report_statistics": report_statistics
         }
+

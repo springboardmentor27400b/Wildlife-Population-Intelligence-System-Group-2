@@ -7,7 +7,7 @@ export const ROLES = {
 
 export const rolePermissions = {
   [ROLES.ADMIN]: {
-    allowedPaths: ["/dashboard", "/profile", "/admin-users", "/admin-settings", "/analytics", "/audit-logs"],
+    allowedPaths: ["/dashboard", "/profile", "/admin-users", "/admin-settings", "/analytics", "/audit-logs", "/wildlife-dashboard", "/notifications"],
     allowedActions: [
       "CAN_MANAGE_USERS",
       "CAN_MANAGE_SETTINGS",
@@ -63,20 +63,27 @@ export const rolePermissions = {
   }
 };
 
+const getRoleString = (role) => {
+  if (!role) return null;
+  return typeof role === 'string' ? role : (role.name || role.role_name || role);
+};
+
 export const hasPermission = (role, action) => {
-  if (!role || !rolePermissions[role]) return false;
-  return rolePermissions[role].allowedActions.includes(action);
+  const roleStr = getRoleString(role);
+  if (!roleStr || !rolePermissions[roleStr]) return false;
+  return rolePermissions[roleStr].allowedActions.includes(action);
 };
 
 export const hasRouteAccess = (role, path) => {
-  const milestone1Paths = ['/dashboard', '/profile', '/surveys', '/sites', '/devices', '/uploads', '/observations', '/predictions', '/audio-predictions', '/species-identification', '/biodiversity-analytics', '/wildlife-reports', '/reports', '/map', '/settings'];
+  const milestone1Paths = ['/dashboard', '/profile', '/surveys', '/sites', '/devices', '/uploads', '/observations', '/predictions', '/audio-predictions', '/species-identification', '/biodiversity-analytics', '/wildlife-reports', '/reports', '/map', '/settings', '/population-intelligence', '/habitat-intelligence', '/conservation-recommendations', '/ecosystem-health', '/wildlife-dashboard', '/notifications', '/testing-validation'];
   if (milestone1Paths.some(p => path.startsWith(p))) {
     return true;
   }
   
-  if (!role || !rolePermissions[role]) {
+  const roleStr = getRoleString(role);
+  if (!roleStr || !rolePermissions[roleStr]) {
     // Basic fallback
     return path === '/';
   }
-  return rolePermissions[role].allowedPaths.some(p => path.startsWith(p)) || path === '/';
+  return rolePermissions[roleStr].allowedPaths.some(p => path.startsWith(p)) || path === '/';
 };

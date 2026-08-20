@@ -1,6 +1,7 @@
+from app.database.adapter import find_one, find_all, insert, save, delete, get, count_documents
 from fastapi import APIRouter, Depends, HTTPException, status, Request
 from typing import List
-from beanie import PydanticObjectId
+
 from datetime import datetime, timezone
 
 from app.models.observation import ObservationRecord
@@ -34,7 +35,7 @@ async def resolve_relationships(observation: ObservationRecord, site_id: str, de
     # Resolve Site
     if site_id:
         try:
-            site = await MonitoringSite.get(PydanticObjectId(site_id))
+            site = await get(MonitoringSite, str(site_id))
             if not site: raise HTTPException(status_code=404, detail="Monitoring site not found.")
             observation.monitoring_site_name = site.site_name
         except Exception:
@@ -43,7 +44,7 @@ async def resolve_relationships(observation: ObservationRecord, site_id: str, de
     # Resolve Device
     if device_id:
         try:
-            device = await SensorDevice.get(PydanticObjectId(device_id))
+            device = await get(SensorDevice, str(device_id))
             if device: observation.sensor_device_name = device.device_name
             else: observation.sensor_device_name = None
         except:
@@ -55,7 +56,7 @@ async def resolve_relationships(observation: ObservationRecord, site_id: str, de
     # Resolve Upload
     if upload_id:
         try:
-            upload = await FieldUpload.get(PydanticObjectId(upload_id))
+            upload = await get(FieldUpload, str(upload_id))
             if upload:
                 observation.file_name = upload.file_name
                 observation.file_url = upload.file_url
@@ -102,7 +103,7 @@ async def create_observation(
         obs_in.field_upload_id
     )
     
-    await observation.insert()
+    await insert(observation)
     
     create_audit_log(user=current_user, request=request, action="CREATE_OBSERVATION", module="Observations", description=f"Created observation {observation.id}", resource_id=str(observation.id), severity="INFO")
     
@@ -114,7 +115,7 @@ async def create_observation(
         user_id="admin_all",
         related_resource_id=str(observation.id)
     )
-    await notif.insert()
+    await insert(notif)
     
     return observation
 
@@ -125,23 +126,25 @@ async def get_observations(
     limit: int = Query(20, ge=1, le=100)
 ):
     skip = (page - 1) * limit
-    return await ObservationRecord.find_all().sort("-observed_at").skip(skip).limit(limit).to_list()
+    from app.database.db import supabase
+    res = supabase.table("observation_records").select("*").order("observed_at", desc=True).range(skip, skip + limit - 1).execute()
+    return [ObservationRecord(**d) for d in res.data]
 
 @router.get("/{observation_id}", response_model=ObservationResponse)
-async def get_observation(observation_id: PydanticObjectId, current_user: User = Depends(get_current_user)):
-    observation = await ObservationRecord.get(observation_id)
+async def get_observation(observation_id: str, current_user: User = Depends(get_current_user)):
+    observation = await get(ObservationRecord, observation_id)
     if not observation:
         raise HTTPException(status_code=404, detail="Observation not found")
     return observation
 
 @router.put("/{observation_id}", response_model=ObservationResponse)
 async def update_observation(
-    observation_id: PydanticObjectId, 
+    observation_id: str, 
     obs_update: ObservationUpdate, 
     request: Request,
     current_user: User = Depends(get_current_user)
 ):
-    observation = await ObservationRecord.get(observation_id)
+    observation = await get(ObservationRecord, observation_id)
     if not observation:
         raise HTTPException(status_code=404, detail="Observation not found")
         
@@ -166,20 +169,20 @@ async def update_observation(
         )
         
     observation.updated_at = datetime.now(timezone.utc)
-    await observation.save()
+    await save(observation)
     
     create_audit_log(user=current_user, request=request, action="UPDATE_OBSERVATION", module="Observations", description=f"Updated observation {observation_id}", resource_id=str(observation.id), severity="INFO")
     return observation
 
 @router.patch("/{observation_id}/verify", response_model=ObservationResponse)
 async def verify_observation(
-    observation_id: PydanticObjectId, 
+    observation_id: str, 
     verify_update: ObservationVerificationUpdate, 
     request: Request,
     current_user: User = Depends(require_admin)
 ):
     
-    observation = await ObservationRecord.get(observation_id)
+    observation = await get(ObservationRecord, observation_id)
     if not observation:
         raise HTTPException(status_code=404, detail="Observation not found")
         
@@ -191,7 +194,7 @@ async def verify_observation(
     observation.verified_at = datetime.now(timezone.utc)
     observation.updated_at = datetime.now(timezone.utc)
     
-    await observation.save()
+    await save(observation)
     
     create_audit_log(user=current_user, request=request, action="VERIFY_OBSERVATION", module="Observations", description=f"Verified observation {observation_id} as {verify_update.status}", resource_id=str(observation.id), severity="INFO")
     
@@ -204,21 +207,21 @@ async def verify_observation(
         user_id=observation.observer_id,
         related_resource_id=str(observation.id)
     )
-    await notif.insert()
+    await insert(notif)
     
     return observation
 
 @router.delete("/{observation_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_observation(
-    observation_id: PydanticObjectId, 
+    observation_id: str, 
     request: Request,
     current_user: User = Depends(get_current_user)
 ):
-    observation = await ObservationRecord.get(observation_id)
+    observation = await get(ObservationRecord, observation_id)
     if not observation:
         raise HTTPException(status_code=404, detail="Observation not found")
         
     check_modify_permission(observation, current_user)
-    await observation.delete()
+    await delete(observation)
     create_audit_log(user=current_user, request=request, action="DELETE_OBSERVATION", module="Observations", description=f"Deleted observation {observation_id}", resource_id=str(observation.id), severity="WARNING")
     return {"ok": True}

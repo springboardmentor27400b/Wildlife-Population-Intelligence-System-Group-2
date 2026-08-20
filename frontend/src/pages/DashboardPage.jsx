@@ -7,9 +7,23 @@ import {
   Map, FileText, ChevronRight, TrendingUp, TrendingDown, Minus, Check, Clock, X
 } from 'lucide-react';
 import { motion } from 'framer-motion';
+import ecosystemHealthService from '../services/ecosystemHealthService';
+import habitatIntelligenceService from '../services/habitatIntelligenceService';
+import conservationRecommendationService from '../services/conservationRecommendationService';
+import predictionService from '../services/predictionService';
+import wildlifeDashboardService from '../services/wildlifeDashboardService';
+import siteService from '../services/siteService';
+import { Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, LineChart, Line, ComposedChart } from 'recharts';
 import dashboardService from '../services/dashboardService';
+import { populationEstimationService } from '../services/populationEstimationService';
 import auditLogService from '../services/auditLogService';
 import { Link } from 'react-router-dom';
+import DashboardHero from '../components/ui/DashboardHero';
+import SkeletonLoader from '../components/ui/SkeletonLoader';
+import AnimatedNumber from '../components/ui/AnimatedNumber';
+import Tooltip from '../components/ui/tooltip';
+import SystemStatusWidget from '../components/ui/SystemStatusWidget';
+import QuickActionCard from '../components/ui/QuickActionCard';
 import { 
   PieChart, Pie, Cell, Tooltip as RechartsTooltip, ResponsiveContainer, 
   BarChart, Bar, XAxis, YAxis, CartesianGrid, AreaChart, Area
@@ -22,15 +36,72 @@ const VERIFICATION_COLORS = ['#22c55e', '#f59e0b', '#ef4444'];
 const DashboardPage = () => {
   const { user, loading: userLoading } = useContext(AuthContext);
   const [data, setData] = useState(null);
+  const [popData, setPopData] = useState(null);
+
+  const [ecoData, setEcoData] = useState(null);
+  const [habData, setHabData] = useState(null);
+  const [consData, setConsData] = useState(null);
+  const [predData, setPredData] = useState([]);
+  const [alertsData, setAlertsData] = useState([]);
+  const [sitesData, setSitesData] = useState([]);
+
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const isFetching = useRef(false);
 
-  const getRoleName = (roleObj) => {
+  function getRoleName(roleObj) {
     if (!roleObj) return "";
     return typeof roleObj === 'string' ? roleObj : (roleObj.name || roleObj.role_name || "");
-  };
+  }
   const isAdmin = getRoleName(user?.role).toLowerCase() === "administrator";
+
+  // Drag and drop layout
+  const defaultLayout = [
+    'kpis', 
+    'population_intelligence', 
+    'habitat_intelligence', 
+    'ecosystem_health', 
+    'conservation_insights', 
+    'charts_top', 
+    'charts_middle', 
+    'site_overview',
+    'recent_predictions',
+    'smart_alerts',
+    'bottom_row'
+  ];
+  if (isAdmin) defaultLayout.push('system_activity');
+  
+  const [layout, setLayout] = useState(() => {
+    const saved = localStorage.getItem('dashboard_layout');
+    return saved ? JSON.parse(saved) : defaultLayout;
+  });
+
+  const [draggedItem, setDraggedItem] = useState(null);
+
+  const handleDragStart = (e, index) => {
+    setDraggedItem(index);
+    e.dataTransfer.effectAllowed = 'move';
+    // Small delay to allow the drag image to generate before setting opacity
+    setTimeout(() => {
+      if (e.target) e.target.style.opacity = '0.5';
+    }, 0);
+  };
+
+  const handleDragOver = (e, index) => {
+    e.preventDefault();
+    if (draggedItem === null || draggedItem === index) return;
+    const newLayout = [...layout];
+    const item = newLayout.splice(draggedItem, 1)[0];
+    newLayout.splice(index, 0, item);
+    setLayout(newLayout);
+    setDraggedItem(index);
+  };
+
+  const handleDragEnd = (e) => {
+    setDraggedItem(null);
+    if (e.target) e.target.style.opacity = '1';
+    localStorage.setItem('dashboard_layout', JSON.stringify(layout));
+  };
 
   const [recentAuditLogs, setRecentAuditLogs] = useState([]);
   const [isLogsLoading, setIsLogsLoading] = useState(false);
@@ -88,8 +159,27 @@ const DashboardPage = () => {
       isFetching.current = true;
       if (!silent) setIsLoading(true);
       setError(null);
-      const response = await dashboardService.getDashboardAnalytics();
-      setData(response);
+      const [
+        dashboardRes, popRes, ecoRes, habRes, consRes, predRes, alertsRes, sitesRes
+      ] = await Promise.allSettled([
+        dashboardService.getDashboardAnalytics(),
+        populationEstimationService.getDashboardStats(),
+        ecosystemHealthService.getSummary(),
+        habitatIntelligenceService.getSummary(),
+        conservationRecommendationService.getSummary(),
+        predictionService.getPredictions({ limit: 5 }),
+        wildlifeDashboardService.getAlerts(),
+        siteService.getSites()
+      ]);
+
+      setData(dashboardRes.status === 'fulfilled' ? dashboardRes.value : null);
+      setPopData(popRes.status === 'fulfilled' ? popRes.value : null);
+      setEcoData(ecoRes.status === 'fulfilled' ? ecoRes.value : null);
+      setHabData(habRes.status === 'fulfilled' ? habRes.value : null);
+      setConsData(consRes.status === 'fulfilled' ? consRes.value : null);
+      setPredData(predRes.status === 'fulfilled' ? (predRes.value?.items || predRes.value?.predictions || []) : []);
+      setAlertsData(alertsRes.status === 'fulfilled' ? (alertsRes.value?.alerts || alertsRes.value || []) : []);
+      setSitesData(sitesRes.status === 'fulfilled' ? (sitesRes.value?.sites || sitesRes.value || []) : []);
     } catch (err) {
       console.error("Dashboard API failed", err);
       if (!silent) setError("Failed to load dashboard data. Please check your connection.");
@@ -149,15 +239,15 @@ const DashboardPage = () => {
   if (userLoading || (isLoading && !data)) {
     return (
       <div className="space-y-8">
-        <div className="h-32 bg-gray-200 dark:bg-gray-800 rounded-2xl animate-pulse"></div>
+        <SkeletonLoader type="chart" />
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {[1,2,3,4,5,6,7,8].map((i) => (
-            <div key={i} className="h-32 bg-gray-200 dark:bg-gray-800 rounded-2xl animate-pulse"></div>
+            <SkeletonLoader key={i} type="kpi" />
           ))}
         </div>
         <div className="grid lg:grid-cols-3 gap-8">
-            <div className="h-[320px] bg-gray-200 dark:bg-gray-800 rounded-2xl animate-pulse lg:col-span-2"></div>
-            <div className="h-[320px] bg-gray-200 dark:bg-gray-800 rounded-2xl animate-pulse"></div>
+            <div className="lg:col-span-2"><SkeletonLoader type="chart" /></div>
+            <div><SkeletonLoader type="chart" /></div>
         </div>
       </div>
     );
@@ -203,23 +293,21 @@ const DashboardPage = () => {
   }
 
   const kpis = [
-    { label: 'Total Species', ...metrics.total_species, icon: Leaf },
     { label: 'Total Observations', ...metrics.total_observations, icon: Activity },
-    { label: 'Verified Obs.', ...metrics.verified_observations, icon: Trees },
-    { label: 'Pending Obs.', ...metrics.pending_observations, icon: AlertCircle },
+    { label: 'Species Monitored', value: metrics.total_species?.value || popData?.total_species || 0, mom_change: metrics.total_species?.mom_change || 0, icon: Leaf },
+    { label: 'Active Sites', value: metrics.total_monitoring_sites?.value || sitesData?.length || 0, mom_change: metrics.total_monitoring_sites?.mom_change || 0, icon: MapPin },
+    { label: 'Species At Risk', value: popData?.high_risk_species || 0, mom_change: 0, icon: AlertCircle },
     { label: 'AI Predictions', ...metrics.total_predictions, icon: Camera },
-    { label: 'Monitoring Sites', ...metrics.total_monitoring_sites, icon: MapPin },
-    { label: 'Sensor Devices', ...metrics.total_sensor_devices, icon: RadioReceiver },
-    { label: 'Registered Users', ...metrics.total_users, icon: Users },
+    { label: 'Ecosystem Health', value: ecoData?.overall_score || ecoData?.health_score || 0, mom_change: 0, icon: Trees }
   ];
 
   const quickActions = [
-    { title: 'Add Observation', icon: PlusCircle, path: '/observations', color: 'bg-green-100 text-green-600' },
-    { title: 'Upload Image', icon: FileImage, path: '/uploads', color: 'bg-blue-100 text-blue-600' },
-    { title: 'Register Device', icon: RadioReceiver, path: '/devices', color: 'bg-purple-100 text-purple-600' },
-    { title: 'Open Wildlife Map', icon: Map, path: '/map', color: 'bg-emerald-100 text-emerald-600' },
-    { title: 'View Reports', icon: FileText, path: '/reports', color: 'bg-cyan-100 text-cyan-600' },
-    { title: 'Predict Species', icon: Camera, path: '/predictions', color: 'bg-rose-100 text-rose-600' },
+    { title: 'Upload Observation', icon: PlusCircle, path: '/observations', gradientClass: 'from-green-500 to-emerald-600' },
+    { title: 'Monitoring Sites', icon: MapPin, path: '/sites', gradientClass: 'from-blue-500 to-cyan-600' },
+    { title: 'AI Detection', icon: Camera, path: '/predictions', gradientClass: 'from-purple-500 to-indigo-600' },
+    { title: 'Bioacoustics', icon: RadioReceiver, path: '/audio-predictions', gradientClass: 'from-rose-500 to-pink-600' },
+    { title: 'View Reports', icon: FileText, path: '/wildlife-reports', gradientClass: 'from-amber-500 to-orange-600' },
+    { title: 'Map View', icon: Map, path: '/map', gradientClass: 'from-teal-500 to-emerald-600' },
   ];
   
   const topSpeciesData = data.species_distribution ? data.species_distribution.slice(0, 5) : [];
@@ -251,325 +339,607 @@ const DashboardPage = () => {
     }
   };
 
-  return (
-    <motion.div variants={container} initial="hidden" animate="show" className="space-y-8 pb-10">
-      {/* Header */}
-      <motion.div variants={item} className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-primary to-secondary p-8 text-white shadow-lg">
-        <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3"></div>
-        <div className="relative z-10 flex flex-col space-y-2">
-          <h1 className="text-3xl font-bold tracking-tight">Welcome back, {user?.full_name || 'Harshitha'} 👋</h1>
-          <p className="text-primary-foreground/90 font-medium text-lg">Here's your latest wildlife monitoring summary.</p>
-        </div>
-      </motion.div>
+  const renderSection = (sectionId, index) => {
+    const DragHandle = () => (
+      <div className="absolute top-2 left-1/2 -translate-x-1/2 w-12 h-1.5 bg-gray-200 dark:bg-gray-700 rounded-full cursor-grab active:cursor-grabbing opacity-0 group-hover:opacity-100 transition-opacity z-50 hover:bg-gray-300" />
+    );
 
-      {/* KPI Cards */}
-      <motion.div variants={item} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        {kpis.map((kpi, i) => (
-          <motion.div key={i} whileHover={{ scale: 1.02, y: -4 }} transition={{ type: "spring", stiffness: 400, damping: 25 }}>
-            <Card className="border-0 shadow-sm hover:shadow-md transition-all duration-300 rounded-xl bg-white dark:bg-gray-900 h-full">
-              <CardContent className="p-6 flex flex-col h-full justify-between">
-                <div className="flex justify-between items-start mb-4">
-                  <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center transform transition-transform group-hover:scale-110">
-                    <kpi.icon className="h-6 w-6 text-primary" />
+    const sectionProps = {
+      draggable: true,
+      onDragStart: (e) => handleDragStart(e, index),
+      onDragOver: (e) => handleDragOver(e, index),
+      onDragEnd: handleDragEnd,
+      className: "relative group transition-all duration-300 pt-4 cursor-default",
+      variants: item
+    };
+
+    switch (sectionId) {
+      case 'kpis':
+        return (
+          <motion.div key="kpis" {...sectionProps}>
+            <DragHandle />
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              {kpis.map((kpi, i) => (
+                <motion.div key={i} whileHover={{ scale: 1.02, y: -4 }} transition={{ type: "spring", stiffness: 400, damping: 25 }}>
+                  <Card className="border-0 hover: duration-300 bg-white dark:bg-gray-900 h-full shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300 rounded-2xl">
+                    <CardContent className="p-6 flex flex-col h-full justify-between">
+                      <div className="flex justify-between items-start mb-4">
+                        <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center transform transition-transform group-hover:scale-110">
+                          <kpi.icon className="h-6 w-6 text-primary" />
+                        </div>
+                        {kpi.mom_change !== null && kpi.mom_change !== undefined ? (
+                          <span className={`inline-flex items-center text-xs font-bold px-2.5 py-1 rounded-full shadow-sm ${kpi.mom_change > 0 ? 'bg-green-100 text-green-700' : kpi.mom_change < 0 ? 'bg-red-100 text-red-700' : 'bg-gray-100 text-gray-700'}`}>
+                            {kpi.mom_change > 0 ? <TrendingUp className="w-3 h-3 mr-1" /> : kpi.mom_change < 0 ? <TrendingDown className="w-3 h-3 mr-1" /> : <Minus className="w-3 h-3 mr-1" />}
+                            {Math.abs(kpi.mom_change)}%
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center text-[10px] font-bold text-green-700 bg-green-50 px-2 py-1 rounded-full border border-green-200">
+                            New
+                          </span>
+                        )}
+                      </div>
+                      <div>
+                        <p className="text-3xl font-bold text-foreground mb-1 tracking-tight">
+                          <AnimatedNumber value={kpi.value || 0} />
+                        </p>
+                        <p className="text-sm font-medium text-muted-foreground flex items-center gap-1.5">
+                          {kpi.label}
+                          <Tooltip content={<div className="text-center"><p className="font-semibold mb-1">{kpi.label}</p><p className="text-[10px] text-gray-300">Last updated: Just now</p></div>} position="top">
+                            <AlertCircle className="w-3.5 h-3.5 text-gray-400 cursor-help" />
+                          </Tooltip>
+                        </p>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              ))}
+            </div>
+          </motion.div>
+        );
+      
+      
+      case 'population_intelligence':
+        return (
+          <motion.div key="population_intelligence" {...sectionProps}>
+            <DragHandle />
+            <div className="grid lg:grid-cols-2 gap-8 mt-4">
+              <Card className="border-0 hover: duration-300 bg-white dark:bg-gray-900 shadow-sm hover:shadow-md transition-all duration-300 rounded-2xl h-full">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2"><Users className="w-5 h-5 text-primary"/> Population Trends</CardTitle>
+                </CardHeader>
+                <CardContent className="h-[300px] pb-4">
+                  {popData && popData.population_trends ? (
+                    <ResponsiveContainer width="100%" height="100%">
+                      <AreaChart data={popData.population_trends} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                        <defs>
+                          <linearGradient id="popTrend" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.8}/>
+                            <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/>
+                          </linearGradient>
+                        </defs>
+                        <CartesianGrid strokeDasharray="3 3" vertical={false} strokeOpacity={0.4} />
+                        <XAxis dataKey="month" tick={{fontSize: 12}} />
+                        <YAxis allowDecimals={false} tick={{fontSize: 12}} />
+                        <RechartsTooltip cursor={{ stroke: 'rgba(0,0,0,0.1)', strokeWidth: 2 }} />
+                        <Area type="monotone" dataKey="population" stroke="#3b82f6" strokeWidth={3} fillOpacity={1} fill="url(#popTrend)" />
+                      </AreaChart>
+                    </ResponsiveContainer>
+                  ) : <div className="h-full flex items-center justify-center text-muted-foreground">No population trend data available</div>}
+                </CardContent>
+              </Card>
+              <Card className="border-0 hover: duration-300 bg-white dark:bg-gray-900 shadow-sm hover:shadow-md transition-all duration-300 rounded-2xl h-full">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2"><AlertCircle className="w-5 h-5 text-amber-500"/> High Risk Species</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    {popData && popData.risk_distribution && popData.risk_distribution.length > 0 ? (
+                      popData.risk_distribution.map((r, i) => (
+                        <div key={i} className="flex justify-between items-center p-3 rounded-xl bg-muted/40">
+                          <span className="font-semibold text-sm">{r.species || r.name}</span>
+                          <span className="text-xs bg-red-100 text-red-700 px-2 py-1 rounded-full font-bold">Risk Level: {r.risk_level || 'High'}</span>
+                        </div>
+                      ))
+                    ) : (
+                      <p className="text-muted-foreground text-sm text-center py-8">No high risk species data available.</p>
+                    )}
                   </div>
-                  {kpi.mom_change !== null && kpi.mom_change !== undefined ? (
-                    <span className={`inline-flex items-center text-xs font-bold px-2.5 py-1 rounded-full shadow-sm ${kpi.mom_change > 0 ? 'bg-green-100 text-green-700' : kpi.mom_change < 0 ? 'bg-red-100 text-red-700' : 'bg-gray-100 text-gray-700'}`}>
-                      {kpi.mom_change > 0 ? <TrendingUp className="w-3 h-3 mr-1" /> : kpi.mom_change < 0 ? <TrendingDown className="w-3 h-3 mr-1" /> : <Minus className="w-3 h-3 mr-1" />}
-                      {Math.abs(kpi.mom_change)}%
-                    </span>
-                  ) : (
-                    <span className="inline-flex items-center text-[10px] font-bold text-green-700 bg-green-50 px-2 py-1 rounded-full border border-green-200">
-                      New
-                    </span>
-                  )}
-                </div>
-                <div>
-                  <p className="text-3xl font-bold text-foreground mb-1 tracking-tight">{(kpi.value || 0).toLocaleString()}</p>
-                  <p className="text-sm font-medium text-muted-foreground">{kpi.label}</p>
+                </CardContent>
+              </Card>
+            </div>
+          </motion.div>
+        );
+
+      case 'habitat_intelligence':
+        return (
+          <motion.div key="habitat_intelligence" {...sectionProps}>
+            <DragHandle />
+            <div className="grid lg:grid-cols-3 gap-8 mt-4">
+              <div className="lg:col-span-2">
+                <Card className="border-0 hover: duration-300 bg-white dark:bg-gray-900 shadow-sm hover:shadow-md transition-all duration-300 rounded-2xl h-full">
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2"><MapPin className="w-5 h-5 text-green-500"/> Habitat Quality</CardTitle>
+                  </CardHeader>
+                  <CardContent className="h-[280px]">
+                    {habData && habData.habitat_quality ? (
+                       <ResponsiveContainer width="100%" height="100%">
+                         <BarChart data={habData.habitat_quality} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                           <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                           <XAxis dataKey="region" tick={{fontSize: 12}} />
+                           <YAxis tick={{fontSize: 12}} />
+                           <RechartsTooltip />
+                           <Bar dataKey="quality_score" fill="#22c55e" radius={[4, 4, 0, 0]} />
+                         </BarChart>
+                       </ResponsiveContainer>
+                    ) : <div className="h-full flex items-center justify-center text-muted-foreground">No habitat quality data available</div>}
+                  </CardContent>
+                </Card>
+              </div>
+              <Card className="border-0 hover: duration-300 bg-white dark:bg-gray-900 shadow-sm hover:shadow-md transition-all duration-300 rounded-2xl h-full">
+                <CardHeader>
+                  <CardTitle>Habitat Stability</CardTitle>
+                </CardHeader>
+                <CardContent className="flex flex-col items-center justify-center h-[280px]">
+                  {habData && habData.stability_score ? (
+                    <div className="relative w-40 h-40 flex items-center justify-center rounded-full border-8 border-green-100">
+                      <div className="absolute inset-0 rounded-full border-8 border-green-500 border-t-transparent animate-spin-slow" style={{transform: `rotate(${habData.stability_score * 3.6}deg)`}}></div>
+                      <div className="text-center">
+                         <span className="text-3xl font-bold block">{habData.stability_score}%</span>
+                         <span className="text-xs text-muted-foreground">Stable</span>
+                      </div>
+                    </div>
+                  ) : <div className="text-muted-foreground">N/A</div>}
+                </CardContent>
+              </Card>
+            </div>
+          </motion.div>
+        );
+
+      case 'ecosystem_health':
+        return (
+          <motion.div key="ecosystem_health" {...sectionProps}>
+            <DragHandle />
+            <Card className="border-0 hover: duration-300 bg-white dark:bg-gray-900 shadow-sm hover:shadow-md transition-all duration-300 rounded-2xl mt-4">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2"><Trees className="w-5 h-5 text-teal-500"/> Ecosystem Health Summary</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid sm:grid-cols-3 gap-6">
+                  <div className="flex flex-col items-center p-4 bg-muted/30 rounded-xl">
+                    <span className="text-sm text-muted-foreground font-medium mb-1">Health Score</span>
+                    <span className="text-3xl font-bold text-teal-600">{ecoData?.overall_score || ecoData?.health_score || 'N/A'}</span>
+                  </div>
+                  <div className="flex flex-col items-center p-4 bg-muted/30 rounded-xl">
+                    <span className="text-sm text-muted-foreground font-medium mb-1">Biodiversity Score</span>
+                    <span className="text-3xl font-bold text-blue-600">{ecoData?.biodiversity_score || 'N/A'}</span>
+                  </div>
+                  <div className="flex flex-col items-center p-4 bg-muted/30 rounded-xl">
+                    <span className="text-sm text-muted-foreground font-medium mb-1">Sustainability Index</span>
+                    <span className="text-3xl font-bold text-green-600">{ecoData?.sustainability_index || 'N/A'}</span>
+                  </div>
                 </div>
               </CardContent>
             </Card>
           </motion.div>
-        ))}
-      </motion.div>
+        );
 
-      {/* Top Charts Row */}
-      <div className="grid lg:grid-cols-3 gap-8">
-        {/* Observation Trend Area Chart */}
-        <motion.div variants={item} className="lg:col-span-2">
-          <Card className="border-0 shadow-sm rounded-xl h-full transition-shadow hover:shadow-md">
-            <CardHeader>
-              <CardTitle>Observation Trend (Last 7 Days)</CardTitle>
-            </CardHeader>
-            <CardContent className="h-[320px] pb-4">
-              {data.observation_trend && data.observation_trend.length > 0 ? (
-                <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart data={data.observation_trend} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                    <defs>
-                      <linearGradient id="colorCount" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#22c55e" stopOpacity={0.8}/>
-                        <stop offset="95%" stopColor="#22c55e" stopOpacity={0}/>
-                      </linearGradient>
-                    </defs>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} strokeOpacity={0.4} />
-                    <XAxis dataKey="date" tick={{fontSize: 12}} tickMargin={10} />
-                    <YAxis allowDecimals={false} tick={{fontSize: 12}} />
-                    <RechartsTooltip cursor={{ stroke: 'rgba(0,0,0,0.1)', strokeWidth: 2 }} />
-                    <Area type="monotone" dataKey="count" stroke="#22c55e" strokeWidth={3} fillOpacity={1} fill="url(#colorCount)" animationDuration={1000} />
-                  </AreaChart>
-                </ResponsiveContainer>
-              ) : (
-                <div className="h-full flex items-center justify-center text-muted-foreground">No recent trend data</div>
-              )}
-            </CardContent>
-          </Card>
-        </motion.div>
-
-        {/* Verification Status Donut Chart */}
-        <motion.div variants={item}>
-          <Card className="border-0 shadow-sm rounded-xl h-full transition-shadow hover:shadow-md">
-            <CardHeader>
-              <CardTitle>Verification Status</CardTitle>
-            </CardHeader>
-            <CardContent className="h-[320px] flex flex-col items-center justify-center relative pb-4">
-              {verificationData.length > 0 ? (
-                <>
-                  <ResponsiveContainer width="100%" height="100%">
-                    <PieChart>
-                      <Pie 
-                        data={verificationData} 
-                        cx="50%" cy="50%" 
-                        innerRadius={80} 
-                        outerRadius={110} 
-                        paddingAngle={5}
-                        dataKey="value"
-                        animationDuration={1000}
-                      >
-                        {verificationData.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={VERIFICATION_COLORS[index % VERIFICATION_COLORS.length]} />
-                        ))}
-                      </Pie>
-                      <RechartsTooltip />
-                    </PieChart>
-                  </ResponsiveContainer>
-                  <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center pointer-events-none mt-2">
-                    <span className="text-3xl font-bold text-foreground block tracking-tight">
-                      {Math.round((metrics.verified_observations?.value / ((metrics.verified_observations?.value + metrics.pending_observations?.value) || 1)) * 100)}%
-                    </span>
-                    <span className="block text-xs font-semibold text-muted-foreground uppercase tracking-wider mt-1">Verified</span>
-                  </div>
-                </>
-              ) : (
-                <span className="text-muted-foreground">No verification data</span>
-              )}
-            </CardContent>
-          </Card>
-        </motion.div>
-      </div>
-
-      {/* Middle Charts Row */}
-      <div className="grid lg:grid-cols-3 gap-8">
-        <motion.div variants={item} className="lg:col-span-2">
-          <Card className="border-0 shadow-sm rounded-xl h-full transition-shadow hover:shadow-md">
-            <CardHeader>
-              <CardTitle>Top Observed Species</CardTitle>
-            </CardHeader>
-            <CardContent className="h-[320px] pb-4">
-              {topSpeciesData.length > 0 ? (
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={topSpeciesData} layout="vertical" margin={{ top: 5, right: 30, left: 30, bottom: 5 }}>
-                    <CartesianGrid strokeDasharray="3 3" horizontal={false} strokeOpacity={0.4} />
-                    <XAxis type="number" allowDecimals={false} tick={{fontSize: 12}} />
-                    <YAxis dataKey="species" type="category" width={110} tick={{ fontSize: 13, fontWeight: 500 }} />
-                    <RechartsTooltip cursor={{fill: 'transparent'}} />
-                    <Bar dataKey="count" fill="#3b82f6" radius={[0, 6, 6, 0]} barSize={32} animationDuration={1000} />
-                  </BarChart>
-                </ResponsiveContainer>
-              ) : (
-                <div className="h-full flex items-center justify-center text-muted-foreground">No species data</div>
-              )}
-            </CardContent>
-          </Card>
-        </motion.div>
-
-        <motion.div variants={item}>
-          <Card className="border-0 shadow-sm rounded-xl h-full transition-shadow hover:shadow-md">
-            <CardHeader>
-              <CardTitle>Monthly Observations</CardTitle>
-            </CardHeader>
-            <CardContent className="h-[320px] flex items-center justify-center pb-4">
-              {data.monthly_observations && data.monthly_observations.length > 0 ? (
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={data.monthly_observations} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} strokeOpacity={0.4} />
-                    <XAxis dataKey="month" tick={{fontSize: 12}} tickMargin={10} />
-                    <YAxis allowDecimals={false} tick={{fontSize: 12}} />
-                    <RechartsTooltip cursor={{fill: 'transparent'}} />
-                    <Bar dataKey="count" fill="#f59e0b" radius={[6, 6, 0, 0]} barSize={48} animationDuration={1000} />
-                  </BarChart>
-                </ResponsiveContainer>
-              ) : (
-                <span className="text-muted-foreground">No monthly data</span>
-              )}
-            </CardContent>
-          </Card>
-        </motion.div>
-      </div>
-
-      {/* Bottom Section */}
-      <div className="grid lg:grid-cols-3 gap-8">
-        {/* Recent Activity */}
-        <motion.div variants={item} className="lg:col-span-2">
-          <Card className="border-0 shadow-sm rounded-xl h-full transition-shadow hover:shadow-md">
-            <CardHeader className="flex flex-row justify-between items-center pb-2">
-              <CardTitle>Recent Activity</CardTitle>
-              <Link to="/observations" className="text-primary text-sm font-medium hover:underline flex items-center gap-1">
-                View All <ChevronRight className="w-4 h-4" />
-              </Link>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-1">
-                {data.recent_observations && data.recent_observations.length > 0 ? data.recent_observations.map((obs, idx) => (
-                  <React.Fragment key={obs.id}>
-                    <Link to={`/observations`} className="block group">
-                      <div className="flex items-center gap-5 p-3 rounded-xl hover:bg-muted/60 transition-colors duration-200">
-                        <div className="w-14 h-14 rounded-xl bg-gray-200 overflow-hidden flex-shrink-0 shadow-sm group-hover:shadow-md transition-shadow">
-                          {obs.file_url ? (
-                            <img src={obs.file_url} alt={obs.species} className="w-full h-full object-cover" />
-                          ) : (
-                            <div className="w-full h-full flex items-center justify-center bg-primary/10">
-                              <Leaf className="w-7 h-7 text-primary/70" />
-                            </div>
-                          )}
-                        </div>
-                        <div className="flex-grow min-w-0 flex flex-col justify-center">
-                          <h4 className="font-bold text-foreground truncate text-base mb-0.5 group-hover:text-primary transition-colors">{obs.species}</h4>
-                          <div className="flex items-center gap-2 text-sm text-muted-foreground truncate">
-                            <MapPin className="w-3.5 h-3.5" /> 
-                            <span className="truncate">{obs.monitoring_site}</span>
-                            <span>•</span>
-                            <span className="truncate">{obs.observer}</span>
-                          </div>
-                        </div>
-                        <div className="flex flex-col items-end gap-2 flex-shrink-0 justify-center">
-                          <StatusBadge status={obs.status} />
-                          <span className="text-xs font-medium text-muted-foreground flex items-center gap-1">
-                            <Clock className="w-3 h-3" /> {new Date(obs.created_at).toLocaleDateString()}
+      case 'conservation_insights':
+        return (
+          <motion.div key="conservation_insights" {...sectionProps}>
+            <DragHandle />
+            <Card className="border-0 hover: duration-300 bg-white dark:bg-gray-900 shadow-sm hover:shadow-md transition-all duration-300 rounded-2xl mt-4">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2"><Leaf className="w-5 h-5 text-emerald-500"/> Conservation Priority Actions</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  {consData && consData.recommendations && consData.recommendations.length > 0 ? (
+                    consData.recommendations.slice(0, 4).map((rec, i) => (
+                      <div key={i} className="flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-xl border border-border/40 bg-muted/20 hover:bg-muted/40 transition">
+                        <div className="flex flex-col">
+                          <span className="font-bold text-sm text-foreground">{rec.species || rec.title}</span>
+                          <span className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
+                            <AlertCircle className="w-3 h-3" /> Threat: {rec.threat_level || 'Medium'}
                           </span>
                         </div>
-                        <div className="pl-2">
-                          <ChevronRight className="w-5 h-5 text-muted-foreground/50 group-hover:text-primary transition-colors transform group-hover:translate-x-1" />
+                        <div className="mt-2 sm:mt-0 text-sm font-medium text-emerald-600 bg-emerald-50 px-3 py-1.5 rounded-lg border border-emerald-100">
+                          {rec.action || rec.recommended_action}
                         </div>
                       </div>
-                    </Link>
-                    {idx < data.recent_observations.length - 1 && (
-                      <div className="h-px w-full bg-border/40 mx-auto my-1" />
-                    )}
-                  </React.Fragment>
-                )) : (
-                  <div className="text-center py-8">
-                    <p className="text-muted-foreground font-medium">No recent activity found.</p>
-                  </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
-
-        {/* Quick Actions */}
-        <motion.div variants={item}>
-          <Card className="border-0 shadow-sm rounded-xl h-full transition-shadow hover:shadow-md">
-            <CardHeader>
-              <CardTitle>Quick Actions</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-2 gap-4">
-                {quickActions.map((action, idx) => (
-                  <Link 
-                    key={idx} 
-                    to={action.path} 
-                    className="flex flex-col items-center justify-center p-5 rounded-xl border border-border/60 hover:bg-white hover:border-transparent transition-all duration-300 gap-3 group text-center cursor-pointer shadow-sm hover:shadow-lg transform hover:-translate-y-1 hover:scale-[1.02]"
-                  >
-                    <div className={`w-12 h-12 rounded-full flex items-center justify-center ${action.color} shadow-sm group-hover:shadow transition-all duration-300 transform group-hover:scale-110`}>
-                      <action.icon className="w-6 h-6" />
-                    </div>
-                    <span className="text-sm font-bold text-foreground group-hover:text-primary transition-colors">{action.title}</span>
-                  </Link>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
-      </div>
-
-      {/* Admin Widget - Recent System Activity */}
-      {isAdmin && (
-        <motion.div variants={item} className="w-full mt-8">
-          <Card className="border-0 shadow-sm rounded-xl transition-shadow hover:shadow-md bg-white dark:bg-gray-900">
-            <CardHeader className="flex flex-row justify-between items-center pb-2">
-              <div className="flex items-center gap-2">
-                <Activity className="w-5 h-5 text-primary" />
-                <CardTitle>Recent System Activity (Audit Logs)</CardTitle>
-              </div>
-              <Link to="/audit-logs" className="text-primary text-sm font-medium hover:underline flex items-center gap-1">
-                Manage Audit Logs <ChevronRight className="w-4 h-4" />
-              </Link>
-            </CardHeader>
-            <CardContent>
-              {isLogsLoading ? (
-                <div className="flex justify-center py-6">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                    ))
+                  ) : (
+                    <p className="text-muted-foreground text-center py-6">No conservation actions currently recommended.</p>
+                  )}
                 </div>
-              ) : recentAuditLogs.length > 0 ? (
+              </CardContent>
+            </Card>
+          </motion.div>
+        );
+
+      case 'site_overview':
+        return (
+          <motion.div key="site_overview" {...sectionProps}>
+            <DragHandle />
+            <Card className="border-0 hover: duration-300 bg-white dark:bg-gray-900 shadow-sm hover:shadow-md transition-all duration-300 rounded-2xl mt-4">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2"><Map className="w-5 h-5 text-blue-500"/> Monitoring Site Overview</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
+                  <div className="p-3 bg-blue-50 rounded-xl border border-blue-100">
+                    <span className="block text-xs text-blue-700 font-semibold mb-1">Total Sites</span>
+                    <span className="text-xl font-bold text-blue-900">{sitesData?.length || 0}</span>
+                  </div>
+                  <div className="p-3 bg-green-50 rounded-xl border border-green-100">
+                    <span className="block text-xs text-green-700 font-semibold mb-1">Active</span>
+                    <span className="text-xl font-bold text-green-900">{sitesData?.filter(s => s.status === 'Active' || s.is_active)?.length || 0}</span>
+                  </div>
+                  <div className="p-3 bg-amber-50 rounded-xl border border-amber-100">
+                    <span className="block text-xs text-amber-700 font-semibold mb-1">Maintenance</span>
+                    <span className="text-xl font-bold text-amber-900">{sitesData?.filter(s => s.status === 'Maintenance')?.length || 0}</span>
+                  </div>
+                  <div className="p-3 bg-red-50 rounded-xl border border-red-100">
+                    <span className="block text-xs text-red-700 font-semibold mb-1">Offline</span>
+                    <span className="text-xl font-bold text-red-900">{sitesData?.filter(s => s.status === 'Offline' || s.status === 'Inactive' || s.is_active === false)?.length || 0}</span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+        );
+
+      case 'recent_predictions':
+        return (
+          <motion.div key="recent_predictions" {...sectionProps}>
+            <DragHandle />
+            <Card className="border-0 hover: duration-300 bg-white dark:bg-gray-900 shadow-sm hover:shadow-md transition-all duration-300 rounded-2xl mt-4">
+              <CardHeader className="flex flex-row justify-between items-center pb-2">
+                <CardTitle className="flex items-center gap-2"><Camera className="w-5 h-5 text-purple-500"/> Recent AI Predictions</CardTitle>
+                <Link to="/predictions" className="text-primary text-sm font-medium hover:underline flex items-center gap-1">View All <ChevronRight className="w-4 h-4" /></Link>
+              </CardHeader>
+              <CardContent>
                 <div className="overflow-x-auto">
-                  <table className="w-full text-left border-collapse">
+                  <table className="w-full text-left text-sm">
                     <thead>
-                      <tr className="border-b border-border/60 text-xs font-semibold text-muted-foreground uppercase">
-                        <th className="py-3 px-4">Timestamp</th>
-                        <th className="py-3 px-4">User</th>
-                        <th className="py-3 px-4">Module</th>
-                        <th className="py-3 px-4">Action</th>
-                        <th className="py-3 px-4">Description</th>
-                        <th className="py-3 px-4">Severity</th>
+                      <tr className="border-b border-border/60 text-muted-foreground">
+                        <th className="pb-2 font-medium">Species</th>
+                        <th className="pb-2 font-medium">Confidence</th>
+                        <th className="pb-2 font-medium">Date</th>
+                        <th className="pb-2 font-medium">Status</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-border/40 text-sm">
-                      {recentAuditLogs.map((log) => (
-                        <tr key={log.id || log._id} className="hover:bg-muted/30 transition-colors">
-                          <td className="py-3 px-4 text-muted-foreground whitespace-nowrap">
-                            {new Date(log.timestamp).toLocaleString()}
-                          </td>
-                          <td className="py-3 px-4 font-medium text-foreground">
-                            {log.user_name || "System"}
-                          </td>
-                          <td className="py-3 px-4">
-                            <span className="bg-muted px-2 py-1 rounded text-xs font-medium border border-border/40">
-                              {log.module}
-                            </span>
-                          </td>
-                          <td className="py-3 px-4 font-mono text-xs font-bold text-foreground">
-                            {log.action}
-                          </td>
-                          <td className="py-3 px-4 text-muted-foreground max-w-xs truncate" title={log.description}>
-                            {log.description}
-                          </td>
-                          <td className="py-3 px-4">
-                            {getSeverityBadge(log.severity)}
-                          </td>
-                        </tr>
-                      ))}
+                    <tbody>
+                      {predData && predData.length > 0 ? (
+                        predData.slice(0, 5).map((p, i) => (
+                          <tr key={i} className="border-b border-border/40 last:border-0 hover:bg-muted/30">
+                            <td className="py-3 font-medium text-foreground">{p.species || p.predicted_class}</td>
+                            <td className="py-3">
+                              <span className="text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded-full font-bold">
+                                {Math.round((p.confidence || 0) * 100)}%
+                              </span>
+                            </td>
+                            <td className="py-3 text-muted-foreground">{new Date(p.created_at || p.timestamp).toLocaleDateString()}</td>
+                            <td className="py-3">
+                              {p.status === 'Verified' ? <StatusBadge status="Verified" /> : p.status === 'Rejected' ? <StatusBadge status="Rejected" /> : <StatusBadge status="Pending" />}
+                            </td>
+                          </tr>
+                        ))
+                      ) : (
+                        <tr><td colSpan="4" className="py-6 text-center text-muted-foreground">No recent AI predictions.</td></tr>
+                      )}
                     </tbody>
                   </table>
                 </div>
-              ) : (
-                <div className="text-center py-6 text-muted-foreground">
-                  No system activity logs found.
+              </CardContent>
+            </Card>
+          </motion.div>
+        );
+
+      case 'smart_alerts':
+        return (
+          <motion.div key="smart_alerts" {...sectionProps}>
+            <DragHandle />
+            <Card className="border-0 hover: duration-300 bg-white dark:bg-gray-900 shadow-sm hover:shadow-md transition-all duration-300 rounded-2xl mt-4">
+              <CardHeader className="flex flex-row justify-between items-center pb-2">
+                <CardTitle className="flex items-center gap-2"><AlertCircle className="w-5 h-5 text-red-500"/> Smart Alerts</CardTitle>
+                <Link to="/notifications" className="text-primary text-sm font-medium hover:underline flex items-center gap-1">View All <ChevronRight className="w-4 h-4" /></Link>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2">
+                  {alertsData && alertsData.length > 0 ? (
+                    alertsData.slice(0, 5).map((alert, i) => (
+                      <div key={i} className="flex items-start gap-3 p-3 rounded-xl hover:bg-muted/40 transition border border-transparent hover:border-border/60">
+                        <div className={`mt-0.5 w-2 h-2 rounded-full ${alert.priority === 'High' ? 'bg-red-500' : alert.priority === 'Medium' ? 'bg-amber-500' : 'bg-blue-500'}`}></div>
+                        <div className="flex-1">
+                          <p className="text-sm font-medium text-foreground">{alert.message || alert.title}</p>
+                          <p className="text-xs text-muted-foreground mt-1">{new Date(alert.created_at || alert.timestamp).toLocaleString()}</p>
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <p className="text-muted-foreground text-center py-6">No active alerts at this time.</p>
+                  )}
                 </div>
-              )}
-            </CardContent>
-          </Card>
-        </motion.div>
-      )}
+              </CardContent>
+            </Card>
+          </motion.div>
+        );
+
+      case 'charts_top':
+        return (
+          <motion.div key="charts_top" {...sectionProps}>
+            <DragHandle />
+            <div className="grid lg:grid-cols-3 gap-8">
+              <div className="lg:col-span-2">
+                <Card className="border-0 hover: duration-300 h-full bg-white dark:bg-gray-900 shadow-sm hover:shadow-md transition-all duration-300 rounded-2xl">
+                  <CardHeader>
+                    <CardTitle>Observation Trend (Last 7 Days)</CardTitle>
+                  </CardHeader>
+                  <CardContent className="h-[320px] pb-4">
+                    {data.observation_trend && data.observation_trend.length > 0 ? (
+                      <ResponsiveContainer width="100%" height="100%">
+                        <AreaChart data={data.observation_trend} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                          <defs>
+                            <linearGradient id="colorCount" x1="0" y1="0" x2="0" y2="1">
+                              <stop offset="5%" stopColor="#22c55e" stopOpacity={0.8}/>
+                              <stop offset="95%" stopColor="#22c55e" stopOpacity={0}/>
+                            </linearGradient>
+                          </defs>
+                          <CartesianGrid strokeDasharray="3 3" vertical={false} strokeOpacity={0.4} />
+                          <XAxis dataKey="date" tick={{fontSize: 12}} tickMargin={10} />
+                          <YAxis allowDecimals={false} tick={{fontSize: 12}} />
+                          <RechartsTooltip cursor={{ stroke: 'rgba(0,0,0,0.1)', strokeWidth: 2 }} />
+                          <Area type="monotone" dataKey="count" stroke="#22c55e" strokeWidth={3} fillOpacity={1} fill="url(#colorCount)" animationDuration={1000} />
+                        </AreaChart>
+                      </ResponsiveContainer>
+                    ) : (
+                      <div className="h-full flex items-center justify-center text-muted-foreground">No recent trend data</div>
+                    )}
+                  </CardContent>
+                </Card>
+              </div>
+
+              <div>
+                <Card className="border-0 hover: duration-300 h-full bg-white dark:bg-gray-900 shadow-sm hover:shadow-md transition-all duration-300 rounded-2xl">
+                  <CardHeader>
+                    <CardTitle>Verification Status</CardTitle>
+                  </CardHeader>
+                  <CardContent className="h-[320px] flex flex-col items-center justify-center relative pb-4">
+                    {verificationData.length > 0 ? (
+                      <>
+                        <ResponsiveContainer width="100%" height="100%">
+                          <PieChart>
+                            <Pie 
+                              data={verificationData} cx="50%" cy="50%" innerRadius={80} outerRadius={110} paddingAngle={5} dataKey="value" animationDuration={1000}
+                            >
+                              {verificationData.map((entry, index) => (
+                                <Cell key={`cell-${index}`} fill={VERIFICATION_COLORS[index % VERIFICATION_COLORS.length]} />
+                              ))}
+                            </Pie>
+                            <RechartsTooltip />
+                          </PieChart>
+                        </ResponsiveContainer>
+                        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center pointer-events-none mt-2">
+                          <span className="text-3xl font-bold text-foreground block tracking-tight">
+                            {Math.round((metrics.verified_observations?.value / ((metrics.verified_observations?.value + metrics.pending_observations?.value) || 1)) * 100)}%
+                          </span>
+                          <span className="block text-xs font-semibold text-muted-foreground uppercase tracking-wider mt-1">Verified</span>
+                        </div>
+                      </>
+                    ) : (
+                      <span className="text-muted-foreground">No verification data</span>
+                    )}
+                  </CardContent>
+                </Card>
+              </div>
+            </div>
+          </motion.div>
+        );
+
+      case 'charts_middle':
+        return (
+          <motion.div key="charts_middle" {...sectionProps}>
+            <DragHandle />
+            <div className="grid lg:grid-cols-3 gap-8">
+              <div className="lg:col-span-2">
+                <Card className="border-0 hover: duration-300 h-full bg-white dark:bg-gray-900 shadow-sm hover:shadow-md transition-all duration-300 rounded-2xl">
+                  <CardHeader>
+                    <CardTitle>Top Observed Species</CardTitle>
+                  </CardHeader>
+                  <CardContent className="h-[320px] pb-4">
+                    {topSpeciesData.length > 0 ? (
+                      <ResponsiveContainer width="100%" height="100%">
+                        <BarChart data={topSpeciesData} layout="vertical" margin={{ top: 5, right: 30, left: 30, bottom: 5 }}>
+                          <CartesianGrid strokeDasharray="3 3" horizontal={false} strokeOpacity={0.4} />
+                          <XAxis type="number" allowDecimals={false} tick={{fontSize: 12}} />
+                          <YAxis dataKey="species" type="category" width={110} tick={{ fontSize: 13, fontWeight: 500 }} />
+                          <RechartsTooltip cursor={{fill: 'transparent'}} />
+                          <Bar dataKey="count" fill="#3b82f6" radius={[0, 6, 6, 0]} barSize={32} animationDuration={1000} />
+                        </BarChart>
+                      </ResponsiveContainer>
+                    ) : (
+                      <div className="h-full flex items-center justify-center text-muted-foreground">No species data</div>
+                    )}
+                  </CardContent>
+                </Card>
+              </div>
+
+              <div>
+                <Card className="border-0 hover: duration-300 h-full bg-white dark:bg-gray-900 shadow-sm hover:shadow-md transition-all duration-300 rounded-2xl">
+                  <CardHeader>
+                    <CardTitle>Monthly Observations</CardTitle>
+                  </CardHeader>
+                  <CardContent className="h-[320px] flex items-center justify-center pb-4">
+                    {data.monthly_observations && data.monthly_observations.length > 0 ? (
+                      <ResponsiveContainer width="100%" height="100%">
+                        <BarChart data={data.monthly_observations} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                          <CartesianGrid strokeDasharray="3 3" vertical={false} strokeOpacity={0.4} />
+                          <XAxis dataKey="month" tick={{fontSize: 12}} tickMargin={10} />
+                          <YAxis allowDecimals={false} tick={{fontSize: 12}} />
+                          <RechartsTooltip cursor={{fill: 'transparent'}} />
+                          <Bar dataKey="count" fill="#f59e0b" radius={[6, 6, 0, 0]} barSize={48} animationDuration={1000} />
+                        </BarChart>
+                      </ResponsiveContainer>
+                    ) : (
+                      <span className="text-muted-foreground">No monthly data</span>
+                    )}
+                  </CardContent>
+                </Card>
+              </div>
+            </div>
+          </motion.div>
+        );
+
+      case 'bottom_row':
+        return (
+          <motion.div key="bottom_row" {...sectionProps}>
+            <DragHandle />
+            <div className="grid lg:grid-cols-4 gap-8">
+              <div className="lg:col-span-2">
+                <Card className="border-0 hover: duration-300 h-full bg-white dark:bg-gray-900 shadow-sm hover:shadow-md transition-all duration-300 rounded-2xl">
+                  <CardHeader className="flex flex-row justify-between items-center pb-2">
+                    <CardTitle>Recent Activity</CardTitle>
+                    <Link to="/observations" className="text-primary text-sm font-medium hover:underline flex items-center gap-1">
+                      View All <ChevronRight className="w-4 h-4" />
+                    </Link>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="overflow-x-auto overflow-y-auto max-h-[360px] rounded-xl border border-border/50">
+                      <table className="w-full text-left text-sm border-collapse">
+                        <thead className="sticky top-0 bg-white dark:bg-gray-900 z-10 shadow-sm">
+                          <tr className="border-b border-border/60 text-muted-foreground bg-muted/20">
+                            <th className="py-2.5 px-4 font-semibold">Species</th>
+                            <th className="py-2.5 px-4 font-semibold">Site</th>
+                            <th className="py-2.5 px-4 font-semibold">Date</th>
+                            <th className="py-2.5 px-4 font-semibold">Status</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-border/40">
+                          {data.recent_observations && data.recent_observations.length > 0 ? (
+                            data.recent_observations.slice(0, 6).map((obs, idx) => (
+                              <tr key={obs.id || idx} className="hover:bg-muted/40 transition even:bg-muted/10">
+                                <td className="py-3 px-4 font-medium text-foreground">{obs.species}</td>
+                                <td className="py-3 px-4 text-muted-foreground text-xs"><div className="flex items-center gap-1"><MapPin className="w-3 h-3"/> {obs.monitoring_site}</div></td>
+                                <td className="py-3 px-4 text-muted-foreground text-xs">{new Date(obs.created_at).toLocaleDateString()}</td>
+                                <td className="py-3 px-4"><StatusBadge status={obs.status} /></td>
+                              </tr>
+                            ))
+                          ) : (
+                            <tr><td colSpan="4" className="py-8 text-center text-muted-foreground">No recent observations found.</td></tr>
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+
+              <div>
+                <SystemStatusWidget lastSync={new Date()} />
+              </div>
+
+              <div>
+                <Card className="border-0 hover: duration-300 h-full bg-white dark:bg-gray-900 shadow-sm hover:shadow-md transition-all duration-300 rounded-2xl flex flex-col">
+                  <CardHeader className="pb-2">
+                    <CardTitle>Quick Actions</CardTitle>
+                  </CardHeader>
+                  <CardContent className="flex-1">
+                    <div className="grid grid-cols-2 gap-3 h-full">
+                      {quickActions.slice(0,4).map((action, idx) => (
+                        <QuickActionCard key={idx} {...action} />
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            </div>
+          </motion.div>
+        );
+
+      case 'system_activity':
+        return isAdmin ? (
+          <motion.div key="system_activity" {...sectionProps}>
+            <DragHandle />
+            <Card className="border-0 hover: duration-300 bg-white dark:bg-gray-900 shadow-sm hover:shadow-md transition-all duration-300 rounded-2xl mt-4">
+              <CardHeader className="flex flex-row justify-between items-center pb-2">
+                <div className="flex items-center gap-2">
+                  <Activity className="w-5 h-5 text-primary" />
+                  <CardTitle>Recent System Activity (Audit Logs)</CardTitle>
+                </div>
+                <Link to="/audit-logs" className="text-primary text-sm font-medium hover:underline flex items-center gap-1">
+                  Manage Audit Logs <ChevronRight className="w-4 h-4" />
+                </Link>
+              </CardHeader>
+              <CardContent>
+                {isLogsLoading ? (
+                  <div className="flex justify-center py-6">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                  </div>
+                ) : recentAuditLogs.length > 0 ? (
+                  <div className="overflow-x-auto rounded-xl border border-border/50 shadow-sm">
+                    <table className="w-full text-left border-collapse">
+                      <thead className="sticky top-0 bg-white/95 dark:bg-gray-900/95 backdrop-blur z-10">
+                        <tr className="border-b border-border/60 text-xs font-semibold text-muted-foreground uppercase">
+                          <th className="py-3 px-4">Timestamp</th>
+                          <th className="py-3 px-4">User</th>
+                          <th className="py-3 px-4">Module</th>
+                          <th className="py-3 px-4">Action</th>
+                          <th className="py-3 px-4">Description</th>
+                          <th className="py-3 px-4">Severity</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-border/40 text-sm">
+                        {recentAuditLogs.map((log) => (
+                          <tr key={log.id || log._id} className="hover:bg-muted/30 transition-colors even:bg-muted/20">
+                            <td className="py-3 px-4 text-muted-foreground whitespace-nowrap">
+                              {new Date(log.timestamp).toLocaleString()}
+                            </td>
+                            <td className="py-3 px-4 font-medium text-foreground">
+                              {log.user_name || "System"}
+                            </td>
+                            <td className="py-3 px-4">
+                              <span className="bg-muted px-2 py-1 rounded text-xs font-medium border border-border/40">
+                                {log.module}
+                              </span>
+                            </td>
+                            <td className="py-3 px-4 font-mono text-xs font-bold text-foreground">
+                              {log.action}
+                            </td>
+                            <td className="py-3 px-4 text-muted-foreground max-w-xs truncate" title={log.description}>
+                              {log.description}
+                            </td>
+                            <td className="py-3 px-4">
+                              {getSeverityBadge(log.severity)}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                ) : (
+                  <div className="text-center py-6 text-muted-foreground">
+                    No system activity logs found.
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </motion.div>
+        ) : null;
+
+      default:
+        return null;
+    }
+  };
+
+  return (
+    <motion.div variants={container} initial="hidden" animate="show" className="space-y-8 pb-10">
+      <div className="flex justify-between items-center mb-4">
+        <DashboardHero user={user} lastSync={new Date()} systemHealth="Healthy" />
+      </div>
+
+      <div className="flex flex-col space-y-8">
+        {layout.map((sectionId, index) => renderSection(sectionId, index))}
+      </div>
     </motion.div>
   );
 };

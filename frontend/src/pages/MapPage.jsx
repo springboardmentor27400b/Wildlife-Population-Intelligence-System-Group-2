@@ -267,22 +267,23 @@ const MapPage = () => {
     <div className="flex flex-col h-full -m-6 md:-m-10 overflow-hidden" style={{ height: 'calc(100vh - 2.5rem)' }}>
       {/* Map Header and Toolbar */}
       <div className="flex items-center gap-3 px-6 py-3 bg-white border-b border-gray-100 shadow-sm z-10 flex-wrap">
-        <div className="flex items-center gap-2 mr-auto">
-          <Map className="w-5.5 h-5.5 text-emerald-600 animate-pulse" />
-          <div>
-            <h1 className="text-lg font-black text-gray-900 tracking-tight">Interactive Wildlife Map</h1>
-            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">WPIS Geographic Center</p>
-          </div>
+        <div className="flex flex-col mr-auto">
+          <h1 className="text-3xl font-bold text-slate-900 flex items-center gap-2">
+            <Map className="w-8 h-8 text-green-600" />
+            Wildlife Map
+          </h1>
+          <p className="text-slate-500 text-sm mt-1 max-w-2xl">
+            Geospatial visualization of monitoring sites and species detections.
+          </p>
           {isLoading && <Loader2 className="w-4 h-4 animate-spin text-emerald-600 ml-2" />}
         </div>
 
         {/* Global Search Bar */}
         <form onSubmit={handleSearchSubmit} className="relative w-64">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-          <input
-            type="text"
+          <input type="text"
             placeholder="Search species, site, observer..."
-            className="pl-9 pr-3 h-9 w-full text-xs rounded-xl border border-gray-200 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 font-medium"
+            className="pl-9 pr-3 w-full text-xs border bg-gray-50 focus: font-medium h-11 rounded-xl px-4 py-2.5 border-border/60 focus:ring-2 focus:ring-primary/20 focus:border-primary placeholder:text-muted-foreground/70 transition-all duration-300"
             value={draftFilters.search}
             onChange={e => setDraftFilters(prev => ({ ...prev, search: e.target.value }))}
           />
@@ -630,7 +631,7 @@ const MapMarkerPopup = ({ marker }) => {
     <div className="space-y-2 text-xs min-w-[200px]">
       {marker.file_url && (
         <div className="w-full h-24 rounded-lg overflow-hidden bg-gray-55 shadow-inner">
-          <img src={marker.file_url} alt={marker.species_name} className="w-full h-full object-cover" />
+          <img loading="lazy" src={marker.file_url} alt={marker.species_name} className="w-full h-full object-cover" />
         </div>
       )}
       <div className="flex items-center justify-between">
@@ -702,7 +703,7 @@ const DetailPanelItem = ({ item }) => {
     <div className="space-y-4">
       {item.file_url ? (
         <div className="w-full h-44 rounded-2xl overflow-hidden border border-gray-150 bg-gray-50 shadow-inner">
-          <img src={item.file_url} alt={item.species_name} className="w-full h-full object-cover" />
+          <img loading="lazy" src={item.file_url} alt={item.species_name} className="w-full h-full object-cover" />
         </div>
       ) : (
         <div className="w-full h-24 bg-gray-50 border border-dashed border-gray-200 rounded-2xl flex flex-col items-center justify-center text-gray-400 text-xs font-semibold">

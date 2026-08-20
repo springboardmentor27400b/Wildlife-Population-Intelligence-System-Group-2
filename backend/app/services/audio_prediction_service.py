@@ -1,15 +1,13 @@
 import os
 import uuid
 import time
+import json
 from datetime import datetime, timezone
 from fastapi import UploadFile, HTTPException, Request
-from app.models.audio_prediction import AudioPredictionRecord, TopPrediction
-from app.models.observation import ObservationRecord
-from app.models.notification import Notification
 from app.models.user import User
 from app.ml.audio_predictor import predict_audio_species
 from app.utils.audit import create_audit_log
-from beanie import PydanticObjectId
+from app.database.db import supabase
 
 AUDIO_UPLOAD_DIR = "uploads/audio_predictions"
 os.makedirs(AUDIO_UPLOAD_DIR, exist_ok=True)
@@ -24,13 +22,13 @@ class AudioPredictionService:
         file: UploadFile,
         current_user: User,
         request: Request
-    ) -> AudioPredictionRecord:
+    ) -> dict:
         """
         Full pipeline:
           1. Validate file extension and size
           2. Save to disk
           3. Run ML inference (audio_predictor)
-          4. Persist AudioPredictionRecord to MongoDB
+          4. Persist AudioPredictionRecord to Supabase
           5. Fire notifications
         """
         # ── 1. Extension check ────────────────────────────────────────────
@@ -89,45 +87,59 @@ class AudioPredictionService:
             raw_ts = result.get("prediction_timestamp")
             if raw_ts:
                 try:
-                    prediction_ts = datetime.fromisoformat(raw_ts)
+                    prediction_ts = datetime.fromisoformat(raw_ts).isoformat()
                 except Exception:
-                    prediction_ts = datetime.now(timezone.utc)
+                    prediction_ts = datetime.utcnow().isoformat()
             else:
-                prediction_ts = datetime.now(timezone.utc)
+                prediction_ts = datetime.utcnow().isoformat()
 
             # ── 6. Build and save AudioPredictionRecord ───────────────────
             top_predictions = [
-                TopPrediction(species=p["species"], confidence=p["confidence"])
+                {"species": p["species"], "confidence": p["confidence"]}
                 for p in result.get("top_predictions", [])
             ]
             top_3 = top_predictions[:3]
 
-            prediction_record = AudioPredictionRecord(
-                species_name=result["predicted_category"],
-                confidence_score=result["confidence"],
-                prediction_time=prediction_time,
-                prediction_timestamp=prediction_ts,
-                model_version="1.0.0 (Audio)",
-                top_3_predictions=top_3,
-                top_predictions=top_predictions,
-                file_name=file.filename,
-                file_url=file_url,
-                duration_seconds=result.get("duration"),
-                sample_rate=result.get("sample_rate"),
-                channels=result.get("channels", 1),
-                audio_quality=result.get("audio_quality", "Good"),
-                noise_level_db=result.get("noise_level_db", 0.0),
-                clipping_detected=result.get("clipping_detected", False),
-                silence_percentage=result.get("silence_percentage", 0.0),
-                event_count=result.get("event_count", 0),
-                events=result.get("events", []),
-                detection_source=result.get("detection_source", "Estimated"),
-                status="Pending",
-                user_id=str(current_user.id),
-                user_name=current_user.full_name
-            )
+            record_id = str(uuid.uuid4())
+            prediction_record = {
+                "id": record_id,
+                "species_name": result["predicted_category"],
+                "confidence_score": result["confidence"],
+                "prediction_time": prediction_time,
+                "prediction_timestamp": prediction_ts,
+                "model_version": "1.0.0 (Audio)",
+                "top_3_predictions": top_3,
+                "top_predictions": top_predictions,
+                "file_name": file.filename,
+                "file_url": file_url,
+                "duration_seconds": result.get("duration"),
+                "sample_rate": result.get("sample_rate"),
+                "channels": result.get("channels", 1),
+                "audio_quality": result.get("audio_quality"),
+                "noise_level_db": result.get("noise_level_db"),
+                "status": "Pending",
+                "user_id": str(current_user.id),
+                "user_name": current_user.full_name,
+                "created_at": datetime.utcnow().isoformat(),
+                "updated_at": datetime.utcnow().isoformat()
+            }
+            
+            db_record = {
+                "id": record_id,
+                "audio_file_name": file.filename,
+                "file_url": file_url,
+                "species_name": result["predicted_category"],
+                "confidence_score": result["confidence"],
+                "model_name": "1.0.0 (Audio)",
+                "top_predictions": top_predictions,
+                "user_id": str(current_user.id),
+                "user_name": current_user.full_name,
+                "status": "Pending",
+                "created_at": datetime.utcnow().isoformat()
+            }
+
             try:
-                await prediction_record.insert()
+                supabase.table("audio_prediction_records").insert(db_record).execute()
             except Exception as e:
                 import logging
                 logging.error(f"Failed to save AudioPredictionRecord to history: {e}")
@@ -141,7 +153,7 @@ class AudioPredictionService:
                     module="Predictions",
                     description=f"Bioacoustic prediction executed successfully for {file.filename}. "
                                 f"Species: {result['predicted_category']} ({result['confidence']}%).",
-                    resource_id=str(prediction_record.id) if hasattr(prediction_record, 'id') else None,
+                    resource_id=prediction_record.get('id'),
                     status="Success",
                     severity="INFO"
                 )
@@ -175,34 +187,35 @@ class AudioPredictionService:
         """
         prediction = await _get_prediction_or_404(prediction_id)
 
-        if prediction.status == "Saved":
+        if prediction.get("status") == "Saved":
             raise HTTPException(
                 status_code=400,
                 detail="Prediction is already linked to an observation."
             )
 
         try:
-            obs_obj_id = PydanticObjectId(observation_id)
+            obs = supabase.table("observation_records").select("*").eq("id", observation_id).execute()
+            if not obs.data:
+                raise HTTPException(status_code=404, detail="Observation record not found.")
+            observation = obs.data[0]
         except Exception:
-            raise HTTPException(status_code=400, detail="Invalid observation ID format.")
-
-        observation = await ObservationRecord.get(obs_obj_id)
-        if not observation:
-            raise HTTPException(status_code=404, detail="Observation record not found.")
+            raise HTTPException(status_code=400, detail="Invalid observation ID format or fetch error.")
 
         # Link prediction → observation
-        observation.prediction_id = prediction_id
-        observation.prediction_source = "Bioacoustic AI"
-        if not observation.confidence_score:
-            observation.confidence_score = prediction.confidence_score
-        observation.updated_at = datetime.now(timezone.utc)
-        await observation.save()
+        update_obs = {
+            "updated_at": datetime.utcnow().isoformat()
+        }
+        current_notes = observation.get("notes") or ""
+        update_obs["notes"] = f"{current_notes}\n[Linked Bioacoustic AI Prediction ID: {prediction_id}, Confidence: {prediction.get('confidence_score')}%]".strip()
+            
+        supabase.table("observation_records").update(update_obs).eq("id", observation_id).execute()
 
         # Update prediction → observation
-        prediction.observation_id = observation_id
-        prediction.status = "Saved"
-        prediction.updated_at = datetime.now(timezone.utc)
-        await prediction.save()
+        supabase.table("audio_prediction_records").update({
+            "observation_id": observation_id,
+            "status": "Saved",
+            "updated_at": datetime.utcnow().isoformat()
+        }).eq("id", prediction_id).execute()
 
         create_audit_log(
             user=current_user,
@@ -222,15 +235,16 @@ class AudioPredictionService:
         }
 
 
-async def _get_prediction_or_404(prediction_id: str) -> AudioPredictionRecord:
+async def _get_prediction_or_404(prediction_id: str) -> dict:
     try:
-        obj_id = PydanticObjectId(prediction_id)
-    except Exception:
+        res = supabase.table("audio_prediction_records").select("*").eq("id", prediction_id).execute()
+        if not res.data:
+            raise HTTPException(status_code=404, detail="Audio Prediction record not found.")
+        return res.data[0]
+    except Exception as e:
+        if isinstance(e, HTTPException):
+            raise e
         raise HTTPException(status_code=400, detail="Invalid prediction ID format.")
-    prediction = await AudioPredictionRecord.get(obj_id)
-    if not prediction:
-        raise HTTPException(status_code=404, detail="Audio Prediction record not found.")
-    return prediction
 
 
 async def _audit_failed(user, request, description: str, severity: str = "WARNING"):

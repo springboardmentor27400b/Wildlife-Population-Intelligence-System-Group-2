@@ -206,7 +206,7 @@ const SpeciesIdentificationPage = () => {
 
   const getConfidenceColor = (score) => {
     const s = parseFloat(score);
-    if (s >= 80) return 'text-emerald-600 bg-emerald-50 border-emerald-200';
+    if (s >= 80) return 'text-green-600 bg-green-50 border-green-200';
     if (s >= 50) return 'text-amber-600 bg-amber-50 border-amber-200';
     return 'text-rose-600 bg-rose-50 border-rose-200';
   };
@@ -219,11 +219,13 @@ const SpeciesIdentificationPage = () => {
 
   return (
     <div className="space-y-8 pb-12 text-gray-800">
-      <div className="relative p-6 rounded-2xl bg-gradient-to-r from-teal-800 via-emerald-900 to-teal-950 text-white shadow-xl overflow-hidden">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_30%,rgba(16,185,129,0.2),transparent_70%)]" />
-        <div className="relative z-10">
-          <h1 className="text-3xl font-black tracking-tight">Species Identification Engine</h1>
-          <p className="mt-2 text-teal-100 max-w-xl text-sm md:text-base">
+      <div className="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-2">
+            <Activity className="w-8 h-8 text-green-600" />
+            Species Identification Engine
+          </h1>
+          <p className="text-gray-500 text-sm mt-1 max-w-2xl">
             Unified AI pipeline to classify species from either visual field captures or bioacoustic audio recordings, enriched with biological data.
           </p>
         </div>
@@ -233,7 +235,7 @@ const SpeciesIdentificationPage = () => {
       <div className="flex gap-4">
         <button
             onClick={() => switchTab('Image')}
-            className={`flex items-center gap-2 px-6 py-3 rounded-xl font-bold transition-all shadow-sm ${activeTab === 'Image' ? 'bg-teal-600 text-white shadow-md' : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'}`}
+            className={`flex items-center gap-2 px-6 py-3 rounded-xl font-bold transition-all shadow-sm ${activeTab === 'Image' ? 'bg-green-600 text-white shadow-md' : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'}`}
         >
             <Camera className="w-5 h-5" /> Image Identification
         </button>
@@ -247,10 +249,10 @@ const SpeciesIdentificationPage = () => {
 
       <div className="grid lg:grid-cols-12 gap-8">
         <div className="lg:col-span-6 space-y-4">
-          <Card className="shadow-lg border border-gray-100 bg-white/70 backdrop-blur-md rounded-2xl overflow-hidden">
+          <Card className="border border-gray-100 bg-white/70 backdrop-blur-md overflow-hidden shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300 rounded-2xl">
             <CardHeader className="border-b border-gray-50 bg-gray-50/50 pb-4">
               <CardTitle className="flex items-center gap-2.5 text-lg font-bold text-gray-900">
-                <UploadCloud className={`w-5 h-5 ${activeTab === 'Image' ? 'text-teal-600' : 'text-blue-600'}`} />
+                <UploadCloud className={`w-5 h-5 ${activeTab === 'Image' ? 'text-green-600' : 'text-blue-600'}`} />
                 Upload {activeTab}
               </CardTitle>
             </CardHeader>
@@ -268,11 +270,11 @@ const SpeciesIdentificationPage = () => {
                     onClick={() => fileInputRef.current?.click()}
                     className={`border-2 border-dashed rounded-2xl p-10 flex flex-col items-center justify-center text-center cursor-pointer transition-all duration-300 ${
                       isDragging
-                        ? 'border-teal-500 bg-teal-50/50 scale-[1.01] shadow-inner'
+                        ? 'border-green-500 bg-green-50/50 scale-[1.01] shadow-inner'
                         : 'border-gray-200 bg-gray-50 hover:bg-gray-100/70'
                     }`}
                   >
-                    <div className={`w-16 h-16 bg-white rounded-2xl flex items-center justify-center shadow-md mb-5 ${activeTab === 'Image' ? 'text-teal-600' : 'text-blue-600'}`}>
+                    <div className={`w-16 h-16 bg-white rounded-2xl flex items-center justify-center shadow-md mb-5 ${activeTab === 'Image' ? 'text-green-600' : 'text-blue-600'}`}>
                       {activeTab === 'Image' ? <ImageIcon className="w-8 h-8" /> : <Music className="w-8 h-8" />}
                     </div>
                     <h3 className="text-lg font-bold text-gray-950">Drag & drop {activeTab.toLowerCase()} file</h3>
@@ -297,7 +299,7 @@ const SpeciesIdentificationPage = () => {
                   >
                     <div className="relative rounded-2xl overflow-hidden border border-gray-150 bg-gray-50 p-6 flex flex-col items-center justify-center shadow-inner gap-4 min-h-[250px]">
                       {activeTab === 'Image' ? (
-                          <img src={previewUrl} alt="Preview" className="max-h-64 object-contain rounded-xl shadow-sm" />
+                          <img loading="lazy" src={previewUrl} alt="Preview" className="max-h-64 object-contain rounded-xl shadow-sm" />
                       ) : (
                           <>
                             <FileAudio className="w-12 h-12 text-blue-500" />
@@ -313,7 +315,7 @@ const SpeciesIdentificationPage = () => {
 
                     {!predictionResult && (
                       <Button
-                        className={`w-full h-12 text-base font-semibold shadow-md text-white gap-2 transition-transform hover:scale-[1.01] ${activeTab === 'Image' ? 'bg-teal-600 hover:bg-teal-700' : 'bg-blue-600 hover:bg-blue-700'}`}
+                        className={`w-full h-12 text-base font-semibold shadow-md text-white gap-2 transition-transform hover:scale-[1.01] ${activeTab === 'Image' ? 'bg-green-600 hover:bg-green-700' : 'bg-blue-600 hover:bg-blue-700'}`}
                         onClick={runPrediction}
                         disabled={isPredicting}
                       >
@@ -373,14 +375,14 @@ const SpeciesIdentificationPage = () => {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
-                className={`h-full min-h-[350px] rounded-2xl border flex flex-col items-center justify-center text-center p-8 shadow-inner ${activeTab === 'Image' ? 'border-teal-100 bg-teal-50/20' : 'border-blue-100 bg-blue-50/20'}`}
+                className={`h-full min-h-[350px] rounded-2xl border flex flex-col items-center justify-center text-center p-8 shadow-inner ${activeTab === 'Image' ? 'border-green-100 bg-green-50/20' : 'border-blue-100 bg-blue-50/20'}`}
               >
                 <div className="relative w-24 h-24 mb-6">
-                  <div className={`absolute inset-0 border-4 rounded-full ${activeTab === 'Image' ? 'border-teal-500/10' : 'border-blue-500/10'}`} />
-                  <div className={`absolute inset-0 border-4 rounded-full border-t-transparent animate-spin ${activeTab === 'Image' ? 'border-teal-600' : 'border-blue-600'}`} />
-                  {activeTab === 'Image' ? <Camera className="absolute inset-0 m-auto w-8 h-8 text-teal-600 animate-pulse" /> : <Music className="absolute inset-0 m-auto w-8 h-8 text-blue-600 animate-pulse" />}
+                  <div className={`absolute inset-0 border-4 rounded-full ${activeTab === 'Image' ? 'border-green-500/10' : 'border-blue-500/10'}`} />
+                  <div className={`absolute inset-0 border-4 rounded-full border-t-transparent animate-spin ${activeTab === 'Image' ? 'border-green-600' : 'border-blue-600'}`} />
+                  {activeTab === 'Image' ? <Camera className="absolute inset-0 m-auto w-8 h-8 text-green-600 animate-pulse" /> : <Music className="absolute inset-0 m-auto w-8 h-8 text-blue-600 animate-pulse" />}
                 </div>
-                <h3 className={`text-xl font-extrabold ${activeTab === 'Image' ? 'text-teal-950' : 'text-blue-950'}`}>Analyzing Media...</h3>
+                <h3 className={`text-xl font-extrabold ${activeTab === 'Image' ? 'text-green-950' : 'text-blue-950'}`}>Analyzing Media...</h3>
               </motion.div>
             )}
 
@@ -391,7 +393,7 @@ const SpeciesIdentificationPage = () => {
                 animate={{ opacity: 1, scale: 1 }}
                 className="rounded-2xl border border-gray-100 bg-white shadow-xl overflow-hidden flex flex-col"
               >
-                <div className={`p-6 bg-gradient-to-b ${predictionResult.prediction_source === 'Image' ? 'from-teal-50/40' : 'from-blue-50/40'} via-white to-white flex-grow`}>
+                <div className={`p-6 bg-gradient-to-b ${predictionResult.prediction_source === 'Image' ? 'from-green-50/40' : 'from-blue-50/40'} via-white to-white flex-grow`}>
                   <div className="flex items-center justify-between mb-4 border-b pb-4 border-gray-100">
                     <span className="text-xs font-bold text-gray-400 tracking-wider uppercase flex items-center gap-2">
                       <span className={`px-2 py-1 rounded bg-gray-100 text-gray-600`}>Source: {predictionResult.prediction_source}</span>
@@ -411,7 +413,7 @@ const SpeciesIdentificationPage = () => {
                           {predictionResult.confidence_score}% Confidence
                         </span>
                         {predictionResult.conservation_status && (
-                            <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold border ${predictionResult.conservation_status.includes('Endangered') || predictionResult.conservation_status.includes('Threatened') ? 'border-red-200 bg-red-50 text-red-700' : 'border-emerald-200 bg-emerald-50 text-emerald-700'}`}>
+                            <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold border ${predictionResult.conservation_status.includes('Endangered') || predictionResult.conservation_status.includes('Threatened') ? 'border-red-200 bg-red-50 text-red-700' : 'border-green-200 bg-green-50 text-green-700'}`}>
                                 Risk: {predictionResult.conservation_status}
                             </span>
                         )}
@@ -434,7 +436,7 @@ const SpeciesIdentificationPage = () => {
                       <span className="text-sm font-bold text-gray-900">{predictionResult.confidence_score}%</span>
                     </div>
                     <div className="w-full bg-gray-200 rounded-full h-3">
-                      <div className={`h-3 rounded-full ${parseFloat(predictionResult.confidence_score) >= 90 ? 'bg-emerald-500' : parseFloat(predictionResult.confidence_score) >= 70 ? 'bg-amber-500' : 'bg-rose-500'}`} style={{ width: `${predictionResult.confidence_score}%` }}></div>
+                      <div className={`h-3 rounded-full ${parseFloat(predictionResult.confidence_score) >= 90 ? 'bg-green-500' : parseFloat(predictionResult.confidence_score) >= 70 ? 'bg-amber-500' : 'bg-rose-500'}`} style={{ width: `${predictionResult.confidence_score}%` }}></div>
                     </div>
                   </div>
 
@@ -505,7 +507,7 @@ const SpeciesIdentificationPage = () => {
                   {/* Species Gallery */}
                   <div className="mb-6">
                     <h4 className="text-sm font-bold text-gray-700 uppercase tracking-wider mb-3">Reference Gallery</h4>
-                    <div className="flex gap-3 overflow-x-auto pb-2">
+                    <div className="flex gap-3 overflow-x-auto pb-2 rounded-xl border border-border/50 shadow-sm">
                       {[1, 2, 3].map(i => (
                         <div key={i} className="w-24 h-24 bg-gray-100 rounded-xl flex-shrink-0 border border-gray-200 flex items-center justify-center text-gray-400">
                           <ImageIcon className="w-6 h-6" />
@@ -572,7 +574,7 @@ const SpeciesIdentificationPage = () => {
                         id="obs-select"
                         value={selectedObsId}
                         onChange={(e) => setSelectedObsId(e.target.value)}
-                        className="flex h-11 w-full rounded-xl border border-gray-200 bg-white px-3.5 py-2 text-sm font-medium focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all shadow-sm"
+                        className="flex h-11 w-full rounded-xl border border-gray-200 bg-white px-3.5 py-2 text-sm font-medium focus:ring-2 focus:ring-green-500/20 focus:border-green-500 transition-all shadow-sm"
                       >
                         <option value="">— Select an observation —</option>
                         {observations.map(obs => (
@@ -598,7 +600,7 @@ const SpeciesIdentificationPage = () => {
         </div>
       </div>
 
-      <Card className="shadow-lg border border-gray-150 rounded-2xl overflow-hidden bg-white">
+      <Card className="border border-gray-150 overflow-hidden bg-white shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300 rounded-2xl">
         <CardHeader className="bg-gray-50/50 border-b border-gray-100 p-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <CardTitle className="text-xl font-extrabold text-gray-950">Unified Prediction History</CardTitle>
           <div className="flex items-center gap-3 w-full md:w-auto">
@@ -626,9 +628,9 @@ const SpeciesIdentificationPage = () => {
           ) : history.length === 0 ? (
             <div className="p-10 text-center text-gray-500">No predictions found.</div>
           ) : (
-            <div className="overflow-x-auto">
+            <div className="overflow-x-auto rounded-xl border border-border/50 shadow-sm">
             <table className="w-full text-sm text-left">
-              <thead className="text-xs uppercase bg-gray-50 text-gray-500">
+              <thead className="text-xs uppercase bg-gray-50 text-gray-500 sticky top-0 bg-white/95 dark:bg-gray-900/95 backdrop-blur z-10">
                 <tr>
                   <th className="px-6 py-4">Source</th>
                   <th className="px-6 py-4">Species</th>
@@ -643,7 +645,7 @@ const SpeciesIdentificationPage = () => {
                 {history.map(pred => (
                   <tr key={pred.id || pred._id} onClick={() => setPredictionResult(pred)} className="hover:bg-gray-50 cursor-pointer transition-colors">
                     <td className="px-6 py-4">
-                        <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold ${pred.prediction_source === 'Image' ? 'bg-teal-100 text-teal-800' : 'bg-blue-100 text-blue-800'}`}>
+                        <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold ${pred.prediction_source === 'Image' ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800'}`}>
                             {pred.prediction_source}
                         </span>
                     </td>
@@ -654,14 +656,14 @@ const SpeciesIdentificationPage = () => {
                         <div className="flex items-center gap-2">
                             <span>{pred.confidence_score}%</span>
                             <div className="w-16 bg-gray-200 rounded-full h-1.5">
-                                <div className={`h-1.5 rounded-full ${parseFloat(pred.confidence_score) >= 90 ? 'bg-emerald-500' : parseFloat(pred.confidence_score) >= 70 ? 'bg-amber-500' : 'bg-rose-500'}`} style={{ width: `${pred.confidence_score}%` }}></div>
+                                <div className={`h-1.5 rounded-full ${parseFloat(pred.confidence_score) >= 90 ? 'bg-green-500' : parseFloat(pred.confidence_score) >= 70 ? 'bg-amber-500' : 'bg-rose-500'}`} style={{ width: `${pred.confidence_score}%` }}></div>
                             </div>
                         </div>
                     </td>
                     <td className="px-6 py-4 text-xs text-gray-500">{pred.model_version || 'Unknown'}</td>
                     <td className="px-6 py-4 italic text-gray-600">{pred.scientific_name || 'N/A'}</td>
                     <td className="px-6 py-4">
-                        <span className={`px-2 py-1 rounded text-xs font-semibold ${pred.status === 'Saved' ? 'bg-emerald-100 text-emerald-800' : 'bg-gray-100 text-gray-600'}`}>
+                        <span className={`px-2 py-1 rounded text-xs font-semibold ${pred.status === 'Saved' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-600'}`}>
                             {pred.status || 'Pending'}
                         </span>
                     </td>

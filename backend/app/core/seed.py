@@ -1,5 +1,6 @@
 from app.models.user import Role
 from app.utils.logger import logger
+from app.database.adapter import find_one, insert
 
 DEFAULT_ROLES = [
     "Administrator",
@@ -10,8 +11,8 @@ DEFAULT_ROLES = [
 
 async def seed_roles():
     for role_name in DEFAULT_ROLES:
-        existing_role = await Role.find_one(Role.role_name == role_name)
+        existing_role = await find_one(Role, "role_name", role_name)
         if not existing_role:
             role = Role(role_name=role_name)
-            await role.insert()
+            await insert(role)
             logger.info(f"Seeded role: {role_name}")

@@ -22,7 +22,7 @@ async def main():
 
     user = User(
         email="test@example.com",
-        hashed_password="...",
+        password_hash="...",
         full_name="Test User",
         role="Researcher"
     )

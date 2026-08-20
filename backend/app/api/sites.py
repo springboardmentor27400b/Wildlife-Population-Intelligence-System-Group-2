@@ -1,6 +1,7 @@
+from app.database.adapter import find_one, find_all, insert, save, delete, get, count_documents
 from fastapi import APIRouter, Depends, HTTPException, status
 from typing import List
-from beanie import PydanticObjectId
+
 from datetime import datetime, timezone
 
 from app.models.site import MonitoringSite
@@ -17,7 +18,7 @@ async def create_site(site: MonitoringSiteCreate, current_user: User = Depends(r
         **site.model_dump(),
         created_by=str(current_user.id)
     )
-    await new_site.insert()
+    await insert(new_site)
     
     notif = Notification(
         title="New Monitoring Site",
@@ -27,26 +28,26 @@ async def create_site(site: MonitoringSiteCreate, current_user: User = Depends(r
         user_id="admin_all",
         related_resource_id=str(new_site.id)
     )
-    await notif.insert()
+    await insert(notif)
     
     return new_site
 
 @router.get("/", response_model=List[MonitoringSiteResponse])
 async def get_sites(current_user: User = Depends(get_current_user)):
     # Any authenticated user can view sites
-    sites = await MonitoringSite.find_all().to_list()
+    sites = await find_all(MonitoringSite)
     return sites
 
 @router.get("/{site_id}", response_model=MonitoringSiteResponse)
-async def get_site(site_id: PydanticObjectId, current_user: User = Depends(get_current_user)):
-    site = await MonitoringSite.get(site_id)
+async def get_site(site_id: str, current_user: User = Depends(get_current_user)):
+    site = await get(MonitoringSite, site_id)
     if not site:
         raise HTTPException(status_code=404, detail="Site not found")
     return site
 
 @router.put("/{site_id}", response_model=MonitoringSiteResponse)
-async def update_site(site_id: PydanticObjectId, site_update: MonitoringSiteUpdate, current_user: User = Depends(require_admin)):
-    site = await MonitoringSite.get(site_id)
+async def update_site(site_id: str, site_update: MonitoringSiteUpdate, current_user: User = Depends(require_admin)):
+    site = await get(MonitoringSite, site_id)
     if not site:
         raise HTTPException(status_code=404, detail="Site not found")
         
@@ -55,13 +56,13 @@ async def update_site(site_id: PydanticObjectId, site_update: MonitoringSiteUpda
         setattr(site, key, value)
         
     site.updated_at = datetime.now(timezone.utc)
-    await site.save()
+    await save(site)
     return site
 
 @router.delete("/{site_id}", status_code=status.HTTP_204_NO_CONTENT)
-async def delete_site(site_id: PydanticObjectId, current_user: User = Depends(require_admin)):
-    site = await MonitoringSite.get(site_id)
+async def delete_site(site_id: str, current_user: User = Depends(require_admin)):
+    site = await get(MonitoringSite, site_id)
     if not site:
         raise HTTPException(status_code=404, detail="Site not found")
         
-    await site.delete()
+    await delete(site)

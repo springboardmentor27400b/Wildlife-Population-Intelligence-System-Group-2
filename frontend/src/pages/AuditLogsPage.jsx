@@ -242,12 +242,12 @@ const AuditLogsPage = () => {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-foreground flex items-center gap-2">
-            <ShieldAlert className="w-8 h-8 text-primary" />
+          <h1 className="text-3xl font-bold text-slate-900 flex items-center gap-2">
+            <ShieldAlert className="w-8 h-8 text-green-600" />
             System Audit Logs
           </h1>
-          <p className="text-muted-foreground mt-1 text-sm md:text-base">
-            Track and monitor administrator activity, model triggers, and security audits.
+          <p className="text-slate-500 text-sm mt-1 max-w-2xl">
+            Comprehensive tracking of all system access and administrative actions.
           </p>
         </div>
         
@@ -482,9 +482,9 @@ const AuditLogsPage = () => {
           {/* Table View */}
           {viewMode === 'table' && (
             <div className="bg-white dark:bg-gray-900 rounded-xl border border-border/60 shadow-sm overflow-hidden">
-              <div className="overflow-x-auto">
+              <div className="overflow-x-auto rounded-xl border border-border/50 shadow-sm">
                 <table className="w-full text-left border-collapse">
-                  <thead>
+                  <thead className="sticky top-0 bg-white/95 dark:bg-gray-900/95 backdrop-blur z-10">
                     <tr className="border-b border-border bg-gray-50 dark:bg-gray-800/40 text-xs font-semibold text-muted-foreground uppercase">
                       <th className="py-4 px-5">Timestamp</th>
                       <th className="py-4 px-5">User</th>

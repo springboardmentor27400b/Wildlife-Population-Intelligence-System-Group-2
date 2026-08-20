@@ -1,7 +1,6 @@
 from pydantic import BaseModel, Field
 from datetime import datetime
 from typing import Optional
-from beanie import PydanticObjectId
 
 class FieldUploadCreate(BaseModel):
     # This schema might be used if doing JSON, but typically we use Form parsing directly for creation.
@@ -19,7 +18,7 @@ class FieldUploadUpdate(BaseModel):
     status: Optional[str] = None
 
 class FieldUploadResponse(BaseModel):
-    id: PydanticObjectId
+    id: str
     title: str
     upload_type: str
     file_name: str

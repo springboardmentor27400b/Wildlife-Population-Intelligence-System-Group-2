@@ -1,3 +1,4 @@
+from app.database.adapter import find_one, find_all, insert, save, delete, get, count_documents
 import os
 from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, Request, Query
 from pydantic import BaseModel, Field
@@ -6,7 +7,7 @@ from app.api.auth import get_current_user
 from app.models.user import User
 from app.models.prediction import PredictionRecord
 from app.services.prediction_service import PredictionService
-from beanie import PydanticObjectId
+
 from bson.errors import InvalidId
 
 router = APIRouter()
@@ -59,48 +60,66 @@ async def get_predictions_history(
     search: Optional[str] = None,
     status: Optional[str] = None,
     species: Optional[str] = None,
-    sort_by: Optional[str] = Query(
+    sort_by: str = Query(
         "created_at",
         pattern="^(created_at|confidence_score|prediction_time|species_name|prediction_timestamp)$"
     ),
-    sort_order: Optional[str] = Query("desc", pattern="^(asc|desc)$")
+    sort_order: str = Query("desc", pattern="^(asc|desc)$")
 ):
     """
     Fetch prediction history records with search, filtering, sorting, and pagination.
     """
-    conditions = []
+    from app.database.db import supabase
 
-    if search:
-        search_regex = {"$regex": search, "$options": "i"}
-        conditions.append({
-            "$or": [
-                {"species_name": search_regex},
-                {"file_name": search_regex},
-                {"user_name": search_regex}
-            ]
-        })
-
+    # Build Supabase query
+    query = supabase.table("prediction_records").select("*", count="exact")
+    
+    # If the function was called directly in tests, sort_by might be a Query object
+    if hasattr(sort_by, "default"):
+        sort_by = sort_by.default
+    if hasattr(sort_order, "default"):
+        sort_order = sort_order.default
+    
     if status:
-        conditions.append({"status": status})
+        query = query.eq("status", status)
 
     if species:
-        conditions.append({"species_name": {"$regex": species, "$options": "i"}})
+        query = query.ilike("species_name", f"%{species}%")
 
-    query = {}
-    if conditions:
-        query = conditions[0] if len(conditions) == 1 else {"$and": conditions}
+    if search:
+        search_term = f"%{search}%"
+        query = query.or_(
+            f"species_name.ilike.{search_term},"
+            f"file_name.ilike.{search_term},"
+            f"user_name.ilike.{search_term}"
+        )
 
-    total = await PredictionRecord.find(query).count()
+    # First get count
+    count_res = query.limit(0).execute()
+    total = count_res.count if count_res.count is not None else 0
+
+    # Then get data
+    data_query = supabase.table("prediction_records").select("*")
+    if status:
+        data_query = data_query.eq("status", status)
+    if species:
+        data_query = data_query.ilike("species_name", f"%{species}%")
+    if search:
+        data_query = data_query.or_(
+            f"species_name.ilike.{search_term},"
+            f"file_name.ilike.{search_term},"
+            f"user_name.ilike.{search_term}"
+        )
+        
     skip = (page - 1) * limit
-
-    sort_field = sort_by if sort_order == "asc" else f"-{sort_by}"
-    predictions = (
-        await PredictionRecord.find(query)
-        .sort(sort_field)
-        .skip(skip)
-        .limit(limit)
-        .to_list()
-    )
+    
+    is_desc = sort_order == "desc"
+    data_query = data_query.order(sort_by, desc=is_desc)
+    data_query = data_query.range(skip, skip + limit - 1)
+    
+    res = data_query.execute()
+    
+    predictions = [PredictionRecord(**d) for d in res.data]
 
     return {
         "total": total,
@@ -117,11 +136,11 @@ async def get_prediction_detail(
 ):
     """Retrieve full details of a single prediction record."""
     try:
-        obj_id = PydanticObjectId(prediction_id)
+        obj_id = str(prediction_id)
     except InvalidId:
         raise HTTPException(status_code=400, detail="Invalid prediction ID format.")
 
-    prediction = await PredictionRecord.get(obj_id)
+    prediction = await get(PredictionRecord, obj_id)
     if not prediction:
         raise HTTPException(status_code=404, detail="Prediction not found.")
     return prediction

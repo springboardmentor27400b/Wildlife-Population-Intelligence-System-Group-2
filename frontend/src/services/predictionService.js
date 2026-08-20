@@ -16,7 +16,7 @@ const predictionService = {
    * Fetch paginated prediction history with optional filters.
    */
   getPredictions: async (params = {}) => {
-    const response = await api.get('/predictions', { params });
+    const response = await api.get('/predictions/', { params });
     return response.data;
   },
 

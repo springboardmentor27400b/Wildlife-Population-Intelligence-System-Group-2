@@ -1,147 +1,200 @@
-<div align="center">
-  <img src="https://raw.githubusercontent.com/HarshithaSaravanan10/Wildlife-Population-Intelligence-System/main/frontend/public/vite.svg" alt="Project Logo" width="120" />
-  <h1>🐾 Wildlife Population Intelligence System (WPIS)</h1>
-  <p><em>AI-powered Wildlife Population Intelligence System for species recognition, bioacoustic analysis, biodiversity analytics, monitoring reports, and conservation insights.</em></p>
-  
-  [![React](https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)](https://reactjs.org/)
-  [![FastAPI](https://img.shields.io/badge/FastAPI-005571?style=for-the-badge&logo=fastapi)](https://fastapi.tiangolo.com/)
-  [![MongoDB](https://img.shields.io/badge/MongoDB-%234ea94b.svg?style=for-the-badge&logo=mongodb&logoColor=white)](https://www.mongodb.com/)
-  [![TensorFlow](https://img.shields.io/badge/TensorFlow-%23FF6F00.svg?style=for-the-badge&logo=TensorFlow&logoColor=white)](https://www.tensorflow.org/)
-  [![Python](https://img.shields.io/badge/python-3670A0?style=for-the-badge&logo=python&logoColor=ffdd54)](https://www.python.org/)
-  [![TailwindCSS](https://img.shields.io/badge/tailwindcss-%2338B2AC.svg?style=for-the-badge&logo=tailwind-css&logoColor=white)](https://tailwindcss.com/)
-</div>
+# Wildlife Population Intelligence System (WPIS)
 
----
+## 1. Project Overview
+The Wildlife Population Intelligence System (WPIS) is a comprehensive, full-stack application designed to aggregate, analyze, and visualize ecological data. By combining machine learning (audio classification) with robust data visualization and geographic mapping, WPIS provides ecologists and conservationists with actionable insights into wildlife populations, ecosystem health, and habitat conditions.
 
-## 📋 Project Overview
-The **Wildlife Population Intelligence System (WPIS)** is a production-ready, monorepo-structured platform engineered to assist researchers, rangers, and conservation officers. WPIS enables real-time device tracking, automated species recognition from camera traps, bioacoustic sensor monitoring, map visualizations, advanced reporting, and strict role-based audit logging.
+## 2. Problem Statement
+Monitoring wildlife populations manually is labor-intensive, error-prone, and slow. Existing solutions often lack integrated dashboards that combine raw field observations with AI-assisted species identification and automated conservation recommendations. WPIS bridges this gap by offering a centralized platform that processes observations and bioacoustics, translating them into real-time intelligence.
 
-## ✨ Project Highlights
-- **Unified AI Pipeline**: Fully integrated image and audio predictions tied automatically to MongoDB.
-- **Enterprise-Grade Security**: JWT authentication and role-based access control protecting sensitive endpoints.
-- **Dynamic Analytics Dashboard**: Automated biodiversity calculations and real-time statistics updating.
-- **Export & Reporting Engine**: Generates comprehensive PDF and Excel reports with live filters.
+## 3. Project Objectives
+- To automate species identification using bioacoustic AI models.
+- To provide real-time dashboards for monitoring population estimates and ecosystem health.
+- To generate actionable conservation recommendations based on predictive analytics.
+- To establish a scalable, secure, and production-ready architecture.
 
-## 🚀 Complete Feature List
-- **JWT Authentication & RBAC**: Advanced Role-Based Access Control protecting routes across roles (Administrator, Wildlife Researcher, Conservation Officer, Forest Department Officer).
-- **Interactive Wildlife Map**: Spatial mapping of monitoring sites and device coordinates using mapping libraries.
-- **AI Species Recognition**: Multi-label classifier interface for automatic species detection from field camera trap uploads.
-- **Bioacoustic Analysis**: Real-time sound analysis utilizing deep learning to identify species calls.
-- **Sensor Devices Management**: Full tracking of field equipment (Camera Traps, Acoustic Sensors, GPS Collars, Weather Stations) with active battery and network monitoring.
-- **Monitoring Sites Control**: Manage core and buffer conservation zones, area sizes, and habitat types.
-- **Reports & Data Export**:
-  - **Excel**: Multi-tab workbook containing auto-filters, frozen headers, autosized columns, and a separate summary statistics sheet.
-  - **PDF**: Landscape orientation reports complete with header banners, active filters details, tabular records, and running page numbers in footers.
-- **System Audit Logging**: Comprehensive, admin-only audit trail tracking logins, updates, AI predictions, and device states.
-- **Notifications Hub**: System alerts and priority-based notifications (Critical, Warning, Success, Info) reflecting hardware failures and research approvals.
+## 4. Key Features
+- **Role-based Access Control**: Secure login and route protection for administrators and field researchers.
+- **AI Species Recognition**: Upload audio files for automated species identification via librosa/ML models.
+- **Geospatial Mapping**: Interactive Leaflet maps displaying monitoring sites and observations.
+- **Comprehensive Dashboards**: Executive analytics combining data from across the platform.
+- **Dynamic Reporting**: Generate and export reports (PDF, CSV, Excel, JSON).
+- **Live Validation**: Built-in system health and data integrity checks.
 
-## 🏗️ System Architecture & Tech Stack
+## 5. System Architecture
+```text
+User
+ ↓
+React Frontend (Vite, Tailwind)
+ ↓
+Protected Routes / Main Layout
+ ↓
+Frontend Services (Axios)
+ ↓
+FastAPI Backend (Python, Uvicorn)
+ ↓
+Business Logic / APIs (JWT Auth)
+ ↓
+MongoDB (Motor / Async)
+ ↓
+AI / Intelligence Modules (Librosa, Scikit-learn)
+```
+
+## 6. Technology Stack
 **Frontend:**
-- ⚛️ **React & Vite**: Fast development environment and component-based UI.
-- 🎨 **Tailwind CSS**: Utility-first CSS framework for rapid and modern design.
+- React (v19)
+- Vite
+- Tailwind CSS
+- Framer Motion
+- Recharts
+- React-Leaflet
+- React Hook Form
+- Zod
 
 **Backend:**
-- ⚡ **FastAPI (Python)**: High-performance asynchronous API web framework.
-- 🍃 **MongoDB & Beanie (Motor)**: NoSQL database with asynchronous ODM modeling.
-- 🧠 **TensorFlow / Keras**: Deep learning models for image and audio recognition.
+- Python (FastAPI)
+- MongoDB (Motor/Async)
+- PyJWT (Authentication)
+- Librosa & Soundfile (Audio Processing)
+- Pydantic
+- Uvicorn
 
-## 📁 Folder Structure
+**Deployment:**
+- Docker & Docker Compose
+- Nginx (Frontend serving)
 
-\\\	ext
-WPIS/
-├── backend/                  # FastAPI Backend Code
-│   ├── app/
-│   │   ├── api/              # Route controllers
-│   │   ├── core/             # Configuration & security middleware
-│   │   ├── database/         # Beanie ODM & Motor MongoDB connection
-│   │   ├── models/           # Beanie Document ODM schemas
-│   │   ├── schemas/          # Pydantic validation models
-│   │   └── main.py           # FastAPI Application entrypoint
-│   ├── requirements.txt      # Python dependencies
-│   ├── run_migration.py      # Database setup & data seed
-│   └── .env.example          # Backend env configuration template
-│
-├── frontend/                 # Vite + React Frontend Code
-│   ├── src/
-│   │   ├── assets/           # Static asset styles & icons
-│   │   ├── components/       # Custom reusable components
-│   │   ├── config/           # Route permissions
-│   │   ├── pages/            # Core views (Dashboard, AuditLogs, etc.)
-│   │   ├── services/         # Axios API clients
-│   │   └── App.jsx           # App layout & routing structure
-│   ├── package.json          # Node dependencies
-│   └── .env.example          # Frontend env configuration template
-│
-└── docker-compose.yml        # Orchestration configuration
-\\\
+## 7. Milestone 3 – Intelligence Modules
+### Population Intelligence
+- **Purpose**: Estimates wildlife populations and analyzes temporal trends.
+- **Inputs**: Aggregated observation data.
+- **Outputs**: Population heatmaps and trend charts.
 
----
+### Habitat Intelligence
+- **Purpose**: Assesses the quality and risk factors of monitored habitats.
+- **Inputs**: Environmental data linked to monitoring sites.
+- **Outputs**: Habitat quality index and risk assessments.
 
-## ⚙️ Environment Variables
+### Conservation Recommendation Engine
+- **Purpose**: Provides AI-supported interventions to mitigate ecological risks.
+- **Inputs**: Ecosystem health and population decline metrics.
+- **Outputs**: Actionable task lists and priority alerts.
 
-### Backend Configuration (\ackend/.env\)
-Copy \ackend/.env.example\ to \ackend/.env\ and adjust the variables:
-- \MONGO_URI\: The MongoDB connection string.
-- \JWT_SECRET\: Random hash key used to sign authorization tokens.
-- \JWT_ALGORITHM\: Signature method (default: \HS256\).
-- \ACCESS_TOKEN_EXPIRE_MINUTES\: JWT token lifespan.
+### Ecosystem Health Analytics
+- **Purpose**: Monitors the overall stability of the ecosystem.
+- **Inputs**: Biodiversity indices and environmental stressors.
+- **Outputs**: Unified health score and vulnerability indicators.
 
-### Frontend Configuration (\rontend/.env\)
-Copy \rontend/.env.example\ to \rontend/.env\:
-- \VITE_API_URL\: Root path to the running FastAPI server.
-- \VITE_GOOGLE_CLIENT_ID\: OAuth client id (Optional).
+### Wildlife Intelligence Dashboard
+- **Purpose**: A centralized overview of all field data.
+- **Outputs**: High-level KPIs and interactive mapping.
 
----
+## 8. Milestone 4 – Analytics, Testing & Deployment
+### Executive Analytics Dashboard
+- Provides a unified overview integrating metrics from Population, Habitat, and Ecosystem modules.
 
-## 🚀 Installation & Running Locally
+### Reports & Export System
+- Dynamic report previews using live backend data.
+- Supports PDF, CSV, JSON, and Excel exports based on backend availability.
 
-### 1. Database Requirement
-Ensure MongoDB is running locally on port \27017\ or supply a remote string via \MONGO_URI\.
+### Testing & Validation
+- **Status**: Implemented via live-polling of existing APIs. 
+- Performs system health checks, module validation, and data integrity scans on real database records.
 
-### 2. Backend Setup
-From the \ackend/\ directory:
-\\\ash
+### Docker & Cloud Deployment
+- **Status**: Docker configuration prepared (`Dockerfile`, `docker-compose.yml`, Nginx config). 
+- *Note: Local Docker builds were not verified due to the Docker daemon being unavailable in the development environment.*
+
+## 9. Installation & Setup
+
+### Prerequisites
+- Node.js (v20+)
+- Python (v3.11+)
+- MongoDB Atlas cluster (or local instance)
+
+### Step 1 – Clone Project
+```bash
+git clone <repository-url>
+cd wpis
+```
+
+### Step 2 – Configure Environment
+Create `.env` files based on the provided examples.
+```bash
+# Backend
+cp backend/.env.example backend/.env
+
+# Frontend
+cp frontend/.env.example frontend/.env
+```
+
+### Step 3 – Backend Setup
+```bash
+cd backend
 python -m venv venv
-# Windows: venv\Scripts\activate  |  macOS/Linux: source venv/bin/activate
+source venv/bin/activate  # On Windows: venv\Scripts\activate
 pip install -r requirements.txt
-python run_migration.py
 uvicorn app.main:app --reload --port 8000
-\\\
-- **API Server**: http://localhost:8000
-- **Swagger Docs**: http://localhost:8000/docs
+```
 
-### 3. Frontend Setup
-From the \rontend/\ directory:
-\\\ash
+### Step 4 – Frontend Setup
+```bash
+cd frontend
 npm install
 npm run dev
-\\\
-- **Web App**: http://localhost:5173
+```
 
----
-
-## 🐳 Docker Deployment Guide
-For instant setup:
-\\\ash
+### Step 5 – Optional Docker Setup
+```bash
 docker-compose up -d --build
-\\\
+```
+*Frontend accessible at http://localhost:80, Backend at http://localhost:8000.*
 
-## 📚 Module Overview
-- **Milestone 1 Completed**: Core RBAC, device management, site tracking, and audit logging successfully integrated.
-- **Milestone 2 Completed**: Complete AI intelligence hub built! Unified predictions, bioacoustics, computer vision, automated reporting, and advanced analytics caching integrated perfectly.
+## 10. Environment Variables
+**Do not commit actual secrets.**
+- `MONGO_URI`: Connection string to MongoDB.
+- `JWT_SECRET`: Secret key for signing authentication tokens.
+- `VITE_API_URL`: Base URL for backend API requests.
 
-## 🔭 Future Scope
-- Drone image integration and aerial tracking.
-- IoT live streaming from field edge-devices.
-- Advanced predictive modeling for species migration patterns.
+## 11. Security Considerations
+- **Authentication**: JWT-based stateless authentication.
+- **Authorization**: Role-based access control protecting frontend routes and API endpoints.
+- **CORS**: Configurable allowed origins via `BACKEND_CORS_ORIGINS`.
+- **Environment**: Sensitive credentials (DB passwords, secrets) are isolated in ignored `.env` files.
 
-## 🤝 Contributors
-- **Harshitha Saravanan** - *Initial Work / Lead Engineer*
+## 12. Project Limitations
+- **Deployment Verification**: Docker configuration is prepared, but local execution via `docker build` could not be verified due to environment constraints.
+- **Historical Testing Data**: Because the backend does not implement automated CI/CD logging, the Testing & Validation module relies strictly on live-polling rather than historical test suites.
+- **Cloud Deployment**: Cloud deployment to AWS/GCP was not performed as no cloud credentials were provided.
 
-## 📜 License
-This project is licensed under the MIT License.
+## 13. Future Enhancements
+- **Cloud Deployment**: Deploying orchestrated containers to AWS ECS or Google Cloud Run.
+- **Automated CI/CD Pipeline**: Github Actions for automated testing and deployment.
+- **Advanced GIS Visualization**: Integration with Mapbox or advanced spatial databases (PostGIS).
+- **Real-time Streaming Analytics**: Implementing WebSockets for live sensor data ingestion.
+- **Mobile Application**: Developing a React Native app for field researchers.
 
-## 🙏 Acknowledgements
-- [TensorFlow](https://www.tensorflow.org/) for making AI accessible.
-- The open-source community for amazing libraries (FastAPI, React, Tailwind).
-- All wildlife researchers working actively toward global conservation!
+## 14. Final Project Structure
+```text
+wpis/
+├── backend/
+│   ├── app/
+│   ├── requirements.txt
+│   ├── Dockerfile
+│   └── .env.example
+├── frontend/
+│   ├── src/
+│   ├── package.json
+│   ├── Dockerfile
+│   ├── nginx.conf
+│   └── .env.example
+├── docker-compose.yml
+└── README.md
+```
+
+## 15. Presentation Guide
+**Demonstration Flow (3-5 mins):**
+1. **Login**: Demonstrate secure access control.
+2. **Executive Dashboard**: Highlight the unified KPIs and interactive charts.
+3. **Intelligence Modules**: Briefly click through Population Intelligence, Habitat Intelligence, Conservation Recommendations, and Ecosystem Health.
+4. **Reports & Exports**: Generate a report preview and demonstrate the export functionality.
+5. **Testing & Validation**: Click "Run Validation" to show the live-polling of backend services and data integrity checks.
+6. **Deployment Readiness**: Conclude by showing the Docker configuration and `docker-compose.yml` file, emphasizing production readiness.

@@ -1,8 +1,9 @@
+from app.database.adapter import find_one, find_all, insert, save, delete, get, count_documents
 import os
 import uuid
 from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, Form, Request
 from typing import List, Optional
-from beanie import PydanticObjectId
+
 from datetime import datetime, timezone
 
 from app.models.upload import FieldUpload
@@ -61,7 +62,7 @@ async def create_upload(
     current_user: User = Depends(get_current_user)
 ):
     try:
-        site = await MonitoringSite.get(PydanticObjectId(monitoring_site_id))
+        site = await get(MonitoringSite, str(monitoring_site_id))
         if not site:
             raise HTTPException(status_code=404, detail="Monitoring site not found.")
     except Exception:
@@ -94,30 +95,32 @@ async def create_upload(
     if sensor_device_id:
         from app.models.device import SensorDevice
         try:
-            device = await SensorDevice.get(PydanticObjectId(sensor_device_id))
+            device = await get(SensorDevice, str(sensor_device_id))
             if device:
                 new_upload.sensor_device_name = device.device_name
         except:
             pass
 
-    await new_upload.insert()
+    await insert(new_upload)
     return new_upload
 
 @router.get("/", response_model=List[FieldUploadResponse])
 async def get_uploads(current_user: User = Depends(get_current_user)):
-    uploads = await FieldUpload.find_all().sort("-uploaded_at").to_list()
+    from app.database.db import supabase
+    res = supabase.table("field_uploads").select("*").order("uploaded_at", desc=True).execute()
+    uploads = [FieldUpload(**d) for d in res.data]
     return uploads
 
 @router.get("/{upload_id}", response_model=FieldUploadResponse)
-async def get_upload(upload_id: PydanticObjectId, current_user: User = Depends(get_current_user)):
-    upload = await FieldUpload.get(upload_id)
+async def get_upload(upload_id: str, current_user: User = Depends(get_current_user)):
+    upload = await get(FieldUpload, upload_id)
     if not upload:
         raise HTTPException(status_code=404, detail="Upload not found")
     return upload
 
 @router.put("/{upload_id}", response_model=FieldUploadResponse)
-async def update_upload(upload_id: PydanticObjectId, request: Request, current_user: User = Depends(get_current_user)):
-    upload = await FieldUpload.get(upload_id)
+async def update_upload(upload_id: str, request: Request, current_user: User = Depends(get_current_user)):
+    upload = await get(FieldUpload, upload_id)
     if not upload:
         raise HTTPException(status_code=404, detail="Upload not found")
         
@@ -135,13 +138,13 @@ async def update_upload(upload_id: PydanticObjectId, request: Request, current_u
         if "status" in form: upload.status = form["status"]
         if "monitoring_site_id" in form: 
             upload.monitoring_site_id = form["monitoring_site_id"]
-            site = await MonitoringSite.get(PydanticObjectId(upload.monitoring_site_id))
+            site = await get(MonitoringSite, str(upload.monitoring_site_id))
             if site: upload.monitoring_site_name = site.site_name
         if "sensor_device_id" in form: 
             upload.sensor_device_id = form["sensor_device_id"] if form["sensor_device_id"] not in ["undefined", "null", ""] else None
             if upload.sensor_device_id:
                 from app.models.device import SensorDevice
-                device = await SensorDevice.get(PydanticObjectId(upload.sensor_device_id))
+                device = await get(SensorDevice, str(upload.sensor_device_id))
                 if device: upload.sensor_device_name = device.device_name
             else:
                 upload.sensor_device_name = None
@@ -174,12 +177,12 @@ async def update_upload(upload_id: PydanticObjectId, request: Request, current_u
             setattr(upload, k, v)
             
     upload.updated_at = datetime.now(timezone.utc)
-    await upload.save()
+    await save(upload)
     return upload
 
 @router.delete("/{upload_id}", status_code=status.HTTP_204_NO_CONTENT)
-async def delete_upload(upload_id: PydanticObjectId, current_user: User = Depends(get_current_user)):
-    upload = await FieldUpload.get(upload_id)
+async def delete_upload(upload_id: str, current_user: User = Depends(get_current_user)):
+    upload = await get(FieldUpload, upload_id)
     if not upload:
         raise HTTPException(status_code=404, detail="Upload not found")
         
@@ -192,4 +195,4 @@ async def delete_upload(upload_id: PydanticObjectId, current_user: User = Depend
         except:
             pass
             
-    await upload.delete()
+    await delete(upload)

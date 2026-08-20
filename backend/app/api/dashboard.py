@@ -29,60 +29,82 @@ async def get_dashboard_analytics(current_user: User = Depends(get_current_user)
     else:
         prev_month_start = current_month_start.replace(month=current_month_start.month - 1)
 
+    from app.database.db import supabase
+
     # Basic total counts
-    total_users_task = User.find_all().count()
-    total_sites_task = MonitoringSite.find_all().count()
-    total_devices_task = SensorDevice.find_all().count()
-    total_uploads_task = FieldUpload.find_all().count()
-    total_obs_task = ObservationRecord.find_all().count()
+    total_users = supabase.table("users").select("id", count="exact").execute().count or 0
+    total_sites = supabase.table("monitoring_sites").select("id", count="exact").execute().count or 0
+    total_devices = supabase.table("sensor_devices").select("id", count="exact").execute().count or 0
+    total_uploads = supabase.table("field_uploads").select("id", count="exact").execute().count or 0
+    total_obs = supabase.table("observation_records").select("id", count="exact").execute().count or 0
     
-    # MoM counts - previous month (from prev_month_start to current_month_start - 1 microsecond)
-    prev_users_task = User.find(User.created_at >= prev_month_start, User.created_at < current_month_start).count()
-    prev_sites_task = MonitoringSite.find(MonitoringSite.created_at >= prev_month_start, MonitoringSite.created_at < current_month_start).count()
-    prev_devices_task = SensorDevice.find(SensorDevice.created_at >= prev_month_start, SensorDevice.created_at < current_month_start).count()
-    prev_uploads_task = FieldUpload.find(FieldUpload.uploaded_at >= prev_month_start, FieldUpload.uploaded_at < current_month_start).count()
-    prev_obs_task = ObservationRecord.find(ObservationRecord.created_at >= prev_month_start, ObservationRecord.created_at < current_month_start).count()
+    # MoM counts - previous month
+    prev_m = prev_month_start.isoformat()
+    curr_m = current_month_start.isoformat()
+    
+    prev_users = supabase.table("users").select("id", count="exact").gte("created_at", prev_m).lt("created_at", curr_m).execute().count or 0
+    prev_sites = supabase.table("monitoring_sites").select("id", count="exact").gte("created_at", prev_m).lt("created_at", curr_m).execute().count or 0
+    prev_devices = supabase.table("sensor_devices").select("id", count="exact").gte("created_at", prev_m).lt("created_at", curr_m).execute().count or 0
+    prev_uploads = supabase.table("field_uploads").select("id", count="exact").gte("uploaded_at", prev_m).lt("uploaded_at", curr_m).execute().count or 0
+    prev_obs = supabase.table("observation_records").select("id", count="exact").gte("created_at", prev_m).lt("created_at", curr_m).execute().count or 0
 
     # Current month counts
-    curr_users_task = User.find(User.created_at >= current_month_start).count()
-    curr_sites_task = MonitoringSite.find(MonitoringSite.created_at >= current_month_start).count()
-    curr_devices_task = SensorDevice.find(SensorDevice.created_at >= current_month_start).count()
-    curr_uploads_task = FieldUpload.find(FieldUpload.uploaded_at >= current_month_start).count()
-    curr_obs_task = ObservationRecord.find(ObservationRecord.created_at >= current_month_start).count()
+    curr_users = supabase.table("users").select("id", count="exact").gte("created_at", curr_m).execute().count or 0
+    curr_sites = supabase.table("monitoring_sites").select("id", count="exact").gte("created_at", curr_m).execute().count or 0
+    curr_devices = supabase.table("sensor_devices").select("id", count="exact").gte("created_at", curr_m).execute().count or 0
+    curr_uploads = supabase.table("field_uploads").select("id", count="exact").gte("uploaded_at", curr_m).execute().count or 0
+    curr_obs = supabase.table("observation_records").select("id", count="exact").gte("created_at", curr_m).execute().count or 0
     
-    verified_obs_task = ObservationRecord.find(ObservationRecord.verification_status == "Verified").count()
-    pending_obs_task = ObservationRecord.find(ObservationRecord.verification_status == "Pending Validation").count()
+    verified_obs = supabase.table("observation_records").select("id", count="exact").eq("verification_status", "Verified").execute().count or 0
+    pending_obs = supabase.table("observation_records").select("id", count="exact").eq("verification_status", "Pending Validation").execute().count or 0
     
-    total_predictions_task = UnifiedPredictionRecord.find_all().count()
+    total_predictions = supabase.table("unified_prediction_records").select("id", count="exact").execute().count or 0
     
-    recent_obs_task = ObservationRecord.find_all().sort("-created_at").limit(5).to_list()
+    recent_res = supabase.table("observation_records").select("*").order("created_at", desc=True).limit(5).execute()
+    recent_observations = [ObservationRecord(**d) for d in recent_res.data]
     
-    # Aggregation tasks
-    species_agg_task = ObservationRecord.aggregate([
-        {"$group": {"_id": "$species_name", "count": {"$sum": 1}}},
-        {"$sort": {"count": -1}}
-    ]).to_list()
+    # Aggregations in memory
+    all_obs_res = supabase.table("observation_records").select("species_name, observed_at, created_at").execute()
     
-    monthly_agg_task = ObservationRecord.aggregate([
-        {"$group": {
-            "_id": {"$month": "$observed_at"},
-            "count": {"$sum": 1}
-        }},
-        {"$sort": {"_id": 1}}
-    ]).to_list()
+    from collections import Counter
+    species_counter = Counter([d["species_name"] for d in all_obs_res.data if d.get("species_name")])
+    species_distribution = [{"species": k, "count": v} for k, v in species_counter.most_common()]
+    total_species = len(species_distribution)
 
-    # Execute all independent tasks concurrently
-    results = await asyncio.gather(
-        total_users_task, total_sites_task, total_devices_task, total_uploads_task, total_obs_task,
-        prev_users_task, prev_sites_task, prev_devices_task, prev_uploads_task, prev_obs_task,
-        curr_users_task, curr_sites_task, curr_devices_task, curr_uploads_task, curr_obs_task,
-        verified_obs_task, pending_obs_task, total_predictions_task, recent_obs_task, species_agg_task, monthly_agg_task
-    )
-    
-    (total_users, total_sites, total_devices, total_uploads, total_obs,
-     prev_users, prev_sites, prev_devices, prev_uploads, prev_obs,
-     curr_users, curr_sites, curr_devices, curr_uploads, curr_obs,
-     verified_obs, pending_obs, total_predictions, recent_observations, species_agg, monthly_agg) = results
+    monthly_counter = Counter()
+    for d in all_obs_res.data:
+        dt_str = d.get("observed_at")
+        if dt_str:
+            try:
+                dt = datetime.fromisoformat(dt_str.replace("Z", "+00:00"))
+                monthly_counter[dt.month] += 1
+            except:
+                pass
+                
+    monthly_observations = []
+    for month_num in sorted(monthly_counter.keys()):
+        try:
+            month_name = calendar.month_abbr[month_num]
+            monthly_observations.append({"month": month_name, "count": monthly_counter[month_num]})
+        except:
+            pass
+
+    # Observation Trend (last 7 days)
+    seven_days_ago = now - timedelta(days=7)
+    trend_counter = Counter()
+    for d in all_obs_res.data:
+        dt_str = d.get("created_at")
+        if dt_str:
+            try:
+                dt = datetime.fromisoformat(dt_str.replace("Z", "+00:00"))
+                if dt >= seven_days_ago:
+                    trend_counter[(dt.year, dt.month, dt.day)] += 1
+            except:
+                pass
+                
+    observation_trend = []
+    for (y, m, day), count in sorted(trend_counter.items()):
+        observation_trend.append({"date": f"{m:02d}/{day:02d}", "count": count})
 
     # Format recent observations
     recent_obs_list = [
@@ -96,41 +118,6 @@ async def get_dashboard_analytics(current_user: User = Depends(get_current_user)
             "file_url": obs.file_url
         } for obs in recent_observations
     ]
-        
-    # Format species distribution
-    species_distribution = [{"species": item["_id"], "count": item["count"]} for item in species_agg if item["_id"]]
-    total_species = len(species_distribution)
-
-    # Format monthly observations
-    monthly_observations = []
-    for item in monthly_agg:
-        if item["_id"]:
-            try:
-                month_name = calendar.month_abbr[item["_id"]]
-                monthly_observations.append({"month": month_name, "count": item["count"]})
-            except IndexError:
-                pass
-                
-    # Observation Trend (last 7 days)
-    seven_days_ago = now - timedelta(days=7)
-    trend_agg = await ObservationRecord.aggregate([
-        {"$match": {"created_at": {"$gte": seven_days_ago}}},
-        {"$group": {
-            "_id": {
-                "year": {"$year": "$created_at"},
-                "month": {"$month": "$created_at"},
-                "day": {"$dayOfMonth": "$created_at"}
-            },
-            "count": {"$sum": 1}
-        }},
-        {"$sort": {"_id.year": 1, "_id.month": 1, "_id.day": 1}}
-    ]).to_list()
-    
-    observation_trend = []
-    for item in trend_agg:
-        d = item["_id"]
-        date_str = f"{d['month']:02d}/{d['day']:02d}"
-        observation_trend.append({"date": date_str, "count": item["count"]})
 
     return {
         "metrics": {

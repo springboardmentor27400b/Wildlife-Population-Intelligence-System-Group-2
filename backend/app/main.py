@@ -62,9 +62,9 @@ async def global_exception_handler(request: Request, exc: Exception):
 @app.get("/health", tags=["health"])
 async def health_check():
     try:
-        from app.models.user import User
+        from app.database.db import supabase
         # Quick query to verify database connectivity
-        await User.find_one()
+        supabase.table("users").select("id").limit(1).execute()
         db_status = "connected"
     except Exception as e:
         db_status = f"disconnected: {str(e)}"

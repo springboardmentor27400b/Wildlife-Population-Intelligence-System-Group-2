@@ -9,68 +9,7 @@ import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
 
-const DEFAULT_SURVEYS = [
-  {
-    id: 'sur1',
-    name: 'Tiger Corridor Population Survey',
-    region: 'Mudumalai Reserve',
-    startDate: '2026-01-10',
-    endDate: '2026-12-31',
-    researcher: 'Dr. R. Menon',
-    area: 120, // sq km
-    progress: 45,
-    status: 'Active',
-    objective: 'Estimate Bengal tiger population density and corridor usage patterns.'
-  },
-  {
-    id: 'sur2',
-    name: 'Elephant Migration Census',
-    region: 'Anamalai Landscape',
-    startDate: '2026-03-01',
-    endDate: '2026-08-15',
-    researcher: 'S. Kumar',
-    area: 350,
-    progress: 70,
-    status: 'Active',
-    objective: 'Map seasonal migration routes of Asian elephants across the Anamalai hills.'
-  },
-  {
-    id: 'sur3',
-    name: 'Nilgiri Tahr Habitat Survey',
-    region: 'Eravikulam Region',
-    startDate: '2026-09-01',
-    endDate: '2026-11-30',
-    researcher: 'Dr. Anita Desai',
-    area: 45,
-    progress: 0,
-    status: 'Planned',
-    objective: 'Assess habitat degradation in high altitude Shola grasslands.'
-  },
-  {
-    id: 'sur4',
-    name: 'Wetland Bird Count',
-    region: 'Gulf of Mannar',
-    startDate: '2025-11-01',
-    endDate: '2026-02-28',
-    researcher: 'V. Prakash',
-    area: 80,
-    progress: 100,
-    status: 'Completed',
-    objective: 'Annual wintering waterfowl and migratory bird census.'
-  },
-  {
-    id: 'sur5',
-    name: 'Leopard Camera Trap Study',
-    region: 'Sathyamangalam Forest',
-    startDate: '2025-05-15',
-    endDate: '2025-10-30',
-    researcher: 'Team Alpha',
-    area: 210,
-    progress: 100,
-    status: 'Completed',
-    objective: 'Determine leopard presence and conflict zones near forest edges.'
-  }
-];
+const DEFAULT_SURVEYS = [];
 
 const STATUSES = ['Planned', 'Active', 'Completed'];
 
@@ -228,11 +167,7 @@ const SurveysPage = () => {
     showToast('Survey deleted successfully');
   };
 
-  const handleDemoReset = () => {
-    setSurveys(DEFAULT_SURVEYS);
-    localStorage.setItem('wpis_surveys_v2', JSON.stringify(DEFAULT_SURVEYS));
-    showToast('Demo survey data restored successfully');
-  };
+  const handleDemoReset = () => {};
 
   const getStatusColor = (status) => {
     switch (status) {
@@ -270,9 +205,12 @@ const SurveysPage = () => {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-foreground">Wildlife Surveys</h1>
-          <p className="text-muted-foreground mt-1 text-sm md:text-base">
-            Plan, manage, and track biodiversity surveys across conservation regions.
+          <h1 className="text-3xl font-bold text-slate-900 flex items-center gap-2">
+            <Map className="w-8 h-8 text-green-600" />
+            Wildlife Surveys
+          </h1>
+          <p className="text-slate-500 text-sm mt-1 max-w-2xl">
+            Plan, deploy, and track field surveys across monitoring sites.
           </p>
         </div>
         <Button onClick={() => handleOpenModal()} className="gap-2 bg-primary text-white hover:bg-primary/90">
@@ -283,7 +221,7 @@ const SurveysPage = () => {
 
       {/* Summary Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card className="border-0 soft-shadow bg-white rounded-xl">
+        <Card className="border-0 soft-shadow bg-white shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300 rounded-2xl">
           <CardContent className="p-6 flex items-center gap-4">
             <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
               <Map className="h-6 w-6 text-primary" />
@@ -294,7 +232,7 @@ const SurveysPage = () => {
             </div>
           </CardContent>
         </Card>
-        <Card className="border-0 soft-shadow bg-white rounded-xl">
+        <Card className="border-0 soft-shadow bg-white shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300 rounded-2xl">
           <CardContent className="p-6 flex items-center gap-4">
             <div className="h-12 w-12 rounded-full bg-green-100 flex items-center justify-center">
               <AlertCircle className="h-6 w-6 text-green-600" />
@@ -305,7 +243,7 @@ const SurveysPage = () => {
             </div>
           </CardContent>
         </Card>
-        <Card className="border-0 soft-shadow bg-white rounded-xl">
+        <Card className="border-0 soft-shadow bg-white shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300 rounded-2xl">
           <CardContent className="p-6 flex items-center gap-4">
             <div className="h-12 w-12 rounded-full bg-gray-100 flex items-center justify-center">
               <CheckCircle className="h-6 w-6 text-gray-600" />
@@ -316,7 +254,7 @@ const SurveysPage = () => {
             </div>
           </CardContent>
         </Card>
-        <Card className="border-0 soft-shadow bg-white rounded-xl">
+        <Card className="border-0 soft-shadow bg-white shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300 rounded-2xl">
           <CardContent className="p-6 flex items-center gap-4">
             <div className="h-12 w-12 rounded-full bg-purple-100 flex items-center justify-center">
               <Target className="h-6 w-6 text-purple-600" />
@@ -424,9 +362,9 @@ const SurveysPage = () => {
           </div>
 
           {/* Desktop view (Table) */}
-          <div className="hidden lg:block overflow-x-auto">
+          <div className="hidden lg:block overflow-x-auto rounded-xl border border-border/50 shadow-sm">
             <table className="w-full text-left border-collapse">
-              <thead>
+              <thead className="sticky top-0 bg-white/95 dark:bg-gray-900/95 backdrop-blur z-10">
                 <tr className="bg-gray-50 border-b border-gray-100 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                   <th className="px-4 py-3 w-[25%]">Survey Name</th>
                   <th className="px-4 py-3 w-[15%]">Region & Area</th>
@@ -438,7 +376,7 @@ const SurveysPage = () => {
               </thead>
               <tbody className="divide-y divide-gray-100">
                 {filteredSurveys.map(survey => (
-                  <tr key={survey.id} className="hover:bg-gray-50/50 transition-colors">
+                  <tr key={survey.id} className="hover:bg-gray-50/50 transition-colors even:bg-muted/20">
                     <td className="px-4 py-3">
                       <div className="font-bold text-foreground text-sm line-clamp-1" title={survey.name}>{survey.name}</div>
                       <div className="mt-1">
@@ -744,3 +682,5 @@ const SurveysPage = () => {
 };
 
 export default SurveysPage;
+
+

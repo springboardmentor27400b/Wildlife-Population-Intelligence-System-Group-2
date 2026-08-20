@@ -12,7 +12,12 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
 from app.services.biodiversity_analytics_service import BiodiversityAnalyticsService
+from app.services.population_estimation_service import PopulationEstimationService
+from app.services.habitat_intelligence_service import HabitatIntelligenceService
+from app.services.conservation_recommendation_service import ConservationRecommendationService
+from app.services.ecosystem_health_service import EcosystemHealthService
 from app.services.report_insights_engine import ReportInsightsEngine
+from app.services.wildlife_intelligence_dashboard_service import WildlifeIntelligenceDashboardService
 from app.models.user import User
 from app.models.report_history import ReportHistory
 from app.models.notification import Notification
@@ -127,6 +132,46 @@ class WildlifeReportService:
             habitat=habitat
         )
         
+        # Population Estimation
+        pop_data = await PopulationEstimationService.get_population_summary(
+            start_date=start_date,
+            end_date=end_date,
+            species=species,
+            site_name=monitoring_site_id,
+            source=source
+        )
+        
+        # Habitat Intelligence
+        hab_data = await HabitatIntelligenceService.get_habitat_summary(
+            start_date=start_date,
+            end_date=end_date,
+            species=species,
+            site_name=monitoring_site_id
+        )
+
+        # Conservation Recommendations
+        cons_data = await ConservationRecommendationService.get_conservation_insights(
+            filters={
+                "start_date": start_date,
+                "end_date": end_date,
+                "species": species,
+                "site_name": monitoring_site_id
+            }
+        )
+
+        # Ecosystem Health
+        eco_data = await EcosystemHealthService.get_ecosystem_summary(
+            filters={
+                "start_date": start_date,
+                "end_date": end_date,
+                "species": species,
+                "site_name": monitoring_site_id
+            }
+        )
+        
+        # Executive Dashboard Insights
+        exec_data = await WildlifeIntelligenceDashboardService.get_executive_summary()
+        
         # Generate Insights
         insights = ReportInsightsEngine.analyze(data)
         
@@ -137,7 +182,7 @@ class WildlifeReportService:
                 "project_name": "Wildlife Population Intelligence System",
                 "milestone": "Milestone 2",
                 "generated_by": user_name or "System User",
-                "generated_at": datetime.now().isoformat(),
+                "generated_at": datetime.utcnow().isoformat(),
                 "filters": {
                     "start_date": start_date or "All Time",
                     "end_date": end_date or "All Time",
@@ -159,7 +204,7 @@ class WildlifeReportService:
                 "average_confidence": data["summary"]["average_confidence"],
                 "biodiversity_health_score": data["summary"].get("biodiversity_health_score", 0),
                 "ecosystem_health_score": data["summary"].get("ecosystem_health_score", 0),
-                "date_generated": datetime.now().isoformat()
+                "date_generated": datetime.utcnow().isoformat()
             },
             "observation_statistics": {
                 "trends": data["trends"],
@@ -190,6 +235,16 @@ class WildlifeReportService:
             "conservation_status_summary": data["distributions"]["conservation_status"],
             "alerts": data.get("alerts", []),
             "forecast_summary": data.get("forecasts", []),
+            "population_summary": pop_data.get("summary", {}),
+            "population_trends": pop_data.get("trends", []),
+            "habitat_intelligence_summary": hab_data.get("summary", {}),
+            "habitat_intelligence_sites": hab_data.get("sites", []),
+            "conservation_summary": cons_data.get("summary", {}),
+            "conservation_species": cons_data.get("species_recommendations", [])[:10],
+            "conservation_sites": cons_data.get("site_recommendations", [])[:10],
+            "ecosystem_health_summary": eco_data.get("summary", {}),
+            "ecosystem_health_trends": eco_data.get("trends", {}).get("health_trends", []),
+            "executive_dashboard": exec_data,
             "insights": insights
         }
 
@@ -305,6 +360,18 @@ class WildlifeReportService:
             if k != "total_pages":
                 pdf.cell(90, 8, f"{k.replace('_', ' ').title()}:", border=0)
                 pdf.cell(0, 8, str(v), border=0, new_x="LMARGIN", new_y="NEXT")
+        pdf.ln(5)
+        
+        pdf.set_font("Arial", "B", 14)
+        pdf.cell(0, 10, "Population Estimation", new_x="LMARGIN", new_y="NEXT")
+        pdf.set_font("Arial", "", 11)
+        pop_summary = report_data.get("population_summary", {})
+        pdf.cell(90, 8, "Total Estimated Population:", border=0)
+        pdf.cell(0, 8, str(pop_summary.get("total_estimated_population", 0)), border=0, new_x="LMARGIN", new_y="NEXT")
+        pdf.cell(90, 8, "Population Growth:", border=0)
+        pdf.cell(0, 8, f"{pop_summary.get('population_growth', 0)}%", border=0, new_x="LMARGIN", new_y="NEXT")
+        pdf.cell(90, 8, "High Risk Species Count:", border=0)
+        pdf.cell(0, 8, str(pop_summary.get("high_risk_species", 0)), border=0, new_x="LMARGIN", new_y="NEXT")
         pdf.ln(5)
         
         # Charts

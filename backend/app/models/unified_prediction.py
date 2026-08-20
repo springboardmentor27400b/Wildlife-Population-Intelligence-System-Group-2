@@ -1,10 +1,10 @@
-from beanie import Document
+import uuid
 from pydantic import Field, BaseModel
 from datetime import datetime, timezone
 from typing import Optional
 
-
-class UnifiedPredictionRecord(Document):
+class UnifiedPredictionRecord(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     # ── Standard Prediction Fields ─────────────────────────────────────────
     species_name: str
     confidence_score: float
@@ -57,8 +57,6 @@ class UnifiedPredictionRecord(Document):
 
     # ── Workflow ──────────────────────────────────────────────────────────
     status: str = "Pending"
-    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
-    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    created_at: datetime = Field(default_factory=lambda: datetime.utcnow())
+    updated_at: datetime = Field(default_factory=lambda: datetime.utcnow())
 
-    class Settings:
-        name = "unified_prediction_records"

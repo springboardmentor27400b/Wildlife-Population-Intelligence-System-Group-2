@@ -1,3 +1,4 @@
+from app.database.adapter import find_one, find_all, insert, save, delete, get, count_documents
 from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, Request, Query
 from pydantic import BaseModel, Field
 from typing import Optional
@@ -43,39 +44,51 @@ async def get_unified_predictions_history(
     """
     Fetch unified prediction history records with search, filtering, and sorting.
     """
-    conditions = []
+    from app.database.db import supabase
 
-    if search:
-        search_regex = {"$regex": search, "$options": "i"}
-        conditions.append({
-            "$or": [
-                {"species_name": search_regex},
-                {"scientific_name": search_regex},
-                {"user_name": search_regex}
-            ]
-        })
-
+    # Build Supabase query
+    query = supabase.table("unified_prediction_records").select("*", count="exact")
+    
     if status:
-        conditions.append({"status": status})
+        query = query.eq("status", status)
         
     if source:
-        conditions.append({"prediction_source": source})
+        query = query.eq("prediction_source", source)
 
-    query = {}
-    if conditions:
-        query = conditions[0] if len(conditions) == 1 else {"$and": conditions}
+    if search:
+        search_term = f"%{search}%"
+        query = query.or_(
+            f"species_name.ilike.{search_term},"
+            f"scientific_name.ilike.{search_term},"
+            f"user_name.ilike.{search_term}"
+        )
 
-    total = await UnifiedPredictionRecord.find(query).count()
+    # First get count
+    count_res = query.limit(0).execute()
+    total = count_res.count if count_res.count is not None else 0
+
+    # Then get data
+    data_query = supabase.table("unified_prediction_records").select("*")
+    if status:
+        data_query = data_query.eq("status", status)
+    if source:
+        data_query = data_query.eq("prediction_source", source)
+    if search:
+        data_query = data_query.or_(
+            f"species_name.ilike.{search_term},"
+            f"scientific_name.ilike.{search_term},"
+            f"user_name.ilike.{search_term}"
+        )
+        
     skip = (page - 1) * limit
-
-    sort_field = sort_by if sort_order == "asc" else f"-{sort_by}"
-    predictions = (
-        await UnifiedPredictionRecord.find(query)
-        .sort(sort_field)
-        .skip(skip)
-        .limit(limit)
-        .to_list()
-    )
+    
+    is_desc = sort_order == "desc"
+    data_query = data_query.order(sort_by, desc=is_desc)
+    data_query = data_query.range(skip, skip + limit - 1)
+    
+    res = data_query.execute()
+    
+    predictions = [UnifiedPredictionRecord(**d) for d in res.data]
 
     return {
         "total": total,
@@ -89,13 +102,13 @@ async def get_unified_prediction(
     unified_id: str,
     current_user: User = Depends(get_current_user)
 ):
-    from beanie import PydanticObjectId
+    
     try:
-        obj_id = PydanticObjectId(unified_id)
+        obj_id = str(unified_id)
     except:
         raise HTTPException(status_code=400, detail="Invalid unified ID format")
     
-    record = await UnifiedPredictionRecord.get(obj_id)
+    record = await get(UnifiedPredictionRecord, obj_id)
     if not record:
         raise HTTPException(status_code=404, detail="Prediction not found")
         

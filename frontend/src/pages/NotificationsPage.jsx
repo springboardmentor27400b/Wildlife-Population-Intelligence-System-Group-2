@@ -212,7 +212,9 @@ const NotificationsPage = () => {
       <div className="flex flex-col items-center justify-center py-20 text-center">
         <AlertTriangle className="w-12 h-12 text-red-500 mb-4" />
         <h2 className="text-xl font-bold mb-2">Error loading notifications</h2>
-        <p className="text-gray-500 mb-6">{error}</p>
+        <p className="text-slate-500 text-sm mt-1 max-w-2xl">
+            Real-time alerts for endangered species and system anomalies.
+          </p>
         <Button onClick={fetchNotifications} className="gap-2">
           <RotateCcw className="w-4 h-4" /> Retry
         </Button>
@@ -224,8 +226,9 @@ const NotificationsPage = () => {
     <div className="space-y-6 pb-12">
       <div className="flex justify-between items-end">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 flex items-center gap-2">
-            <Bell className="w-6 h-6 text-primary" /> Notifications & Alerts
+          <h1 className="text-3xl font-bold text-slate-900 flex items-center gap-2">
+            <Bell className="w-8 h-8 text-green-600" />
+            Notifications
           </h1>
           <p className="text-sm text-gray-500 mt-1">Manage your alerts, system updates, and task reports.</p>
         </div>
@@ -264,8 +267,7 @@ const NotificationsPage = () => {
             />
           </div>
           
-          <select 
-            className="h-10 rounded-xl bg-gray-50 dark:bg-gray-800 border-transparent focus:border-primary px-3 text-sm text-gray-700 dark:text-gray-300"
+          <select className="bg-gray-50 dark:bg-gray-800 focus: text-sm text-gray-700 dark:text-gray-300 h-11 rounded-xl px-4 py-2.5 border-border/60 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all duration-300"
             value={filterRead} onChange={e => setFilterRead(e.target.value)}
           >
             <option value="all">All Status</option>
@@ -273,8 +275,7 @@ const NotificationsPage = () => {
             <option value="read">Read Only</option>
           </select>
           
-          <select 
-            className="h-10 rounded-xl bg-gray-50 dark:bg-gray-800 border-transparent focus:border-primary px-3 text-sm text-gray-700 dark:text-gray-300 hidden sm:block"
+          <select className="bg-gray-50 dark:bg-gray-800 focus: text-sm text-gray-700 dark:text-gray-300 hidden sm:block h-11 rounded-xl px-4 py-2.5 border-border/60 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all duration-300"
             value={filterPriority} onChange={e => setFilterPriority(e.target.value)}
           >
             <option value="all">All Priorities</option>
@@ -338,9 +339,8 @@ const NotificationsPage = () => {
                           <div className="p-4 flex gap-4 items-start">
                             {/* Checkbox */}
                             <div className="pt-1">
-                              <input 
-                                type="checkbox" 
-                                className="w-4 h-4 rounded text-primary focus:ring-primary border-gray-300 cursor-pointer"
+                              <input type="checkbox" 
+                                className="w-5 h-5 rounded text-primary cursor-pointer accent-primary"
                                 checked={selectedIds.has(notif._id)}
                                 onChange={(e) => toggleSelection(notif._id, e)}
                                 onClick={e => e.stopPropagation()}

@@ -160,10 +160,13 @@ const SettingsPage = () => {
   return (
     <div className="pb-12">
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 flex items-center gap-2">
-          <Settings className="w-6 h-6 text-primary" /> Settings & Preferences
-        </h1>
-        <p className="text-sm text-gray-500 mt-1">Manage your account settings, preferences, and security.</p>
+        <h1 className="text-3xl font-bold text-slate-900 flex items-center gap-2">
+            <Settings className="w-8 h-8 text-green-600" />
+            Settings
+          </h1>
+        <p className="text-slate-500 text-sm mt-1 max-w-2xl">
+            Configure system parameters and application defaults.
+          </p>
       </div>
 
       <div className="flex flex-col md:flex-row gap-8">
@@ -203,7 +206,7 @@ const SettingsPage = () => {
                     <div className="relative group">
                       <div className="w-24 h-24 rounded-full bg-gray-100 dark:bg-gray-800 border-2 border-dashed border-gray-300 dark:border-gray-700 overflow-hidden flex items-center justify-center relative">
                         {profile.profile_picture ? (
-                          <img src={profile.profile_picture} alt="Avatar" className="w-full h-full object-cover" />
+                          <img loading="lazy" src={profile.profile_picture} alt="Avatar" className="w-full h-full object-cover" />
                         ) : (
                           <User className="w-10 h-10 text-gray-400" />
                         )}
@@ -211,12 +214,11 @@ const SettingsPage = () => {
                           <Camera className="w-6 h-6 text-white" />
                         </div>
                       </div>
-                      <input 
-                        type="file" 
+                      <input type="file" 
                         accept="image/jpeg, image/png" 
                         ref={fileInputRef} 
                         onChange={handleAvatarUpload} 
-                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" 
+                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer h-11 rounded-xl px-4 py-2.5 border-border/60 focus:ring-2 focus:ring-primary/20 focus:border-primary placeholder:text-muted-foreground/70 transition-all duration-300" 
                       />
                     </div>
                     <div>

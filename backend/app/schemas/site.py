@@ -1,7 +1,6 @@
 from pydantic import BaseModel, Field
 from datetime import datetime
 from typing import Optional
-from beanie import PydanticObjectId
 
 class MonitoringSiteCreate(BaseModel):
     site_name: str
@@ -28,7 +27,7 @@ class MonitoringSiteUpdate(BaseModel):
     status: Optional[str] = None
 
 class MonitoringSiteResponse(BaseModel):
-    id: PydanticObjectId
+    id: str
     site_name: str
     location: str
     state: str

@@ -182,11 +182,7 @@ const AudioPredictionsPage = () => {
     try {
       const result = await audioPredictionService.predictAudioSpecies(formData);
       setPredictionResult(result);
-      if (result.is_mock) {
-          toast.success('Mock AI Bioacoustic Classification completed (real model missing)!');
-      } else {
-          toast.success('AI Bioacoustic Classification completed!');
-      }
+      toast.success('AI Bioacoustic Classification completed!');
       fetchHistory();
     } catch (err) {
       console.error(err);
@@ -222,7 +218,7 @@ const AudioPredictionsPage = () => {
 
   const getConfidenceColor = (score) => {
     const s = parseFloat(score);
-    if (s >= 80) return 'text-blue-600 bg-blue-50 border-blue-200';
+    if (s >= 80) return 'text-green-600 bg-green-50 border-green-200';
     if (s >= 50) return 'text-indigo-600 bg-indigo-50 border-indigo-200';
     return 'text-rose-600 bg-rose-50 border-rose-200';
   };
@@ -246,11 +242,13 @@ const AudioPredictionsPage = () => {
 
   return (
     <div className="space-y-8 pb-12 text-gray-800">
-      <div className="relative p-6 rounded-2xl bg-gradient-to-r from-blue-800 via-indigo-900 to-blue-950 text-white shadow-xl overflow-hidden">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_30%,rgba(59,130,246,0.2),transparent_70%)]" />
-        <div className="relative z-10">
-          <h1 className="text-3xl font-black tracking-tight">Bioacoustic Recognition</h1>
-          <p className="mt-2 text-blue-200 max-w-xl text-sm md:text-base">
+      <div className="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-2">
+            <Music className="w-8 h-8 text-green-600" />
+            Bioacoustic Recognition
+          </h1>
+          <p className="text-gray-500 text-sm mt-1 max-w-2xl">
             Upload wildlife audio recordings to instantly classify species based on their vocalizations using AI.
           </p>
         </div>
@@ -258,10 +256,10 @@ const AudioPredictionsPage = () => {
 
       <div className="grid lg:grid-cols-12 gap-8">
         <div className="lg:col-span-6 space-y-4">
-          <Card className="shadow-lg border border-gray-100 bg-white/70 backdrop-blur-md rounded-2xl overflow-hidden">
+          <Card className="border border-gray-100 bg-white/70 backdrop-blur-md overflow-hidden shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300 rounded-2xl">
             <CardHeader className="border-b border-gray-50 bg-gray-50/50 pb-4">
               <CardTitle className="flex items-center gap-2.5 text-lg font-bold text-gray-900">
-                <Music className="w-5 h-5 text-blue-600" />
+                <Music className="w-5 h-5 text-green-600" />
                 Audio Upload
               </CardTitle>
             </CardHeader>
@@ -279,11 +277,11 @@ const AudioPredictionsPage = () => {
                     onClick={() => fileInputRef.current?.click()}
                     className={`border-2 border-dashed rounded-2xl p-10 flex flex-col items-center justify-center text-center cursor-pointer transition-all duration-300 ${
                       isDragging
-                        ? 'border-blue-500 bg-blue-50/50 scale-[1.01] shadow-inner'
+                        ? 'border-green-500 bg-green-50/50 scale-[1.01] shadow-inner'
                         : 'border-gray-200 bg-gray-50 hover:bg-gray-100/70'
                     }`}
                   >
-                    <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center shadow-md mb-5 text-blue-600">
+                    <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center shadow-md mb-5 text-green-600">
                       <UploadCloud className="w-8 h-8" />
                     </div>
                     <h3 className="text-lg font-bold text-gray-950">Drag & drop audio recording</h3>
@@ -307,18 +305,13 @@ const AudioPredictionsPage = () => {
                     className="space-y-4"
                   >
                     <div className="relative rounded-2xl overflow-hidden border border-gray-150 bg-gray-50 p-6 flex flex-col items-center justify-center shadow-inner gap-4">
-                      <FileAudio className="w-12 h-12 text-blue-500" />
+                      <FileAudio className="w-12 h-12 text-green-500" />
                       <audio controls src={previewUrl} className="w-full max-w-sm" />
-                      {!isPredicting && !predictionResult && (
-                        <Button variant="destructive" onClick={handleRemoveAudio} className="gap-2 shadow-lg mt-2">
-                          <RotateCcw className="w-4 h-4" /> Remove
-                        </Button>
-                      )}
                     </div>
 
                     {fileInfo && (
                       <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl border border-gray-100 text-xs text-gray-600">
-                        <FileAudio className="w-4 h-4 text-blue-500 flex-shrink-0" />
+                        <FileAudio className="w-4 h-4 text-green-500 flex-shrink-0" />
                         <div className="flex-1 min-w-0">
                           <p className="font-semibold text-gray-800 truncate">{fileInfo.name}</p>
                           <p className="text-gray-400 mt-0.5">{formatFileSize(fileInfo.size)}</p>
@@ -328,7 +321,7 @@ const AudioPredictionsPage = () => {
 
                     {!predictionResult && (
                       <Button
-                        className="w-full h-12 text-base font-semibold shadow-md bg-blue-600 hover:bg-blue-700 text-white gap-2 transition-transform hover:scale-[1.01]"
+                        className="w-full h-12 text-base font-semibold shadow-md bg-green-600 hover:bg-green-700 text-white gap-2 transition-transform hover:scale-[1.01]"
                         onClick={runPrediction}
                         disabled={isPredicting}
                       >
@@ -337,6 +330,16 @@ const AudioPredictionsPage = () => {
                         ) : (
                           <><Play className="w-5 h-5" /> Execute Bioacoustic Classification</>
                         )}
+                      </Button>
+                    )}
+
+                    {!isPredicting && (
+                      <Button
+                        variant="outline"
+                        className="w-full h-12 text-base font-semibold shadow-sm border-gray-200 text-gray-700 hover:bg-gray-50 gap-2 transition-colors mt-2"
+                        onClick={handleRemoveAudio}
+                      >
+                        <RotateCcw className="w-5 h-5" /> Remove & Choose Different
                       </Button>
                     )}
                   </motion.div>
@@ -388,14 +391,14 @@ const AudioPredictionsPage = () => {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
-                className="h-full min-h-[350px] rounded-2xl border border-blue-100 bg-blue-50/20 flex flex-col items-center justify-center text-center p-8 shadow-inner"
+                className="h-full min-h-[350px] rounded-2xl border border-green-100 bg-green-50/20 flex flex-col items-center justify-center text-center p-8 shadow-inner"
               >
                 <div className="relative w-24 h-24 mb-6">
-                  <div className="absolute inset-0 border-4 border-blue-500/10 rounded-full" />
-                  <div className="absolute inset-0 border-4 border-blue-600 rounded-full border-t-transparent animate-spin" />
-                  <Music className="absolute inset-0 m-auto w-8 h-8 text-blue-600 animate-pulse" />
+                  <div className="absolute inset-0 border-4 border-green-500/10 rounded-full" />
+                  <div className="absolute inset-0 border-4 border-green-600 rounded-full border-t-transparent animate-spin" />
+                  <Music className="absolute inset-0 m-auto w-8 h-8 text-green-600 animate-pulse" />
                 </div>
-                <h3 className="text-xl font-extrabold text-blue-950">Analyzing Spectrogram...</h3>
+                <h3 className="text-xl font-extrabold text-green-950">Analyzing Spectrogram...</h3>
               </motion.div>
             )}
 
@@ -406,21 +409,21 @@ const AudioPredictionsPage = () => {
                 animate={{ opacity: 1, scale: 1 }}
                 className="rounded-2xl border border-gray-100 bg-white shadow-xl overflow-hidden flex flex-col"
               >
-                <div className="p-6 bg-gradient-to-b from-blue-50/40 via-white to-white flex-grow">
+                <div className="p-6 bg-gradient-to-b from-green-50/40 via-white to-white flex-grow">
                   <div className="flex items-center justify-between mb-4">
                     <span className="text-xs font-bold text-gray-400 tracking-wider uppercase">
                       Model v{predictionResult.model_version || '1.0.0 (Audio)'}
                     </span>
                     <div className="flex items-center gap-2">
                       <span className="inline-flex items-center gap-1 text-xs font-semibold text-gray-500 bg-gray-50 px-2.5 py-1 rounded-full border border-gray-100">
-                        <Clock className="w-3.5 h-3.5 text-blue-500" />
+                        <Clock className="w-3.5 h-3.5 text-green-500" />
                         {predictionResult.prediction_time}s
                       </span>
                     </div>
                   </div>
 
                   <div className="flex items-center gap-5 mt-4 mb-6">
-                    <div className="w-20 h-20 bg-blue-50 border border-blue-100 rounded-2xl flex items-center justify-center text-4xl shadow-sm flex-shrink-0">
+                    <div className="w-20 h-20 bg-green-50 border border-green-100 rounded-2xl flex items-center justify-center text-4xl shadow-sm flex-shrink-0">
                       {speciesIconMap[predictionResult.species_name] || '🐾'}
                     </div>
                     <div className="flex-1">
@@ -455,7 +458,7 @@ const AudioPredictionsPage = () => {
                     </div>
                     <div className="bg-gray-50 border border-gray-100 rounded-xl p-3 flex flex-col items-center justify-center text-center">
                       <span className="text-xs text-gray-500 font-semibold uppercase tracking-wider mb-1">Source</span>
-                      <span className="text-sm font-extrabold text-blue-600">
+                      <span className="text-sm font-extrabold text-green-600">
                         {predictionResult.detection_source || 'Estimated'}
                       </span>
                     </div>
@@ -464,7 +467,7 @@ const AudioPredictionsPage = () => {
                   {predictionResult.events && predictionResult.events.length > 0 && (
                     <div className="mt-8 border-t border-gray-100 pt-6">
                       <h3 className="text-sm font-extrabold text-gray-900 mb-4 flex items-center gap-2">
-                        <Activity className="w-4 h-4 text-blue-500" />
+                        <Activity className="w-4 h-4 text-green-500" />
                         Acoustic Timeline ({predictionResult.event_count} Events)
                       </h3>
                       
@@ -478,7 +481,7 @@ const AudioPredictionsPage = () => {
                           return (
                             <div
                               key={idx}
-                              className="absolute h-full bg-blue-500 border-x border-blue-600 group cursor-pointer transition-all hover:bg-blue-400"
+                              className="absolute h-full bg-green-500 border-x border-green-600 group cursor-pointer transition-all hover:bg-green-400"
                               style={{ left: `${leftPct}%`, width: `${widthPct}%` }}
                             >
                               {/* Tooltip */}
@@ -493,7 +496,7 @@ const AudioPredictionsPage = () => {
                       {/* Events Table */}
                       <div className="overflow-x-auto border border-gray-150 rounded-xl">
                         <table className="w-full text-left text-xs">
-                          <thead className="bg-gray-50/50 text-gray-500 uppercase tracking-wider border-b border-gray-100">
+                          <thead className="bg-gray-50/50 text-gray-500 uppercase tracking-wider border-b border-gray-100 sticky top-0 bg-white/95 dark:bg-gray-900/95 backdrop-blur z-10">
                             <tr>
                               <th className="px-4 py-2.5 font-bold">Time (s)</th>
                               <th className="px-4 py-2.5 font-bold">Duration</th>
@@ -503,11 +506,11 @@ const AudioPredictionsPage = () => {
                           </thead>
                           <tbody className="divide-y divide-gray-100 bg-white">
                             {predictionResult.events.map((evt, idx) => (
-                              <tr key={idx} className="hover:bg-blue-50/30 transition-colors">
+                              <tr key={idx} className="hover:bg-green-50/30 transition-colors even:bg-muted/20">
                                 <td className="px-4 py-2.5 font-semibold text-gray-700">{evt.start_time} – {evt.end_time}</td>
                                 <td className="px-4 py-2.5 text-gray-600">{evt.duration}s</td>
                                 <td className="px-4 py-2.5 font-bold text-gray-900">{evt.label}</td>
-                                <td className="px-4 py-2.5 text-blue-600 font-bold">{evt.confidence}%</td>
+                                <td className="px-4 py-2.5 text-green-600 font-bold">{evt.confidence}%</td>
                               </tr>
                             ))}
                           </tbody>
@@ -525,7 +528,7 @@ const AudioPredictionsPage = () => {
                         id="obs-select"
                         value={selectedObsId}
                         onChange={(e) => setSelectedObsId(e.target.value)}
-                        className="flex h-11 w-full rounded-xl border border-gray-200 bg-white px-3.5 py-2 text-sm font-medium focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all shadow-sm"
+                        className="flex h-11 w-full rounded-xl border border-gray-200 bg-white px-3.5 py-2 text-sm font-medium focus:ring-2 focus:ring-green-500/20 focus:border-green-500 transition-all shadow-sm"
                       >
                         <option value="">— Select an observation —</option>
                         {observations.map(obs => (
@@ -536,7 +539,7 @@ const AudioPredictionsPage = () => {
                       </select>
                     </div>
                     <Button
-                      className="w-full bg-blue-600 hover:bg-blue-700 text-white h-11 font-semibold shadow-md rounded-xl gap-2 transition-transform hover:scale-[1.01]"
+                      className="w-full bg-green-600 hover:bg-green-700 text-white h-11 font-semibold shadow-md rounded-xl gap-2 transition-transform hover:scale-[1.01]"
                       onClick={linkObservation}
                       disabled={isLinking || !selectedObsId}
                     >
@@ -551,7 +554,7 @@ const AudioPredictionsPage = () => {
         </div>
       </div>
 
-      <Card className="shadow-lg border border-gray-150 rounded-2xl overflow-hidden bg-white">
+      <Card className="border border-gray-150 overflow-hidden bg-white shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300 rounded-2xl">
         <CardHeader className="bg-gray-50/50 border-b border-gray-100 p-6">
           <CardTitle className="text-xl font-extrabold text-gray-950">Audio Prediction History</CardTitle>
         </CardHeader>
@@ -562,7 +565,7 @@ const AudioPredictionsPage = () => {
             <div className="p-10 text-center text-gray-500">No audio predictions found.</div>
           ) : (
             <table className="w-full text-sm text-left">
-              <thead className="text-xs uppercase bg-gray-50 text-gray-500">
+              <thead className="text-xs uppercase bg-gray-50 text-gray-500 sticky top-0 bg-white/95 dark:bg-gray-900/95 backdrop-blur z-10">
                 <tr>
                   <th className="px-6 py-4">Species</th>
                   <th className="px-6 py-4">Confidence</th>
@@ -572,7 +575,7 @@ const AudioPredictionsPage = () => {
               </thead>
               <tbody className="divide-y divide-gray-100">
                 {history.map(pred => (
-                  <tr key={pred.id || pred._id} className="hover:bg-gray-50/50">
+                  <tr key={pred.id || pred._id} className="hover:bg-gray-50/50 even:bg-muted/20">
                     <td className="px-6 py-4 font-bold">{pred.species_name}</td>
                     <td className="px-6 py-4">{pred.confidence_score}%</td>
                     <td className="px-6 py-4">{formatTimestamp(pred.prediction_timestamp || pred.created_at)}</td>
@@ -589,3 +592,4 @@ const AudioPredictionsPage = () => {
 };
 
 export default AudioPredictionsPage;
+

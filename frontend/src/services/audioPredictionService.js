@@ -16,7 +16,7 @@ const audioPredictionService = {
    * Fetch paginated audio prediction history with optional filters.
    */
   getAudioPredictions: async (params = {}) => {
-    const response = await api.get('/audio-predictions', { params });
+    const response = await api.get('/audio-predictions/', { params });
     return response.data;
   },
 

@@ -1,29 +1,17 @@
-from beanie import Document
-from pydantic import Field
+import uuid
+from pydantic import BaseModel, Field
 from datetime import datetime, timezone
 from typing import Optional
-import pymongo
 
-class AuditLog(Document):
-    user_id: Optional[str] = None
-    user_name: Optional[str] = None
-    user_role: Optional[str] = None
+class AuditLog(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    user_id: str
+    user_name: str
     action: str
     module: str
-    description: str
-    resource_id: Optional[str] = None
+    entity_id: Optional[str] = None
+    entity_type: Optional[str] = None
     ip_address: Optional[str] = None
-    status: str  # Success or Failed
-    severity: str  # INFO, WARNING, ERROR, SUCCESS
-    timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    details: Optional[dict] = None
+    timestamp: datetime = Field(default_factory=lambda: datetime.utcnow())
 
-    class Settings:
-        name = "audit_logs"
-        indexes = [
-            "user_id",
-            "module",
-            "action",
-            "status",
-            "severity",
-            pymongo.IndexModel([("timestamp", pymongo.DESCENDING)])
-        ]

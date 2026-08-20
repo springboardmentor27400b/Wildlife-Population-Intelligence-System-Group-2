@@ -1,3 +1,4 @@
+import uuid
 import os
 import json
 import io
@@ -6,10 +7,7 @@ import hashlib
 from datetime import datetime, timezone, timedelta
 from typing import Optional, Dict, Any, List
 from fastapi.responses import StreamingResponse
-from app.models.observation import ObservationRecord
-from app.models.unified_prediction import UnifiedPredictionRecord
-from app.models.site import MonitoringSite
-from app.models.analytics_cache import AdvancedAnalyticsCache
+from app.database.db import supabase
 
 class BiodiversityAnalyticsService:
 
@@ -83,62 +81,57 @@ class BiodiversityAnalyticsService:
         }, default=str).encode()).hexdigest()
         
         try:
-            cached_result = await AdvancedAnalyticsCache.find_one({
-                'query_hash': query_hash,
-                'expires_at': {'$gt': datetime.now(timezone.utc)}
-            })
-            if cached_result:
-                return cached_result.payload
+            res = supabase.table("advanced_analytics_cache").select("*").eq("query_hash", query_hash).execute()
+            if res.data and datetime.fromisoformat(res.data[0]['expires_at']) > datetime.utcnow():
+                return res.data[0]['payload']
         except Exception:
             pass
 
-        # Build Match queries
-        obs_match = {}
-        pred_match = {}
-        
-        if start_date and end_date:
-            try:
-                sd = datetime.fromisoformat(start_date.replace("Z", "+00:00"))
-                ed = datetime.fromisoformat(end_date.replace("Z", "+00:00"))
-                obs_match["date_time"] = {"$gte": sd, "$lte": ed}
-                pred_match["prediction_timestamp"] = {"$gte": sd, "$lte": ed}
-            except Exception:
-                pass
-                
-        if species:
-            obs_match["species_name"] = species
-            pred_match["species_name"] = species
+        # Build Match queries dynamically via Supabase
+        def build_obs_query(q):
+            if start_date: q = q.gte("observed_at", start_date)
+            if end_date: q = q.lte("observed_at", end_date)
+            if species: q = q.eq("species_name", species)
+            if source: q = q.ilike("verification_status", f"%{source}%")
+            if observer: q = q.ilike("observer_name", f"%{observer}%")
+            if site_name: q = q.eq("monitoring_site_name", site_name)
+            return q
             
-        if source:
-            pred_match["prediction_source"] = source
-            obs_match["prediction_source"] = {"$regex": source, "$options": "i"}
-            
-        if conservation_status:
-            pred_match["conservation_status"] = conservation_status
-            
-        if habitat:
-            pred_match["habitat"] = habitat
-            
-        if category:
-            pred_match["category"] = category
-            
-        if observer:
-            obs_match["observer_name"] = {"$regex": observer, "$options": "i"}
-            pred_match["user_name"] = {"$regex": observer, "$options": "i"}
-            
-        if site_name:
-            obs_match["monitoring_site_name"] = site_name
-            
-        if confidence_min is not None or confidence_max is not None:
-            pred_match["confidence_score"] = {}
-            if confidence_min is not None: pred_match["confidence_score"]["$gte"] = float(confidence_min)
-            if confidence_max is not None: pred_match["confidence_score"]["$lte"] = float(confidence_max)
+        def build_pred_query(q):
+            if start_date: q = q.gte("prediction_timestamp", start_date)
+            if end_date: q = q.lte("prediction_timestamp", end_date)
+            if species: q = q.eq("species_name", species)
+            if source: q = q.eq("prediction_source", source)
+            if conservation_status: q = q.eq("conservation_status", conservation_status)
+            if habitat: q = q.eq("habitat", habitat)
+            if category: q = q.eq("category", category)
+            if observer: q = q.ilike("user_name", f"%{observer}%")
+            if confidence_min is not None: q = q.gte("confidence_score", float(confidence_min))
+            if confidence_max is not None: q = q.lte("confidence_score", float(confidence_max))
+            return q
 
-        total_observations = await ObservationRecord.find(obs_match).count()
-        total_predictions = await UnifiedPredictionRecord.find(pred_match).count()
-        active_sites = await MonitoringSite.find({"status": "Active"}).count()
+        try:
+            obs_count_q = build_obs_query(supabase.table("observation_records").select("*", count="exact").limit(0))
+            total_observations = obs_count_q.execute().count or 0
+        except Exception:
+            total_observations = 0
 
-        predictions = await UnifiedPredictionRecord.find(pred_match).to_list()
+        try:
+            pred_count_q = build_pred_query(supabase.table("unified_prediction_records").select("*", count="exact").limit(0))
+            total_predictions = pred_count_q.execute().count or 0
+        except Exception:
+            total_predictions = 0
+
+        try:
+            sites_q = supabase.table("monitoring_sites").select("*", count="exact").eq("status", "Active").limit(0)
+            active_sites = sites_q.execute().count or 0
+        except Exception:
+            active_sites = 0
+
+        try:
+            predictions = build_pred_query(supabase.table("unified_prediction_records").select("*")).execute().data or []
+        except Exception:
+            predictions = []
         
         unique_species = set()
         endangered_count = 0
@@ -157,21 +150,22 @@ class BiodiversityAnalyticsService:
         lowest_conf_species = {"name": "-", "score": 100}
 
         for p in predictions:
-            sp = p.species_name
+            sp = p.get("species_name")
+            if not sp: continue
             unique_species.add(sp)
             
-            conf = p.confidence_score
+            conf = p.get("confidence_score", 0)
             total_confidence += conf
             
             if sp not in species_counts:
                 species_counts[sp] = {
                     'count': 0, 'total_conf': 0, 'sources': {'Image': 0, 'Audio': 0},
-                    'status': p.conservation_status or 'Unknown',
-                    'scientific_name': getattr(p, 'scientific_name', None) or getattr(p, 'species_scientific_name', None) or sp
+                    'status': p.get("conservation_status", "Unknown"),
+                    'scientific_name': p.get("scientific_name", sp)
                 }
             species_counts[sp]['count'] += 1
             species_counts[sp]['total_conf'] += conf
-            src = p.prediction_source
+            src = p.get("prediction_source", "Unknown")
             if src in species_counts[sp]['sources']:
                 species_counts[sp]['sources'][src] += 1
             
@@ -180,7 +174,6 @@ class BiodiversityAnalyticsService:
             if conf < lowest_conf_species["score"]:
                 lowest_conf_species = {"name": sp, "score": conf}
             
-            src = p.prediction_source
             if src == "Image":
                 image_count += 1
                 source_dist["Image"] += 1
@@ -188,7 +181,7 @@ class BiodiversityAnalyticsService:
                 audio_count += 1
                 source_dist["Audio"] += 1
                 
-            status = p.conservation_status or "Unknown"
+            status = p.get("conservation_status") or "Unknown"
             if status.lower() in ["endangered", "critically endangered"]:
                 endangered_count += 1
                 risk_dashboard["Critical"] += 1
@@ -199,13 +192,12 @@ class BiodiversityAnalyticsService:
             else:
                 risk_dashboard["Medium"] += 1
                 
-            
             status_dist[status] = status_dist.get(status, 0) + 1
             
-            hab = p.habitat or "Unknown"
+            hab = p.get("habitat") or "Unknown"
             habitat_dist[hab] = habitat_dist.get(hab, 0) + 1
             
-            cat = p.category or "Unknown"
+            cat = p.get("category") or "Unknown"
             category_dist[cat] = category_dist.get(cat, 0) + 1
 
         avg_confidence = round(total_confidence / total_predictions, 2) if total_predictions > 0 else 0
@@ -226,20 +218,23 @@ class BiodiversityAnalyticsService:
         def format_dist(d):
             return [{"name": k, "value": v} for k, v in d.items()]
 
-        observations = await ObservationRecord.find(obs_match).to_list()
+        try:
+            observations = build_obs_query(supabase.table("observation_records").select("*")).execute().data or []
+        except Exception:
+            observations = []
+
         trend_map = {}
         verified_count = 0
         pending_count = 0
         
         for o in observations:
-            if o.verification_status == "Verified": verified_count += 1
-            elif "Pending" in o.verification_status: pending_count += 1
+            v_status = o.get("verification_status", "")
+            if v_status == "Verified": verified_count += 1
+            elif "Pending" in v_status: pending_count += 1
                 
-            if getattr(o, "date_time", None):
-                date_str = o.date_time.strftime("%Y-%m-%d")
-                trend_map[date_str] = trend_map.get(date_str, 0) + 1
-            elif getattr(o, "observed_at", None):
-                date_str = o.observed_at.strftime("%Y-%m-%d")
+            obs_time = o.get("observed_at")
+            if obs_time:
+                date_str = obs_time[:10] # YYYY-MM-DD
                 trend_map[date_str] = trend_map.get(date_str, 0) + 1
                 
         trends = [{"date": k, "observations": v} for k, v in sorted(trend_map.items())]
@@ -288,13 +283,11 @@ class BiodiversityAnalyticsService:
         }
         
         try:
-            query_hash = hashlib.md5(json.dumps(obs_match, default=str).encode()).hexdigest()
-            cache = AdvancedAnalyticsCache(
-                query_hash=query_hash,
-                payload=payload,
-                expires_at=datetime.now(timezone.utc) + timedelta(minutes=5)
-            )
-            await cache.insert()
+            supabase.table("advanced_analytics_cache").upsert({ "id": str(uuid.uuid4()),
+                "query_hash": query_hash,
+                "payload": payload,
+                "expires_at": (datetime.utcnow() + timedelta(minutes=5)).isoformat()
+            }, on_conflict="query_hash").execute()
         except Exception:
             pass
 

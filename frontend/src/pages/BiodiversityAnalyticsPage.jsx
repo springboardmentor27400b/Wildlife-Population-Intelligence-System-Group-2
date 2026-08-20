@@ -6,7 +6,7 @@ import {
 } from 'recharts';
 import {
   Download, Filter, Activity, Camera, Leaf, Globe, CheckCircle2,
-  AlertTriangle, Loader2, Target, CalendarDays, FileText
+  AlertTriangle, Loader2, Target, CalendarDays, FileText, Trees
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../components/ui/card';
 import { Button } from '../components/ui/button';
@@ -17,7 +17,7 @@ import biodiversityAnalyticsService from '../services/biodiversityAnalyticsServi
 const COLORS = ['#0d9488', '#2563eb', '#16a34a', '#d97706', '#dc2626', '#7c3aed', '#db2777', '#0891b2', '#ea580c', '#4f46e5'];
 
 const StatCard = ({ title, value, subtitle, icon: Icon, colorClass }) => (
-  <Card className="shadow-md border border-gray-150 overflow-hidden relative group">
+  <Card className="border border-gray-150 overflow-hidden relative group shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300 rounded-2xl">
     <div className={`absolute right-0 top-0 w-24 h-24 -mt-8 -mr-8 rounded-full opacity-10 ${colorClass}`} />
     <CardContent className="p-6">
       <div className="flex items-center justify-between">
@@ -94,7 +94,7 @@ const BiodiversityAnalyticsPage = () => {
   if (loading && !data) {
     return (
       <div className="flex flex-col items-center justify-center h-[70vh] text-gray-500 space-y-4">
-        <Loader2 className="w-12 h-12 animate-spin text-teal-600" />
+        <Loader2 className="w-12 h-12 animate-spin text-green-600" />
         <h2 className="text-xl font-bold">Compiling Biodiversity Intelligence...</h2>
       </div>
     );
@@ -103,15 +103,18 @@ const BiodiversityAnalyticsPage = () => {
   return (
     <div className="space-y-8 pb-12">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+      <div className="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-black text-gray-900 tracking-tight">Biodiversity Analytics</h1>
-          <p className="text-gray-500 mt-1">
+          <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-2">
+            <Trees className="w-8 h-8 text-green-600" />
+            Biodiversity Analytics
+          </h1>
+          <p className="text-gray-500 text-sm mt-1 max-w-2xl">
             Comprehensive insights derived from field observations and multi-modal AI predictions.
           </p>
         </div>
         <div className="flex items-center gap-3">
-          <Button onClick={exportJson} variant="outline" className="gap-2 bg-white text-blue-700 border-blue-200 hover:bg-blue-50">
+          <Button onClick={exportJson} variant="outline" className="gap-2 bg-white text-green-700 border-green-200 hover:bg-green-50">
             <Download className="w-4 h-4" /> JSON
           </Button>
           <Button onClick={exportExcel} variant="outline" className="gap-2 bg-white text-emerald-700 border-emerald-200 hover:bg-emerald-50">
@@ -127,7 +130,7 @@ const BiodiversityAnalyticsPage = () => {
       </div>
 
       {/* Filters Bar */}
-      <Card className="bg-white shadow-sm border border-gray-200">
+      <Card className="bg-white border border-gray-200 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300 rounded-2xl">
         <CardContent className="p-4">
           <div className="flex items-center gap-2 mb-4 text-gray-800 font-bold">
             <Filter className="w-5 h-5 text-gray-400" /> Filter Analytics
@@ -135,22 +138,22 @@ const BiodiversityAnalyticsPage = () => {
           <div className="grid grid-cols-1 md:grid-cols-4 lg:grid-cols-7 gap-4">
             <div className="space-y-1">
               <Label className="text-xs">Start Date</Label>
-              <input type="date" className="w-full border rounded-lg px-3 py-1.5 text-sm" 
+              <input type="date" className="w-full border text-sm h-11 rounded-xl px-4 py-2.5 border-border/60 focus:ring-2 focus:ring-primary/20 focus:border-primary placeholder:text-muted-foreground/70 transition-all duration-300" 
                      value={filters.start_date} onChange={e => setFilters({...filters, start_date: e.target.value})} />
             </div>
             <div className="space-y-1">
               <Label className="text-xs">End Date</Label>
-              <input type="date" className="w-full border rounded-lg px-3 py-1.5 text-sm" 
+              <input type="date" className="w-full border text-sm h-11 rounded-xl px-4 py-2.5 border-border/60 focus:ring-2 focus:ring-primary/20 focus:border-primary placeholder:text-muted-foreground/70 transition-all duration-300" 
                      value={filters.end_date} onChange={e => setFilters({...filters, end_date: e.target.value})} />
             </div>
             <div className="space-y-1">
               <Label className="text-xs">Species</Label>
-              <input type="text" placeholder="e.g. Tiger" className="w-full border rounded-lg px-3 py-1.5 text-sm" 
+              <input type="text" placeholder="e.g. Tiger" className="w-full border text-sm h-11 rounded-xl px-4 py-2.5 border-border/60 focus:ring-2 focus:ring-primary/20 focus:border-primary placeholder:text-muted-foreground/70 transition-all duration-300" 
                      value={filters.species} onChange={e => setFilters({...filters, species: e.target.value})} />
             </div>
             <div className="space-y-1">
               <Label className="text-xs">Prediction Source</Label>
-              <select className="w-full border rounded-lg px-3 py-1.5 text-sm bg-white"
+              <select className="w-full border text-sm bg-white h-11 rounded-xl px-4 py-2.5 border-border/60 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all duration-300"
                       value={filters.source} onChange={e => setFilters({...filters, source: e.target.value})}>
                 <option value="">All Sources</option>
                 <option value="Image">Image (Vision)</option>
@@ -159,7 +162,7 @@ const BiodiversityAnalyticsPage = () => {
             </div>
             <div className="space-y-1">
               <Label className="text-xs">Conservation Status</Label>
-              <select className="w-full border rounded-lg px-3 py-1.5 text-sm bg-white"
+              <select className="w-full border text-sm bg-white h-11 rounded-xl px-4 py-2.5 border-border/60 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all duration-300"
                       value={filters.conservation_status} onChange={e => setFilters({...filters, conservation_status: e.target.value})}>
                 <option value="">All Statuses</option>
                 <option value="Endangered">Endangered</option>
@@ -169,12 +172,12 @@ const BiodiversityAnalyticsPage = () => {
             </div>
             <div className="space-y-1">
               <Label className="text-xs">Monitoring Site</Label>
-              <input type="text" placeholder="e.g. Core Zone" className="w-full border rounded-lg px-3 py-1.5 text-sm" 
+              <input type="text" placeholder="e.g. Core Zone" className="w-full border text-sm h-11 rounded-xl px-4 py-2.5 border-border/60 focus:ring-2 focus:ring-primary/20 focus:border-primary placeholder:text-muted-foreground/70 transition-all duration-300" 
                      value={filters.site_name} onChange={e => setFilters({...filters, site_name: e.target.value})} />
             </div>
             <div className="space-y-1">
               <Label className="text-xs">Min Confidence (%)</Label>
-              <input type="number" placeholder="0-100" className="w-full border rounded-lg px-3 py-1.5 text-sm" 
+              <input type="number" placeholder="0-100" className="w-full border text-sm h-11 rounded-xl px-4 py-2.5 border-border/60 focus:ring-2 focus:ring-primary/20 focus:border-primary placeholder:text-muted-foreground/70 transition-all duration-300" 
                      value={filters.confidence_min} onChange={e => setFilters({...filters, confidence_min: e.target.value})} />
             </div>
             <div className="space-y-1 md:col-span-1 flex items-end gap-2">
@@ -189,7 +192,7 @@ const BiodiversityAnalyticsPage = () => {
       {data && (
         <div className="grid md:grid-cols-3 gap-6">
           <div className="md:col-span-2 space-y-4">
-            <Card className="shadow-md border-gray-150">
+            <Card className="border-gray-150 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300 rounded-2xl">
               <CardContent className="p-6">
                 <h3 className="text-lg font-bold text-gray-900 mb-2 flex items-center gap-2"><Target className="w-5 h-5 text-indigo-600"/> Executive Summary</h3>
                 <p className="text-sm text-gray-700 leading-relaxed">{data.executive_summary}</p>
@@ -200,7 +203,7 @@ const BiodiversityAnalyticsPage = () => {
             {data.alerts && data.alerts.map((alert, idx) => (
               <div key={idx} className={`p-4 rounded-xl border flex items-start gap-3 shadow-sm ${
                 alert.type === 'critical' ? 'bg-red-50 border-red-200 text-red-800' : 
-                alert.type === 'info' ? 'bg-blue-50 border-blue-200 text-blue-800' :
+                alert.type === 'info' ? 'bg-green-50 border-green-200 text-green-800' :
                 'bg-emerald-50 border-emerald-200 text-emerald-800'
               }`}>
                 {alert.type === 'critical' ? <AlertTriangle className="w-5 h-5 flex-shrink-0" /> : <Activity className="w-5 h-5 flex-shrink-0" />}
@@ -214,8 +217,8 @@ const BiodiversityAnalyticsPage = () => {
       {/* Summary KPI Cards */}
       {data && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <StatCard title="Total Observations" value={data.summary.total_observations} subtitle="Verified field records" icon={Globe} colorClass="bg-teal-500 text-teal-600" />
-          <StatCard title="Total AI Predictions" value={data.summary.total_predictions} subtitle="Unified AI outputs" icon={Target} colorClass="bg-blue-500 text-blue-600" />
+          <StatCard title="Total Observations" value={data.summary.total_observations} subtitle="Verified field records" icon={Globe} colorClass="bg-green-500 text-green-600" />
+          <StatCard title="Total AI Predictions" value={data.summary.total_predictions} subtitle="Unified AI outputs" icon={Target} colorClass="bg-green-500 text-green-600" />
           <StatCard title="Total Species" value={data.summary.total_species} subtitle="Unique species identified" icon={Leaf} colorClass="bg-emerald-500 text-emerald-600" />
           <StatCard title="Avg AI Confidence" value={`${data.summary.average_confidence}%`} subtitle="Overall model certainty" icon={CheckCircle2} colorClass="bg-indigo-500 text-indigo-600" />
           
@@ -232,7 +235,7 @@ const BiodiversityAnalyticsPage = () => {
           
           {/* Top Detected Species (Bar Chart) */}
           <div className="lg:col-span-8">
-            <Card className="shadow-lg border-gray-150 h-full">
+            <Card className="border-gray-150 h-full shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300 rounded-2xl">
               <CardHeader>
                 <CardTitle>Top Detected Species</CardTitle>
                 <CardDescription>Species distribution across all unified AI predictions.</CardDescription>
@@ -253,7 +256,7 @@ const BiodiversityAnalyticsPage = () => {
 
           {/* AI Source Distribution (Donut Chart) */}
           <div className="lg:col-span-4">
-            <Card className="shadow-lg border-gray-150 h-full">
+            <Card className="border-gray-150 h-full shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300 rounded-2xl">
               <CardHeader>
                 <CardTitle>Prediction Source</CardTitle>
                 <CardDescription>Image vs Audio.</CardDescription>
@@ -282,7 +285,7 @@ const BiodiversityAnalyticsPage = () => {
 
           {/* Temporal Trends & Statistical Forecasts (Area/Line Chart) */}
           <div className="lg:col-span-12">
-            <Card className="shadow-lg border-gray-150">
+            <Card className="border-gray-150 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300 rounded-2xl">
               <CardHeader>
                 <CardTitle>Observation Trends & Forecasts</CardTitle>
                 <CardDescription>Historical data combined with statistical forecasts (Moving Average) for future estimates.</CardDescription>
@@ -315,7 +318,7 @@ const BiodiversityAnalyticsPage = () => {
 
           {/* Species Risk Dashboard (Pie Chart) */}
           <div className="lg:col-span-4">
-            <Card className="shadow-lg border-gray-150 h-full">
+            <Card className="border-gray-150 h-full shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300 rounded-2xl">
               <CardHeader>
                 <CardTitle>Species Risk Analysis</CardTitle>
                 <CardDescription>Conservation risk levels.</CardDescription>
@@ -343,7 +346,7 @@ const BiodiversityAnalyticsPage = () => {
 
           {/* Conservation Status Distribution (Pie Chart) */}
           <div className="lg:col-span-4">
-            <Card className="shadow-lg border-gray-150 h-full">
+            <Card className="border-gray-150 h-full shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300 rounded-2xl">
               <CardHeader>
                 <CardTitle>Conservation Status</CardTitle>
               </CardHeader>
@@ -369,7 +372,7 @@ const BiodiversityAnalyticsPage = () => {
 
           {/* Taxonomic Category Distribution (Pie Chart) */}
           <div className="lg:col-span-4">
-            <Card className="shadow-lg border-gray-150 h-full">
+            <Card className="border-gray-150 h-full shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300 rounded-2xl">
               <CardHeader>
                 <CardTitle>Taxonomic Categories</CardTitle>
               </CardHeader>
@@ -395,7 +398,7 @@ const BiodiversityAnalyticsPage = () => {
           
           {/* Observation Quality & AI Performance */}
           <div className="lg:col-span-12 grid md:grid-cols-2 gap-8">
-            <Card className="shadow-lg border-gray-150">
+            <Card className="border-gray-150 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300 rounded-2xl">
               <CardHeader>
                 <CardTitle>Observation Quality</CardTitle>
               </CardHeader>
@@ -403,11 +406,11 @@ const BiodiversityAnalyticsPage = () => {
                 <div className="space-y-4 text-sm font-semibold text-gray-700">
                    <div className="flex justify-between items-center bg-gray-50 p-3 rounded-lg border border-gray-100">
                      <span>Human Field Observations</span>
-                     <span className="text-teal-600 font-bold">{data.observation_quality.human_coverage}</span>
+                     <span className="text-green-600 font-bold">{data.observation_quality.human_coverage}</span>
                    </div>
                    <div className="flex justify-between items-center bg-gray-50 p-3 rounded-lg border border-gray-100">
                      <span>AI Model Predictions</span>
-                     <span className="text-blue-600 font-bold">{data.observation_quality.ai_coverage}</span>
+                     <span className="text-green-600 font-bold">{data.observation_quality.ai_coverage}</span>
                    </div>
                    <div className="flex justify-between items-center bg-gray-50 p-3 rounded-lg border border-gray-100">
                      <span>Verified Observations</span>
@@ -421,7 +424,7 @@ const BiodiversityAnalyticsPage = () => {
               </CardContent>
             </Card>
 
-            <Card className="shadow-lg border-gray-150">
+            <Card className="border-gray-150 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300 rounded-2xl">
               <CardHeader>
                 <CardTitle>AI Performance Summary</CardTitle>
               </CardHeader>

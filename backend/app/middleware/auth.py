@@ -22,9 +22,15 @@ async def get_current_user(token: str = Depends(oauth2_scheme)) -> User:
     except JWTError:
         raise credentials_exception
         
-    user = await User.find_one(User.email == token_data.email)
-    if user is None:
+    from app.database.db import supabase
+    try:
+        res = supabase.table("users").select("*").eq("email", token_data.email).execute()
+        if not res.data:
+            raise credentials_exception
+        user = User(**res.data[0])
+    except Exception:
         raise credentials_exception
+        
     return user
 
 class RoleChecker:

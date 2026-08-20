@@ -128,7 +128,7 @@ def predict_audio_species(file_path: str) -> dict:
         print(f"MFCC shape: {mfcc.shape}")
         
         # Record exact prediction timestamp (UTC)
-        prediction_timestamp = datetime.now(timezone.utc).isoformat()
+        prediction_timestamp = datetime.utcnow().isoformat()
         
         # Predict
         try:
@@ -184,11 +184,11 @@ def predict_audio_species(file_path: str) -> dict:
             "silence_percentage": silence_pct,
             "event_count": event_count,
             "events": events,
-            "detection_source": detection_source,
-            "is_mock": False
+            "detection_source": detection_source
         }
 
     except Exception as e:
         import traceback
         traceback.print_exc()
         raise e
+

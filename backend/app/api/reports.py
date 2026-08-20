@@ -1,3 +1,4 @@
+from app.database.adapter import find_one, find_all, insert, save, delete, get, count_documents
 import io
 from fastapi import APIRouter, Depends, Query
 from fastapi.responses import Response
@@ -21,7 +22,8 @@ from app.api.auth import get_current_user
 router = APIRouter()
 
 
-def build_filter_query(
+def apply_filters(
+    query,
     start_date: Optional[datetime] = None,
     end_date: Optional[datetime] = None,
     species: Optional[str] = None,
@@ -29,28 +31,26 @@ def build_filter_query(
     verification_status: Optional[str] = None,
     observer_id: Optional[str] = None,
     search: Optional[str] = None,
-) -> dict:
-    query = {}
-    if start_date or end_date:
-        query["observed_at"] = {}
-        if start_date:
-            query["observed_at"]["$gte"] = start_date
-        if end_date:
-            query["observed_at"]["$lte"] = end_date
+):
+    if start_date:
+        query = query.gte("observed_at", start_date.isoformat())
+    if end_date:
+        query = query.lte("observed_at", end_date.isoformat())
     if species:
-        query["species_name"] = {"$regex": species, "$options": "i"}
+        query = query.ilike("species_name", f"%{species}%")
     if monitoring_site_id:
-        query["monitoring_site_id"] = monitoring_site_id
+        query = query.eq("monitoring_site_id", monitoring_site_id)
     if verification_status:
-        query["verification_status"] = verification_status
+        query = query.eq("verification_status", verification_status)
     if observer_id:
-        query["observer_id"] = observer_id
+        query = query.eq("observer_id", observer_id)
     if search:
-        query["$or"] = [
-            {"species_name": {"$regex": search, "$options": "i"}},
-            {"observer_name": {"$regex": search, "$options": "i"}},
-            {"monitoring_site_name": {"$regex": search, "$options": "i"}},
-        ]
+        search_term = f"%{search}%"
+        query = query.or_(
+            f"species_name.ilike.{search_term},"
+            f"observer_name.ilike.{search_term},"
+            f"monitoring_site_name.ilike.{search_term}"
+        )
     return query
 
 
@@ -65,27 +65,25 @@ async def get_reports_summary(
     search: Optional[str] = None,
     current_user: User = Depends(get_current_user),
 ):
-    query = build_filter_query(
-        start_date, end_date, species, monitoring_site_id, verification_status, observer_id, search
-    )
+    from app.database.db import supabase
+    
+    # observations
+    obs_q = supabase.table("observation_records").select("id, species_name, verification_status")
+    obs_q = apply_filters(obs_q, start_date, end_date, species, monitoring_site_id, verification_status, observer_id, search)
+    obs_res = obs_q.execute()
+    
+    total_obs = len(obs_res.data)
+    verified_obs = sum(1 for d in obs_res.data if d.get("verification_status") == "Verified")
+    pending_obs = sum(1 for d in obs_res.data if d.get("verification_status") not in ["Verified", "Rejected"])
+    
+    unique_species = set(d.get("species_name") for d in obs_res.data if d.get("species_name"))
+    total_species = len(unique_species)
 
-    total_obs = await ObservationRecord.find(query).count()
-
-    verified_query = {**query, "verification_status": "Verified"}
-    verified_obs = await ObservationRecord.find(verified_query).count()
-
-    pending_query = {**query, "verification_status": {"$nin": ["Verified", "Rejected"]}}
-    pending_obs = await ObservationRecord.find(pending_query).count()
-
-    pipeline = [{"$match": query}, {"$group": {"_id": "$species_name"}}, {"$count": "total"}]
-    species_res = await ObservationRecord.aggregate(pipeline).to_list()
-    total_species = species_res[0]["total"] if species_res else 0
-
-    total_sites = await MonitoringSite.find_all().count()
-    total_devices = await SensorDevice.find_all().count()
-    total_uploads = await FieldUpload.find_all().count()
-    total_users = await User.find_all().count()
-    total_predictions = await PredictionRecord.find_all().count()
+    total_sites = supabase.table("monitoring_sites").select("id", count="exact").limit(0).execute().count or 0
+    total_devices = supabase.table("sensor_devices").select("id", count="exact").limit(0).execute().count or 0
+    total_uploads = supabase.table("field_uploads").select("id", count="exact").limit(0).execute().count or 0
+    total_users = supabase.table("users").select("id", count="exact").limit(0).execute().count or 0
+    total_predictions = supabase.table("unified_prediction_records").select("id", count="exact").limit(0).execute().count or 0
 
     return {
         "total_species": total_species,
@@ -111,47 +109,38 @@ async def get_reports_species(
     search: Optional[str] = None,
     current_user: User = Depends(get_current_user),
 ):
-    query = build_filter_query(
-        start_date, end_date, species, monitoring_site_id, verification_status, observer_id, search
-    )
+    from app.database.db import supabase
+    
+    obs_q = supabase.table("observation_records").select("species_name, verification_status, observed_at")
+    obs_q = apply_filters(obs_q, start_date, end_date, species, monitoring_site_id, verification_status, observer_id, search)
+    obs_res = obs_q.execute()
 
-    # Species distribution (top 10)
-    dist_pipeline = [
-        {"$match": query},
-        {"$group": {"_id": "$species_name", "count": {"$sum": 1}}},
-        {"$sort": {"count": -1}},
-        {"$limit": 10},
-        {"$project": {"species": "$_id", "count": 1, "_id": 0}},
-    ]
-    species_distribution = await ObservationRecord.aggregate(dist_pipeline).to_list()
-
-    # Verification status distribution
-    status_pipeline = [
-        {"$match": query},
-        {"$group": {"_id": "$verification_status", "count": {"$sum": 1}}},
-        {"$project": {"status": "$_id", "count": 1, "_id": 0}},
-    ]
-    verification_distribution = await ObservationRecord.aggregate(status_pipeline).to_list()
-
-    # Monthly observation trend (last 12 months)
-    monthly_pipeline = [
-        {"$match": query},
-        {
-            "$group": {
-                "_id": {"year": {"$year": "$observed_at"}, "month": {"$month": "$observed_at"}},
-                "count": {"$sum": 1},
-            }
-        },
-        {"$sort": {"_id.year": 1, "_id.month": 1}},
-        {"$limit": 12},
-    ]
-    monthly_res = await ObservationRecord.aggregate(monthly_pipeline).to_list()
-
+    from collections import Counter
+    
+    species_counter = Counter(d.get("species_name") for d in obs_res.data if d.get("species_name"))
+    species_distribution = [{"species": k, "count": v} for k, v in species_counter.most_common(10)]
+    
+    status_counter = Counter(d.get("verification_status") for d in obs_res.data if d.get("verification_status"))
+    verification_distribution = [{"status": k, "count": v} for k, v in status_counter.items()]
+    
+    monthly_counter = Counter()
+    for d in obs_res.data:
+        dt_str = d.get("observed_at")
+        if dt_str:
+            try:
+                dt = datetime.fromisoformat(dt_str.replace("Z", "+00:00"))
+                monthly_counter[(dt.year, dt.month)] += 1
+            except:
+                pass
+                
     months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
     monthly_observations = []
-    for item in monthly_res:
-        m_name = months[item["_id"]["month"] - 1]
-        monthly_observations.append({"month": f"{m_name} {item['_id']['year']}", "count": item["count"]})
+    
+    # sort by year then month
+    sorted_months = sorted(monthly_counter.keys())[-12:]
+    for year, month in sorted_months:
+        m_name = months[month - 1]
+        monthly_observations.append({"month": f"{m_name} {year}", "count": monthly_counter[(year, month)]})
 
     return {
         "species_distribution": species_distribution,
@@ -175,13 +164,19 @@ async def get_reports_observations(
     sort_order: int = Query(-1),
     current_user: User = Depends(get_current_user),
 ):
-    query = build_filter_query(
-        start_date, end_date, species, monitoring_site_id, verification_status, observer_id, search
-    )
-
-    total = await ObservationRecord.find(query).count()
-    sort_tuple = (sort_by, sort_order)
-    observations = await ObservationRecord.find(query).sort(sort_tuple).skip(skip).limit(limit).to_list()
+    from app.database.db import supabase
+    
+    count_q = supabase.table("observation_records").select("*", count="exact").limit(0)
+    count_q = apply_filters(count_q, start_date, end_date, species, monitoring_site_id, verification_status, observer_id, search)
+    count_res = count_q.execute()
+    total = count_res.count or 0
+    
+    data_q = supabase.table("observation_records").select("*")
+    data_q = apply_filters(data_q, start_date, end_date, species, monitoring_site_id, verification_status, observer_id, search)
+    data_q = data_q.order(sort_by, desc=(sort_order == -1)).range(skip, skip + limit - 1)
+    
+    res = data_q.execute()
+    observations = [ObservationRecord(**d) for d in res.data]
 
     return {"total": total, "skip": skip, "limit": limit, "observations": observations}
 
@@ -197,10 +192,12 @@ async def export_excel(
     search: Optional[str] = None,
     current_user: User = Depends(get_current_user),
 ):
-    query = build_filter_query(
-        start_date, end_date, species, monitoring_site_id, verification_status, observer_id, search
-    )
-    observations = await ObservationRecord.find(query).sort("-observed_at").to_list()
+    from app.database.db import supabase
+    data_q = supabase.table("observation_records").select("*")
+    data_q = apply_filters(data_q, start_date, end_date, species, monitoring_site_id, verification_status, observer_id, search)
+    data_q = data_q.order("observed_at", desc=True)
+    res = data_q.execute()
+    observations = [ObservationRecord(**d) for d in res.data]
 
     wb = Workbook()
 
@@ -341,7 +338,8 @@ async def export_excel(
     ws_preds.auto_filter.ref = f"A1:{get_column_letter(len(preds_headers))}1"
     ws_preds.freeze_panes = "A2"
 
-    predictions = await PredictionRecord.find_all().sort("-created_at").to_list()
+    pred_res = supabase.table("unified_prediction_records").select("*").order("created_at", desc=True).execute()
+    predictions = [PredictionRecord(**d) for d in pred_res.data]
     for pred in predictions:
         pred_date = pred.created_at.strftime("%Y-%m-%d %H:%M") if pred.created_at else ""
         row = [
@@ -396,10 +394,12 @@ async def export_pdf(
     search: Optional[str] = None,
     current_user: User = Depends(get_current_user),
 ):
-    query = build_filter_query(
-        start_date, end_date, species, monitoring_site_id, verification_status, observer_id, search
-    )
-    observations = await ObservationRecord.find(query).sort("-observed_at").to_list()
+    from app.database.db import supabase
+    data_q = supabase.table("observation_records").select("*")
+    data_q = apply_filters(data_q, start_date, end_date, species, monitoring_site_id, verification_status, observer_id, search)
+    data_q = data_q.order("observed_at", desc=True)
+    res = data_q.execute()
+    observations = [ObservationRecord(**d) for d in res.data]
 
     class PDFReport(FPDF):
         def header(self):
@@ -545,7 +545,8 @@ async def export_pdf(
     pdf.ln()
 
     pdf.set_font("helvetica", "", 8)
-    pdf_predictions = await PredictionRecord.find_all().sort("-created_at").limit(50).to_list()
+    pdf_pred_res = supabase.table("unified_prediction_records").select("*").order("created_at", desc=True).limit(50).execute()
+    pdf_predictions = [PredictionRecord(**d) for d in pdf_pred_res.data]
     for row_idx, pred in enumerate(pdf_predictions):
         if row_idx % 2 == 0:
             pdf.set_fill_color(255, 255, 255)

@@ -1,3 +1,4 @@
+from app.database.adapter import find_one, find_all, insert, save, delete, get, count_documents
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from app.models.audit_log import AuditLog
 from app.models.user import User
@@ -8,11 +9,11 @@ from fastapi.responses import Response
 import io
 import openpyxl
 from fpdf import FPDF
-from beanie.operators import RegEx, GTE, LTE
 
 router = APIRouter()
 
-def build_query(
+def apply_filters(
+    query,
     search: Optional[str] = None,
     module: Optional[str] = None,
     action: Optional[str] = None,
@@ -22,50 +23,37 @@ def build_query(
     end_date: Optional[datetime] = None,
     user: Optional[str] = None
 ):
-    conditions = []
-    
     if search:
-        search_regex = {"$regex": search, "$options": "i"}
-        conditions.append({
-            "$or": [
-                {"user_name": search_regex},
-                {"description": search_regex},
-                {"action": search_regex},
-                {"module": search_regex}
-            ]
-        })
+        term = f"%{search}%"
+        query = query.or_(
+            f"user_name.ilike.{term},"
+            f"description.ilike.{term},"
+            f"action.ilike.{term},"
+            f"module.ilike.{term}"
+        )
         
     if user:
-        user_regex = {"$regex": user, "$options": "i"}
-        conditions.append({
-            "$or": [
-                {"user_name": user_regex},
-                {"user_id": user}
-            ]
-        })
+        term = f"%{user}%"
+        query = query.or_(
+            f"user_name.ilike.{term},"
+            f"user_id.ilike.{term}"
+        )
         
     if module:
-        conditions.append({"module": module})
+        query = query.eq("module", module)
     if action:
-        conditions.append({"action": action})
+        query = query.eq("action", action)
     if status:
-        conditions.append({"status": status})
+        query = query.eq("status", status)
     if severity:
-        conditions.append({"severity": severity})
+        query = query.eq("severity", severity)
         
-    if start_date or end_date:
-        ts_cond = {}
-        if start_date:
-            ts_cond["$gte"] = start_date
-        if end_date:
-            ts_cond["$lte"] = end_date
-        conditions.append({"timestamp": ts_cond})
+    if start_date:
+        query = query.gte("timestamp", start_date.isoformat())
+    if end_date:
+        query = query.lte("timestamp", end_date.isoformat())
         
-    if not conditions:
-        return {}
-    if len(conditions) == 1:
-        return conditions[0]
-    return {"$and": conditions}
+    return query
 
 @router.get("/")
 async def get_audit_logs(
@@ -81,21 +69,30 @@ async def get_audit_logs(
     end_date: Optional[datetime] = None,
     user: Optional[str] = None
 ):
-    query = build_query(
-        search=search,
-        module=module,
-        action=action,
-        status=status,
-        severity=severity,
-        start_date=start_date,
-        end_date=end_date,
-        user=user
+    from app.database.db import supabase
+    
+    count_query = supabase.table("audit_logs").select("*", count="exact")
+    count_query = apply_filters(
+        count_query, search=search, module=module, action=action,
+        status=status, severity=severity, start_date=start_date,
+        end_date=end_date, user=user
     )
     
-    total = await AuditLog.find(query).count()
+    count_res = count_query.limit(0).execute()
+    total = count_res.count if count_res.count is not None else 0
+    
     skip = (page - 1) * limit
     
-    logs = await AuditLog.find(query).sort("-timestamp").skip(skip).limit(limit).to_list()
+    data_query = supabase.table("audit_logs").select("*")
+    data_query = apply_filters(
+        data_query, search=search, module=module, action=action,
+        status=status, severity=severity, start_date=start_date,
+        end_date=end_date, user=user
+    )
+    data_query = data_query.order("timestamp", desc=True).range(skip, skip + limit - 1)
+    
+    res = data_query.execute()
+    logs = [AuditLog(**d) for d in res.data]
     
     return {
         "total": total,
@@ -116,18 +113,17 @@ async def export_audit_logs_excel(
     end_date: Optional[datetime] = None,
     user: Optional[str] = None
 ):
-    query = build_query(
-        search=search,
-        module=module,
-        action=action,
-        status=status,
-        severity=severity,
-        start_date=start_date,
-        end_date=end_date,
-        user=user
+    from app.database.db import supabase
+    data_query = supabase.table("audit_logs").select("*")
+    data_query = apply_filters(
+        data_query, search=search, module=module, action=action,
+        status=status, severity=severity, start_date=start_date,
+        end_date=end_date, user=user
     )
+    data_query = data_query.order("timestamp", desc=True).limit(1000)
     
-    logs = await AuditLog.find(query).sort("-timestamp").limit(1000).to_list()
+    res = data_query.execute()
+    logs = [AuditLog(**d) for d in res.data]
     
     wb = openpyxl.Workbook()
     ws = wb.active
@@ -238,18 +234,17 @@ async def export_audit_logs_pdf(
     end_date: Optional[datetime] = None,
     user: Optional[str] = None
 ):
-    query = build_query(
-        search=search,
-        module=module,
-        action=action,
-        status=status,
-        severity=severity,
-        start_date=start_date,
-        end_date=end_date,
-        user=user
+    from app.database.db import supabase
+    data_query = supabase.table("audit_logs").select("*")
+    data_query = apply_filters(
+        data_query, search=search, module=module, action=action,
+        status=status, severity=severity, start_date=start_date,
+        end_date=end_date, user=user
     )
+    data_query = data_query.order("timestamp", desc=True).limit(1000)
     
-    logs = await AuditLog.find(query).sort("-timestamp").limit(1000).to_list()
+    res = data_query.execute()
+    logs = [AuditLog(**d) for d in res.data]
     
     pdf = AuditPDF(orientation='L')
     pdf.add_page()
@@ -335,15 +330,15 @@ async def get_audit_log(
     id: str,
     current_user: User = Depends(require_admin)
 ):
-    from beanie import PydanticObjectId
+    
     from bson.errors import InvalidId
     
     try:
-        obj_id = PydanticObjectId(id)
+        obj_id = str(id)
     except InvalidId:
         raise HTTPException(status_code=400, detail="Invalid log ID format")
         
-    log = await AuditLog.get(obj_id)
+    log = await get(AuditLog, obj_id)
     if not log:
         raise HTTPException(status_code=404, detail="Log not found")
     return log

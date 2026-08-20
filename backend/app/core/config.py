@@ -4,8 +4,9 @@ class Settings(BaseSettings):
     APP_NAME: str = "Wildlife Population Intelligence System API"
     API_V1_STR: str = "/api/v1"
     
-    # MongoDB
-    MONGO_URI: str = "mongodb://localhost:27017/wildlife_db"
+    # Supabase
+    SUPABASE_URL: str = ""
+    SUPABASE_SECRET_KEY: str = ""
     
     # JWT Auth
     JWT_SECRET: str = "supersecretkey_change_in_production"

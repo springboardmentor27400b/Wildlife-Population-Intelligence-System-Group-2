@@ -1,3 +1,4 @@
+from app.database.adapter import find_one, find_all, insert, save, delete, get, count_documents
 from fastapi import APIRouter, Depends
 from typing import Optional
 from app.api.auth import get_current_user
@@ -141,5 +142,7 @@ async def get_report_history(
     current_user: User = Depends(get_current_user)
 ):
     from app.models.report_history import ReportHistory
-    history = await ReportHistory.find({"user_id": str(current_user.id)}).sort("-created_at").to_list()
+    from app.database.db import supabase
+    res = supabase.table("report_history").select("*").eq("user_id", str(current_user.id)).order("generated_at", desc=True).execute()
+    history = [ReportHistory(**d) for d in res.data]
     return history

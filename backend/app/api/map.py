@@ -1,3 +1,4 @@
+from app.database.adapter import find_one, find_all, insert, save, delete, get, count_documents
 from fastapi import APIRouter, Depends, Query, status
 from typing import Optional, List
 from datetime import datetime
@@ -33,16 +34,17 @@ async def get_map_observations_endpoint(
     """
     Return observations (and predictions if coordinates exist) filtered and searched with pagination.
     """
-    query = MapService.build_filter_query(
+    return await MapService.get_map_observations(
         species=species,
         monitoring_site_id=monitoring_site_id,
         verification_status=verification_status,
         prediction_source=prediction_source,
         start_date=start_date,
         end_date=end_date,
-        search=search
+        search=search,
+        page=page,
+        limit=limit
     )
-    return await MapService.get_map_observations(query=query, page=page, limit=limit)
 
 @router.get("/heatmap")
 async def get_heatmap_endpoint(
@@ -58,7 +60,7 @@ async def get_heatmap_endpoint(
     """
     Return coordinates and intensity counts for heatmap layer.
     """
-    query = MapService.build_filter_query(
+    points = await MapService.get_heatmap_data(
         species=species,
         monitoring_site_id=monitoring_site_id,
         verification_status=verification_status,
@@ -67,7 +69,6 @@ async def get_heatmap_endpoint(
         end_date=end_date,
         search=search
     )
-    points = await MapService.get_heatmap_data(query=query)
     return {"points": points}
 
 @router.get("/species-distribution")
@@ -84,7 +85,7 @@ async def get_species_distribution_endpoint(
     """
     Return top species distribution counts (total, verified, pending).
     """
-    query = MapService.build_filter_query(
+    return await MapService.get_species_distribution(
         species=species,
         monitoring_site_id=monitoring_site_id,
         verification_status=verification_status,
@@ -93,4 +94,3 @@ async def get_species_distribution_endpoint(
         end_date=end_date,
         search=search
     )
-    return await MapService.get_species_distribution(query=query)

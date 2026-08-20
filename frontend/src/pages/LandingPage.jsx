@@ -194,7 +194,7 @@ const LandingPage = memo(() => {
             transition={{ duration: 0.6, delay: 0.2 }}
             className="w-full max-w-md mx-auto lg:mx-0 lg:ml-auto"
           >
-            <Card className="glass-card border-white/20 shadow-2xl relative overflow-hidden">
+            <Card className="glass-card border-white/20 relative overflow-hidden shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300 rounded-2xl">
               {/* Subtle top gradient line */}
               <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary via-secondary to-primary"></div>
               
@@ -422,7 +422,7 @@ const LandingPage = memo(() => {
               transition={{ delay: i * 0.1, duration: 0.4 }}
               whileHover={{ y: -8 }}
             >
-              <Card className="h-full border-0 soft-shadow soft-shadow-hover transition-all bg-white rounded-2xl overflow-hidden">
+              <Card className="h-full border-0 soft-shadow soft- bg-white overflow-hidden shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300 rounded-2xl">
                 <CardHeader className="p-8">
                   <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center mb-6">
                     <feature.icon className="h-6 w-6 text-primary" />

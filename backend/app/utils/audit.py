@@ -16,24 +16,39 @@ def create_audit_log(
 ):
     """
     Helper utility to insert an audit log asynchronously without blocking the main request.
+    In Supabase, we insert the dictionary payload.
     """
     
     ip_address = None
     if request and request.client:
         ip_address = request.client.host
 
+    details = {
+        "description": description,
+        "status": status,
+        "severity": severity,
+        "user_role": getattr(user, 'role', None) if user else None
+    }
+
     log = AuditLog(
-        user_id=str(user.id) if user else None,
-        user_name=user.full_name if user else "System/Anonymous",
-        user_role=user.role if user else None,
+        user_id=str(user.id) if user and getattr(user, 'id', None) else "000000000000000000000000",
+        user_name=user.full_name if user and getattr(user, 'full_name', None) else "System/Anonymous",
         action=action,
         module=module,
-        description=description,
-        resource_id=resource_id,
+        entity_id=resource_id,
+        entity_type="Unknown",  # Or could be derived
         ip_address=ip_address,
-        status=status,
-        severity=severity
+        details=details
     )
     
-    # Fire and forget
-    asyncio.create_task(log.insert())
+    # We shouldn't use asyncio.create_task with a synchronous client easily, 
+    # but since the request is fire-and-forget, we can wrap the supabase call in a thread.
+    from app.database.db import supabase
+    def insert_log():
+        try:
+            supabase.table("audit_logs").insert(log.model_dump(mode='json', exclude_none=True)).execute()
+        except Exception as e:
+            from app.utils.logger import logger
+            logger.error(f"Failed to write audit log to Supabase: {e}")
+
+    asyncio.get_event_loop().run_in_executor(None, insert_log)

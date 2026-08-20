@@ -13,7 +13,7 @@ api.interceptors.request.use(
       config.headers.Authorization = `Bearer ${token}`;
     }
     if (import.meta.env.MODE === 'development') {
-      console.log(`[API Request] ${config.method.toUpperCase()} ${config.url}`, config.data || '');
+      // console.log(\`[API Request] \${config.method.toUpperCase()} \${config.url}\`, config.data || '');
     }
     return config;
   },
@@ -23,7 +23,7 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => {
     if (import.meta.env.MODE === 'development') {
-      console.log(`[API Response] ${response.status}`, response.data);
+      // console.log(\`[API Response] \${response.status}\`, response.data);
     }
     return response;
   },

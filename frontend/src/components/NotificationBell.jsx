@@ -86,6 +86,17 @@ const NotificationBell = () => {
     }
   };
 
+  const handleMarkAllAsRead = async (e) => {
+    e.stopPropagation();
+    try {
+      await notificationService.markAllAsRead();
+      fetchNotifications();
+      toast.success('All notifications marked as read');
+    } catch (err) {
+      toast.error('Failed to mark all as read');
+    }
+  };
+
   const handleItemClick = async (notif) => {
     if (!notif.is_read) {
       await notificationService.markAsRead(notif._id);
@@ -148,11 +159,21 @@ const NotificationBell = () => {
           >
             <div className="p-4 border-b border-gray-100 dark:border-gray-800 flex justify-between items-center bg-white/50 dark:bg-gray-900/50">
               <h3 className="font-semibold text-gray-900 dark:text-gray-100">Notifications</h3>
-              {unreadCount > 0 && (
-                <span className="bg-primary/10 text-primary text-xs px-2 py-0.5 rounded-full font-medium">
-                  {unreadCount} unread
-                </span>
-              )}
+              <div className="flex items-center gap-2">
+                {unreadCount > 0 && (
+                  <>
+                    <button 
+                      onClick={handleMarkAllAsRead}
+                      className="text-[10px] uppercase font-bold text-primary hover:text-primary/80 transition-colors bg-primary/10 px-2 py-1 rounded-md"
+                    >
+                      Mark All Read
+                    </button>
+                    <span className="bg-primary text-white shadow-sm text-xs px-2 py-0.5 rounded-full font-medium">
+                      {unreadCount}
+                    </span>
+                  </>
+                )}
+              </div>
             </div>
 
             <div className="max-h-96 overflow-y-auto">

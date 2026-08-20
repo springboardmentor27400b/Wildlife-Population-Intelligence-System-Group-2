@@ -1,15 +1,14 @@
-from beanie import Document
+import uuid
 from pydantic import Field, BaseModel
 from datetime import datetime, timezone
 from typing import Optional, Dict
 
-class Role(Document):
+class Role(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     role_name: str
 
-    class Settings:
-        name = "roles"
-
-class User(Document):
+class User(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     full_name: str
     email: str
     password_hash: str
@@ -20,7 +19,7 @@ class User(Document):
     organization: Optional[str] = None
     designation: Optional[str] = None
     
-    preferences: Dict = Field(default_factory=lambda: {
+    preferences: Optional[Dict] = Field(default_factory=lambda: {
         "theme": "System",
         "language": "en",
         "notifications": True,
@@ -29,8 +28,6 @@ class User(Document):
         "timeFormat": "24h"
     })
     
-    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
-    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    created_at: datetime = Field(default_factory=lambda: datetime.utcnow())
+    updated_at: datetime = Field(default_factory=lambda: datetime.utcnow())
 
-    class Settings:
-        name = "users"

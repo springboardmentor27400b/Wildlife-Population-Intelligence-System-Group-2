@@ -256,9 +256,12 @@ const UploadsPage = () => {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-foreground">Field Uploads</h1>
-          <p className="text-muted-foreground mt-1 text-sm md:text-base">
-            Manage raw data, imagery, and files collected from the field.
+          <h1 className="text-3xl font-bold text-slate-900 flex items-center gap-2">
+            <UploadCloud className="w-8 h-8 text-green-600" />
+            Field Uploads
+          </h1>
+          <p className="text-slate-500 text-sm mt-1 max-w-2xl">
+            Upload and process bulk media from offline field surveys.
           </p>
         </div>
         <Button onClick={() => handleOpenModal()} className="gap-2 bg-primary text-white hover:bg-primary/90">
@@ -269,7 +272,7 @@ const UploadsPage = () => {
 
       {/* Summary Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card className="border-0 soft-shadow bg-white rounded-xl">
+        <Card className="border-0 soft-shadow bg-white shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300 rounded-2xl">
           <CardContent className="p-6 flex items-center gap-4">
             <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
               <UploadCloud className="h-6 w-6 text-primary" />
@@ -280,7 +283,7 @@ const UploadsPage = () => {
             </div>
           </CardContent>
         </Card>
-        <Card className="border-0 soft-shadow bg-white rounded-xl">
+        <Card className="border-0 soft-shadow bg-white shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300 rounded-2xl">
           <CardContent className="p-6 flex items-center gap-4">
             <div className="h-12 w-12 rounded-full bg-orange-100 flex items-center justify-center">
               <Clock className="h-6 w-6 text-orange-600" />
@@ -291,7 +294,7 @@ const UploadsPage = () => {
             </div>
           </CardContent>
         </Card>
-        <Card className="border-0 soft-shadow bg-white rounded-xl">
+        <Card className="border-0 soft-shadow bg-white shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300 rounded-2xl">
           <CardContent className="p-6 flex items-center gap-4">
             <div className="h-12 w-12 rounded-full bg-green-100 flex items-center justify-center">
               <CheckCircle2 className="h-6 w-6 text-green-600" />
@@ -302,7 +305,7 @@ const UploadsPage = () => {
             </div>
           </CardContent>
         </Card>
-        <Card className="border-0 soft-shadow bg-white rounded-xl">
+        <Card className="border-0 soft-shadow bg-white shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300 rounded-2xl">
           <CardContent className="p-6 flex items-center gap-4">
             <div className="h-12 w-12 rounded-full bg-blue-100 flex items-center justify-center">
               <HardDrive className="h-6 w-6 text-blue-600" />
@@ -376,9 +379,9 @@ const UploadsPage = () => {
         </motion.div>
       ) : (
         <div className="bg-white rounded-xl soft-shadow overflow-hidden">
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto rounded-xl border border-border/50 shadow-sm">
             <table className="w-full text-sm text-left">
-              <thead className="text-xs text-muted-foreground uppercase bg-gray-50 border-b border-gray-100">
+              <thead className="text-xs text-muted-foreground uppercase bg-gray-50 border-b border-gray-100 sticky top-0 bg-white/95 dark:bg-gray-900/95 backdrop-blur z-10">
                 <tr>
                   <th className="px-6 py-4 font-medium">File Details</th>
                   <th className="px-6 py-4 font-medium">Source</th>

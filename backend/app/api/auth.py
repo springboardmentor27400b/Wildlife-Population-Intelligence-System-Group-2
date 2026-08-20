@@ -1,3 +1,4 @@
+from app.database.adapter import find_one, find_all, insert, save, delete, get, count_documents
 from fastapi import APIRouter, Depends, HTTPException, status, Request
 from fastapi.security import OAuth2PasswordRequestForm
 from app.models.user import User, Role
@@ -18,7 +19,7 @@ router = APIRouter()
 
 @router.post("/register", response_model=UserRead, status_code=status.HTTP_201_CREATED)
 async def register(user_in: UserCreate, request: Request):
-    existing_user = await User.find_one(User.email == user_in.email)
+    existing_user = await find_one(User, "email", user_in.email)
     if existing_user:
         raise HTTPException(
             status_code=409,
@@ -29,11 +30,11 @@ async def register(user_in: UserCreate, request: Request):
     if not role_val:
         raise HTTPException(status_code=400, detail="Please select your role to continue.")
         
-    role = await Role.find_one(Role.role_name == role_val)
+    role = await find_one(Role, "role_name", role_val)
     if not role:
         try:
-            from beanie import PydanticObjectId
-            role = await Role.get(PydanticObjectId(role_val))
+            
+            role = await get(Role, str(role_val))
         except:
             pass
             
@@ -46,7 +47,7 @@ async def register(user_in: UserCreate, request: Request):
         password_hash=get_password_hash(user_in.password),
         role=role.role_name
     )
-    await user.insert()
+    await insert(user)
     
     notif = Notification(
         title="New User Registered",
@@ -55,7 +56,7 @@ async def register(user_in: UserCreate, request: Request):
         priority="Info",
         user_id="admin_all"
     )
-    await notif.insert()
+    await insert(notif)
     
     logger.info("User registered", email=user.email)
     create_audit_log(user=user, request=request, action="REGISTER", module="Auth", description=f"User {user.email} registered", severity="SUCCESS")
@@ -66,7 +67,7 @@ async def login(login_data: UserLogin, request: Request):
     logger.info("LOGIN ENDPOINT HIT")
     logger.info(f"Attempting login for email: {login_data.email}")
     
-    user = await User.find_one(User.email == login_data.email)
+    user = await find_one(User, "email", login_data.email)
     logger.info(f"User found: {bool(user)}")
     
     if not user:
@@ -107,17 +108,17 @@ async def google_login(token_data: GoogleToken):
         if not email:
             raise HTTPException(status_code=400, detail="Google token has no email")
 
-        user = await User.find_one(User.email == email)
+        user = await find_one(User, "email", email)
         if not user:
             # Create a new user with a random password
-            role = await Role.find_one(Role.role_name == "user")
+            role = await find_one(Role, "role_name", "user")
             user = User(
                 full_name=full_name or email.split('@')[0],
                 email=email,
                 password_hash=get_password_hash(secrets.token_urlsafe(32)),
                 role="Wildlife Researcher"
             )
-            await user.insert()
+            await insert(user)
             logger.info("New user registered via Google", email=user.email)
 
         access_token = create_access_token(subject=user.email)
@@ -145,12 +146,12 @@ async def update_profile(user_in: UserUpdate, current_user: User = Depends(get_c
     if user_in.full_name:
         current_user.full_name = user_in.full_name
     if user_in.email and user_in.email != current_user.email:
-        existing = await User.find_one(User.email == user_in.email)
+        existing = await find_one(User, "email", user_in.email)
         if existing:
             raise HTTPException(status_code=400, detail="Email already registered")
         current_user.email = user_in.email
     current_user.updated_at = datetime.now(timezone.utc)
-    await current_user.save()
+    await save(current_user)
     logger.info("User updated profile", email=current_user.email)
     return current_user
 
@@ -162,7 +163,7 @@ async def change_password(passwords: PasswordChange, request: Request, current_u
     
     current_user.password_hash = get_password_hash(passwords.new_password)
     current_user.updated_at = datetime.now(timezone.utc)
-    await current_user.save()
+    await save(current_user)
     logger.info("User changed password", email=current_user.email)
     create_audit_log(user=current_user, request=request, action="PASSWORD_CHANGED", module="Auth", description="User changed password", severity="SUCCESS")
     return {"msg": "Password updated successfully"}

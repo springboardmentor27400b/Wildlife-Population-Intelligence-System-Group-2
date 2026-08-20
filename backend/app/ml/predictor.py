@@ -126,7 +126,7 @@ def predict_species(image_path: str) -> dict:
 
         # ── Inference ────────────────────────────────────────────────────────
         # Record exact prediction timestamp (UTC)
-        prediction_timestamp = datetime.now(timezone.utc).isoformat()
+        prediction_timestamp = datetime.utcnow().isoformat()
 
         raw_predictions = _MODEL.predict(img_batch, verbose=0)
         probs = raw_predictions[0]
