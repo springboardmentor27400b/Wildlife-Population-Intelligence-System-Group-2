@@ -1,5 +1,27 @@
+# Python environments
+.venv/
+venv/
+Lib/
+Scripts/
+
+# Python cache
+__pycache__/
+*.pyc
+
+# Node
+node_modules/
+frontend/node_modules/
+frontend/.output/
+frontend/.wrangler/
+frontend/dist/
+
 # AI/model binary artifacts
 *.bin
 
 # Large dataset artifacts
 datasets/snapshot_serengeti/all_images.csv
+
+# Environment/secrets
+.env
+.env.*
+!.env.example
