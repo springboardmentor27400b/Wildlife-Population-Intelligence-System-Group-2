@@ -144,13 +144,23 @@ class ModelManager:
         """Lazy-load only the lightweight image detection model when requested."""
         if self._yolo_model is None:
             try:
-                from ultralytics import YOLO
-                # Use yolov8n (Nano: 6MB) by default for low memory consumption (<40MB RAM)
                 model_name = os.getenv("YOLO_MODEL_PATH", "yolov8n.pt")
-                logger.info("Loading lightweight YOLO detector ('%s') on %s...", model_name, self.device)
-                self._yolo_model = YOLO(model_name)
-                self._image_backend = "yolov8n_coco"
-                logger.info("Lightweight YOLO detector ready.")
+                resolved_model = None
+                for candidate in [model_name, f"backend/{model_name}", Path(__file__).resolve().parent.parent.parent / model_name]:
+                    if candidate and Path(candidate).exists():
+                        resolved_model = str(candidate)
+                        break
+                
+                if resolved_model:
+                    from ultralytics import YOLO
+                    logger.info("Loading lightweight YOLO detector ('%s') on %s...", resolved_model, self.device)
+                    self._yolo_model = YOLO(resolved_model)
+                    self._image_backend = "yolov8n_coco"
+                    logger.info("Lightweight YOLO detector ready.")
+                else:
+                    logger.info("YOLO weights '%s' not present on disk. Using fast vision heuristics fallback.", model_name)
+                    self._yolo_model = None
+                    self._image_backend = "vision_heuristics"
             except Exception as exc:
                 logger.warning("YOLO load exception: %s. Using heuristic vision fallback.", exc)
                 self._yolo_model = None
@@ -508,36 +518,56 @@ class ModelManager:
 
         elapsed = round(perf_counter() - start_time, 3)
 
-        # 3. Generate visualizer plots (Waveform & Mel Spectrogram)
-        if HAS_MATPLOTLIB and HAS_LIBROSA and len(samples) > 0:
+        # 3. Generate visualizer plots (Waveform & Mel Spectrogram) with lightweight PIL
+        if len(samples) > 0:
             try:
-                # Waveform
-                fig_wf, ax_wf = plt.subplots(figsize=(5, 1.8), dpi=60)
-                time_axis = np.linspace(0, duration_sec, len(samples))
-                ax_wf.plot(time_axis, samples, color="#059669", linewidth=0.7)
-                ax_wf.set_title("Bioacoustic Waveform Analysis", fontsize=8, fontweight="bold", color="#0f172a")
-                ax_wf.set_xlabel("Time (s)", fontsize=7, color="#475569")
-                ax_wf.set_ylabel("Amplitude", fontsize=7, color="#475569")
-                ax_wf.grid(True, linestyle="--", alpha=0.3)
-                fig_wf.tight_layout()
-                fig_wf.savefig(str(waveform_path), facecolor="#f8fafc")
-                plt.close(fig_wf)
+                # Waveform (Slate dark theme with emerald green waveform)
+                wf_w, wf_h = 400, 120
+                img_wf = Image.new("RGB", (wf_w, wf_h), "#0f172a")
+                draw_wf = ImageDraw.Draw(img_wf)
+                mid_y = wf_h // 2
+                draw_wf.line([(0, mid_y), (wf_w, mid_y)], fill="#334155", width=1)
+                
+                step = max(1, len(samples) // wf_w)
+                sub_samples = samples[::step][:wf_w]
+                max_val = float(np.max(np.abs(sub_samples))) if np.max(np.abs(sub_samples)) > 0 else 1.0
+                
+                points = []
+                for x, val in enumerate(sub_samples):
+                    y = int(mid_y - (val / max_val) * (mid_y * 0.85))
+                    points.append((x, y))
+                if len(points) > 1:
+                    draw_wf.line(points, fill="#10b981", width=2)
+                draw_wf.text((10, 8), "Bioacoustic Waveform Analysis", fill="#94a3b8")
+                img_wf.save(str(waveform_path), format="PNG")
+                del img_wf
 
                 # Spectrogram
-                fig_sp, ax_sp = plt.subplots(figsize=(5, 1.8), dpi=60)
-                mel_spec = librosa.feature.melspectrogram(y=samples, sr=sr, n_mels=48, hop_length=512)
-                mel_db = librosa.power_to_db(mel_spec, ref=np.max)
-                librosa.display.specshow(mel_db, x_axis="time", y_axis="mel", sr=sr, ax=ax_sp, cmap="viridis")
-                ax_sp.set_title("Mel-Spectrogram Profile", fontsize=8, fontweight="bold", color="#0f172a")
-                ax_sp.set_xlabel("Time (s)", fontsize=7, color="#475569")
-                ax_sp.set_ylabel("Freq (Hz)", fontsize=7, color="#475569")
-                fig_sp.tight_layout()
-                fig_sp.savefig(str(spectrogram_path), facecolor="#f8fafc")
-                plt.close(fig_sp)
+                sp_w, sp_h = 400, 120
+                if HAS_LIBROSA:
+                    mel_spec = librosa.feature.melspectrogram(y=samples, sr=sr, n_mels=48, hop_length=256)
+                    mel_db = librosa.power_to_db(mel_spec, ref=np.max)
+                    norm_spec = ((mel_db - mel_db.min()) / (mel_db.max() - mel_db.min() + 1e-6) * 255.0).astype(np.uint8)
+                    norm_spec = np.flipud(norm_spec)
+                    
+                    r = (np.clip((norm_spec - 128) * 2, 0, 255) * 0.9 + np.clip(norm_spec * 1.5, 0, 255) * 0.1).astype(np.uint8)
+                    g = np.clip(norm_spec * 1.2, 0, 255).astype(np.uint8)
+                    b = (255 - norm_spec).astype(np.uint8)
+                    rgb = np.stack([r, g, b], axis=-1)
+                    
+                    img_sp = Image.fromarray(rgb, "RGB").resize((sp_w, sp_h), Image.Resampling.BILINEAR)
+                    draw_sp = ImageDraw.Draw(img_sp)
+                    draw_sp.text((10, 8), "Mel-Spectrogram Profile", fill="#f8fafc")
+                    img_sp.save(str(spectrogram_path), format="PNG")
+                    del img_sp
+                else:
+                    img_sp = Image.new("RGB", (sp_w, sp_h), "#0f172a")
+                    draw_sp = ImageDraw.Draw(img_sp)
+                    draw_sp.text((10, 8), "Mel-Spectrogram Profile", fill="#94a3b8")
+                    img_sp.save(str(spectrogram_path), format="PNG")
+                    del img_sp
             except Exception as exc:
                 logger.warning("Plot rendering warning: %s", exc)
-            finally:
-                plt.close("all")
 
         # 4. Clean up temporary memory references
         del samples
