@@ -50,3 +50,17 @@ wildlife_ml_project/
 zip/
 *.pptx
 backend/dummy_*.wav
+
+# Local environment files
+.env
+.env.*
+!.env.example
+!backend/.env.example
+!frontend/.env.example
+
+# Obsolete MongoDB test
+backend/test_mongo.py
+
+# Temporary/debug files
+backend/scratch/
+backend/temp_fix/
