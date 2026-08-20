@@ -1,0 +1,66 @@
+{
+  "bird": {
+    "common_name": "Bird",
+    "scientific_name": "Aves",
+    "kingdom": "Animalia",
+    "phylum": "Chordata",
+    "class_name": "Aves",
+    "order": "Unknown",
+    "family": "Unknown",
+    "genus": "Unknown",
+    "conservation_status": "Least Concern",
+    "description": "Warm-blooded vertebrate having feathers."
+  },
+
+  "elephant": {
+    "common_name": "Asian Elephant",
+    "scientific_name": "Elephas maximus",
+    "kingdom": "Animalia",
+    "phylum": "Chordata",
+    "class_name": "Mammalia",
+    "order": "Proboscidea",
+    "family": "Elephantidae",
+    "genus": "Elephas",
+    "conservation_status": "Endangered",
+    "description": "Largest land mammal."
+  },
+
+  "zebra": {
+    "common_name": "Plains Zebra",
+    "scientific_name": "Equus quagga",
+    "kingdom": "Animalia",
+    "phylum": "Chordata",
+    "class_name": "Mammalia",
+    "order": "Perissodactyla",
+    "family": "Equidae",
+    "genus": "Equus",
+    "conservation_status": "Near Threatened",
+    "description": "African striped herbivore."
+  },
+
+  "bear": {
+    "common_name": "Brown Bear",
+    "scientific_name": "Ursus arctos",
+    "kingdom": "Animalia",
+    "phylum": "Chordata",
+    "class_name": "Mammalia",
+    "order": "Carnivora",
+    "family": "Ursidae",
+    "genus": "Ursus",
+    "conservation_status": "Least Concern",
+    "description": "Large omnivorous mammal."
+  },
+
+  "cat": {
+    "common_name": "Domestic Cat",
+    "scientific_name": "Felis catus",
+    "kingdom": "Animalia",
+    "phylum": "Chordata",
+    "class_name": "Mammalia",
+    "order": "Carnivora",
+    "family": "Felidae",
+    "genus": "Felis",
+    "conservation_status": "Domestic",
+    "description": "Domestic cat."
+  }
+}

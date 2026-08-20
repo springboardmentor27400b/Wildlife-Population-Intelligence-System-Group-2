@@ -1,0 +1,105 @@
+/* ===========================
+   Global Styles
+=========================== */
+
+html {
+  scroll-behavior: smooth;
+}
+
+:root {
+  --primary: #198754;
+  --primary-dark: #146c43;
+  --secondary: #0d6efd;
+  --danger: #dc3545;
+  --warning: #ffc107;
+
+  --bg: #f4f8f4;
+  --card-bg: #ffffff;
+
+  --text-dark: #212529;
+  --text-light: #6c757d;
+
+  --border: #dee2e6;
+
+  --shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+
+  --radius: 16px;
+
+  --transition: all 0.3s ease;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  min-height: 100vh;
+  background: var(--bg);
+  color: var(--text-dark);
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  overflow-x: hidden;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+img {
+  display: block;
+  max-width: 100%;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+ul,
+ol {
+  list-style: none;
+}
+
+/* Scrollbar */
+
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #ececec;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--primary);
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--primary-dark);
+}
+
+/* Bootstrap Focus */
+
+.form-control:focus,
+.form-select:focus,
+.btn:focus {
+  box-shadow: none;
+}
+
+/* Smooth Animation */
+
+.card,
+.btn,
+.form-control,
+.form-select {
+  transition: var(--transition);
+}
