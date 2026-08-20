@@ -78,7 +78,7 @@ export default function DatasetPage() {
             <section className="rounded-3xl bg-gradient-to-br from-indigo-800 via-slate-900 to-emerald-950 p-8 text-white shadow-xl">
                 <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                     <div>
-                        <p className="text-xs font-bold uppercase tracking-widest text-indigo-300">Milestone 2 • Management</p>
+                        <p className="text-xs font-bold uppercase tracking-widest text-indigo-300">Production Intelligence • Management</p>
                         <h1 className="mt-1 text-3xl font-extrabold tracking-tight">Wildlife Dataset Management</h1>
                         <p className="mt-2 max-w-2xl text-indigo-100/90 text-sm">
                             Validate source datasets, compute quality metrics, preprocess media files, and generate balanced train/validation/test splits.

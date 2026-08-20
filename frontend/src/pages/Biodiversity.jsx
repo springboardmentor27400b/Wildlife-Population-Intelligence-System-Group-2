@@ -22,9 +22,9 @@ export default function Biodiversity() {
             try {
                 const [summaryRes, confRes, dailyRes, monthlyRes] = await Promise.allSettled([
                     api.get('/ai/biodiversity'),
-                    api.get('/biodiversity/confidence-trend'),
-                    api.get('/biodiversity/daily-velocity'),
-                    api.get('/biodiversity/monthly-velocity')
+                    api.get('/ai/biodiversity/confidence-trend'),
+                    api.get('/ai/biodiversity/daily-velocity'),
+                    api.get('/ai/biodiversity/monthly-velocity')
                 ]);
 
                 let summaryData = null;

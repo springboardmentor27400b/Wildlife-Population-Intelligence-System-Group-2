@@ -247,6 +247,8 @@ default_cors_origins = [
     "http://127.0.0.1:3000",
     "http://localhost:80",
     "http://localhost",
+    "https://wildlife-frontend-kjbn.onrender.com",
+    "https://wildlife-frontend.onrender.com",
 ]
 env_cors_origins = [
     origin.strip()
@@ -259,6 +261,7 @@ app = FastAPI(title="Wildlife Population Intelligence System", version="1.0.0", 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=configured_origins,
+    allow_origin_regex=r"https://.*\.onrender\.com",
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["*"],
@@ -309,6 +312,7 @@ app.include_router(uploads.router, prefix="/api")
 app.include_router(species_routes.router, prefix="/api")
 app.include_router(dashboard.router, prefix="/api")
 app.include_router(ai.router, prefix="/api")
+app.include_router(ai.biodiversity_router, prefix="/api")
 app.include_router(datasets.router, prefix="/api")
 app.include_router(datasets.alt_router, prefix="/api")
 # Milestone 3 routers

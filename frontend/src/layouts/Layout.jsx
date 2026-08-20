@@ -13,7 +13,7 @@ export default function Layout({ children }) {
                 <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3">
                     <div>
                         <div className="text-lg font-semibold">Wildlife Population Intelligence System</div>
-                        <div className="text-sm text-emerald-100">Milestone 2 • AI detection, analytics, and reports</div>
+                        <div className="text-sm text-emerald-100">Production Preview • AI detection, analytics, and reports</div>
                     </div>
                     <div className="flex flex-wrap items-center gap-3 text-sm">
                         <Link className="rounded px-2 py-1 hover:bg-white/10" to="/">Dashboard</Link>
@@ -27,7 +27,7 @@ export default function Layout({ children }) {
                 </div>
             </nav>
             <main className="mx-auto max-w-7xl p-6 lg:p-8">{children}</main>
-            <footer className="border-t border-slate-200 bg-white/70 px-6 py-4 text-sm text-slate-600">Milestone 2 • AI modules, analytics, and report generation</footer>
+            <footer className="border-t border-slate-200 bg-white/70 px-6 py-4 text-sm text-slate-600">Wildlife Intelligence System • Production Preview</footer>
         </div>
     );
 }

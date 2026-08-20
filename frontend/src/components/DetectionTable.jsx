@@ -1,4 +1,5 @@
 import { formatISTDate, formatISTTime } from '../utils/dateTime';
+import { resolveAssetUrl } from '../services/api';
 
 function formatConfidence(value) {
     if (value === undefined || value === null || value === '') {
@@ -74,9 +75,9 @@ export default function DetectionTable({ rows = [] }) {
                                             </div>
                                         ) : (
                                             <img 
-                                                src={row.thumbnail || defaultThumb} 
+                                                src={resolveAssetUrl(row.thumbnail) || resolveAssetUrl(defaultThumb)} 
                                                 alt="thumb" 
-                                                onError={(e) => { e.target.onerror = null; e.target.src = defaultThumb; }}
+                                                onError={(e) => { e.target.onerror = null; e.target.src = resolveAssetUrl(defaultThumb); }}
                                                 className="h-10 w-10 object-cover rounded shadow-sm border border-slate-200" 
                                             />
                                         )}

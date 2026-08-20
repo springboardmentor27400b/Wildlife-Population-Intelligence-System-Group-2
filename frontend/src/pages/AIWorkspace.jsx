@@ -13,7 +13,7 @@ import {
     Cpu,
     CheckCircle2
 } from 'lucide-react';
-import { api } from '../services/api';
+import { api, resolveAssetUrl } from '../services/api';
 import { StatCard } from '../components/SharedComponents';
 
 import SpeciesRecognition from './SpeciesRecognition';
@@ -80,14 +80,14 @@ export default function AIWorkspace() {
 
                     <div className="flex flex-wrap items-center gap-2">
                         <a
-                            href="http://localhost:8000/api/intelligence/export/pdf"
+                            href={resolveAssetUrl('/api/intelligence/export/pdf')}
                             download
                             className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-4 py-2 text-xs font-semibold text-white shadow-md hover:bg-emerald-500 transition-colors no-underline"
                         >
                             <Download className="h-4 w-4" /> Export Intelligence PDF
                         </a>
                         <a
-                            href="http://localhost:8000/api/intelligence/export/csv"
+                            href={resolveAssetUrl('/api/intelligence/export/csv')}
                             download
                             className="inline-flex items-center gap-2 rounded-xl bg-slate-800 px-4 py-2 text-xs font-semibold text-slate-200 border border-slate-700 hover:bg-slate-700 transition-colors no-underline"
                         >

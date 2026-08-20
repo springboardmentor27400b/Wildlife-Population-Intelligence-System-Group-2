@@ -43,7 +43,7 @@ function LoginPage() {
             setMessage('Login successful');
             navigate('/');
         } catch (error) {
-            let errorMsg = 'Backend server connection error. Please ensure the FastAPI backend is running on http://127.0.0.1:8000.';
+            let errorMsg = 'Backend server connection error. Please ensure the backend API service is running and accessible.';
             if (error.response?.data?.detail) {
                 errorMsg = error.response.data.detail;
             } else if (error.response?.data?.message) {

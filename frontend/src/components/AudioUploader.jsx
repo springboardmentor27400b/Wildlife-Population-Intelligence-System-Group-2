@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { formatToIST } from '../utils/dateTime';
-import { api } from '../services/api';
+import { api, resolveAssetUrl } from '../services/api';
 
 function getStatusBadgeClass(status) {
     if (!status) return 'bg-slate-100 text-slate-800 border-slate-200';
@@ -144,7 +144,7 @@ export default function AudioUploader({ onUpload }) {
                                 {res.audio_path && (
                                     <div className="bg-slate-900 p-4 rounded-2xl space-y-2 border border-slate-800">
                                         <span className="text-xs font-bold text-emerald-400 uppercase tracking-wider block">Original Bioacoustic Audio Player</span>
-                                        <audio controls src={res.audio_path} className="w-full rounded-xl accent-emerald-500" />
+                                        <audio controls src={resolveAssetUrl(res.audio_path)} className="w-full rounded-xl accent-emerald-500" />
                                     </div>
                                 )}
 
@@ -152,13 +152,13 @@ export default function AudioUploader({ onUpload }) {
                                     {res.waveform_image_path && (
                                         <div className="space-y-1.5">
                                             <span className="text-xs font-bold text-slate-600 uppercase tracking-wider">Audio Waveform</span>
-                                            <img src={res.waveform_image_path} alt="Waveform Plot" className="w-full h-48 object-cover rounded-2xl border border-slate-200 shadow-sm" />
+                                            <img src={resolveAssetUrl(res.waveform_image_path)} alt="Waveform Plot" className="w-full h-48 object-cover rounded-2xl border border-slate-200 shadow-sm" />
                                         </div>
                                     )}
                                     {res.spectrogram_image_path && (
                                         <div className="space-y-1.5">
                                             <span className="text-xs font-bold text-slate-600 uppercase tracking-wider">Mel Spectrogram</span>
-                                            <img src={res.spectrogram_image_path} alt="Mel Spectrogram Plot" className="w-full h-48 object-cover rounded-2xl border border-slate-200 shadow-sm" />
+                                            <img src={resolveAssetUrl(res.spectrogram_image_path)} alt="Mel Spectrogram Plot" className="w-full h-48 object-cover rounded-2xl border border-slate-200 shadow-sm" />
                                         </div>
                                     )}
                                 </div>

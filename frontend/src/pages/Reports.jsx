@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { api } from '../services/api';
+import { api, resolveAssetUrl } from '../services/api';
 import {
     FileText, Download, FileSpreadsheet, FileCode, CheckCircle2,
     ShieldCheck, Activity, Users, Trees, Sparkles
@@ -26,7 +26,7 @@ export default function Reports() {
     }, []);
 
     const exportFile = (format) => {
-        window.open(`http://127.0.0.1:8000/api/reports/export/${format}`, '_blank');
+        window.open(resolveAssetUrl(`/api/reports/export/${format}`), '_blank');
     };
 
     if (loading) {

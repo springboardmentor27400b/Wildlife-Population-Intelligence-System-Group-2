@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { formatToIST } from '../utils/dateTime';
-import { api } from '../services/api';
+import { api, resolveAssetUrl } from '../services/api';
 
 function formatConfidence(value) {
     if (value === undefined || value === null || value === '') {
@@ -127,7 +127,7 @@ export default function ImageUploader({ onUpload }) {
                                 <div className="space-y-1">
                                     <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">1. Original</span>
                                     {(res.original_image || res.previewUrl) ? (
-                                        <img src={res.original_image || res.previewUrl} alt="Uploaded Original" className="w-full h-[300px] object-contain bg-slate-50 rounded-xl border border-slate-200" />
+                                        <img src={resolveAssetUrl(res.original_image || res.previewUrl)} alt="Uploaded Original" className="w-full h-[300px] object-contain bg-slate-50 rounded-xl border border-slate-200" />
                                     ) : (
                                         <div className="w-full h-[300px] bg-slate-50 flex items-center justify-center rounded-xl border border-slate-200 text-slate-400 text-sm font-medium">No Image Available</div>
                                     )}
@@ -136,7 +136,7 @@ export default function ImageUploader({ onUpload }) {
                                 <div className="space-y-1">
                                     <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">2. Detection</span>
                                     {(res.detected_image || res.annotated_image || res.annotated_image_path) ? (
-                                        <img src={res.detected_image || res.annotated_image || res.annotated_image_path} alt="Annotated Detection" className="w-full h-[300px] object-contain bg-slate-50 rounded-xl border border-slate-200" />
+                                        <img src={resolveAssetUrl(res.detected_image || res.annotated_image || res.annotated_image_path)} alt="Annotated Detection" className="w-full h-[300px] object-contain bg-slate-50 rounded-xl border border-slate-200" />
                                     ) : (
                                         <div className="w-full h-[300px] bg-slate-50 flex items-center justify-center rounded-xl border border-slate-200 text-slate-400 text-sm font-medium">No Detection Available</div>
                                     )}
@@ -145,7 +145,7 @@ export default function ImageUploader({ onUpload }) {
                                 <div className="space-y-1">
                                     <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">3. Bounding Box</span>
                                     {(res.bounding_box_crop || res.crop_image || res.crop_image_path) ? (
-                                        <img src={res.bounding_box_crop || res.crop_image || res.crop_image_path} alt="Bounding Box Crop" className="w-full h-[300px] object-contain bg-slate-50 rounded-xl border border-slate-200" />
+                                        <img src={resolveAssetUrl(res.bounding_box_crop || res.crop_image || res.crop_image_path)} alt="Bounding Box Crop" className="w-full h-[300px] object-contain bg-slate-50 rounded-xl border border-slate-200" />
                                     ) : (
                                         <div className="w-full h-[300px] bg-slate-50 flex items-center justify-center rounded-xl border border-slate-200 text-slate-400 text-sm font-medium">No Detection Available</div>
                                     )}

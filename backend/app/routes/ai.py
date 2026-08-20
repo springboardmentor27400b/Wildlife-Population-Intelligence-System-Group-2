@@ -529,6 +529,13 @@ def get_biodiversity_monthly_velocity(current_user: User = Depends(get_current_u
     return summary.get("monthly_trends", [])
 
 
+biodiversity_router = APIRouter(prefix="/biodiversity", tags=["biodiversity"])
+biodiversity_router.add_api_route("", biodiversity_summary, methods=["GET"], response_model=BiodiversitySummary)
+biodiversity_router.add_api_route("/confidence-trend", get_biodiversity_confidence_trend, methods=["GET"])
+biodiversity_router.add_api_route("/daily-velocity", get_biodiversity_daily_velocity, methods=["GET"])
+biodiversity_router.add_api_route("/monthly-velocity", get_biodiversity_monthly_velocity, methods=["GET"])
+
+
 @router.get("/report/pdf")
 def generate_report_pdf(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)) -> StreamingResponse:
     repo = AIRepository(db)
