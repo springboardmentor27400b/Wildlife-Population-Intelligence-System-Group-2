@@ -1,18 +1,5 @@
-# Python
-.venv/
-__pycache__/
-*.pyc
-
-# Node
-node_modules/
-frontend/node_modules/
-frontend/.output/
-frontend/dist/
-
 # AI/model binary artifacts
 *.bin
 
-# Environment/secrets
-.env
-.env.*
-!.env.example
+# Large dataset artifacts
+datasets/snapshot_serengeti/all_images.csv
