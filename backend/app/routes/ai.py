@@ -165,12 +165,12 @@ def upload_image(file: UploadFile = File(...), location: Optional[str] = Form(No
 
 
 @router.get("/image/history", response_model=list[ImageDetectionOut])
-def image_history(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)) -> list[ImageDetectionOut]:
+def image_history(limit: int = 50, offset: int = 0, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)) -> list[ImageDetectionOut]:
     repo = AIRepository(db)
-    detections = repo.list_image_detections(current_user.id)
+    detections = repo.list_image_detections(current_user.id, limit=limit, offset=offset)
     if not detections:
         from app.models.image_detection import ImageDetection
-        detections = db.query(ImageDetection).order_by(ImageDetection.created_at.desc(), ImageDetection.id.desc()).all()
+        detections = db.query(ImageDetection).order_by(ImageDetection.created_at.desc(), ImageDetection.id.desc()).offset(offset).limit(limit).all()
     out = []
     for item in detections:
         rel_path = to_relative_upload_path(item.image_path)
@@ -377,12 +377,12 @@ def upload_audio(
 
 
 @router.get("/audio/history", response_model=list[AudioDetectionOut])
-def audio_history(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)) -> list[AudioDetectionOut]:
+def audio_history(limit: int = 50, offset: int = 0, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)) -> list[AudioDetectionOut]:
     repo = AIRepository(db)
-    detections = repo.list_audio_detections(current_user.id)
+    detections = repo.list_audio_detections(current_user.id, limit=limit, offset=offset)
     if not detections:
         from app.models.audio_detection import AudioDetection
-        detections = db.query(AudioDetection).order_by(AudioDetection.created_at.desc(), AudioDetection.id.desc()).all()
+        detections = db.query(AudioDetection).order_by(AudioDetection.created_at.desc(), AudioDetection.id.desc()).offset(offset).limit(limit).all()
     out = []
     for item in detections:
         rel_path = to_relative_upload_path(item.audio_path)

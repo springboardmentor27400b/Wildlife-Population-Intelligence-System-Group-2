@@ -36,8 +36,11 @@ class AIRepository:
         self.db.refresh(detection)
         return detection
 
-    def list_image_detections(self, user_id: int) -> list[ImageDetection]:
-        return self.db.query(ImageDetection).filter(ImageDetection.user_id == user_id).order_by(ImageDetection.created_at.desc(), ImageDetection.id.desc()).all()
+    def list_image_detections(self, user_id: Optional[int] = None, limit: int = 50, offset: int = 0) -> list[ImageDetection]:
+        query = self.db.query(ImageDetection)
+        if user_id is not None:
+            query = query.filter(ImageDetection.user_id == user_id)
+        return query.order_by(ImageDetection.created_at.desc(), ImageDetection.id.desc()).offset(offset).limit(limit).all()
 
     def delete_image_detection(self, detection_id: int, user_id: int) -> bool:
         detection = self.db.query(ImageDetection).filter(ImageDetection.id == detection_id, ImageDetection.user_id == user_id).first()
@@ -80,8 +83,11 @@ class AIRepository:
         self.db.refresh(detection)
         return detection
 
-    def list_audio_detections(self, user_id: int) -> list[AudioDetection]:
-        return self.db.query(AudioDetection).filter(AudioDetection.user_id == user_id).order_by(AudioDetection.created_at.desc(), AudioDetection.id.desc()).all()
+    def list_audio_detections(self, user_id: Optional[int] = None, limit: int = 50, offset: int = 0) -> list[AudioDetection]:
+        query = self.db.query(AudioDetection)
+        if user_id is not None:
+            query = query.filter(AudioDetection.user_id == user_id)
+        return query.order_by(AudioDetection.created_at.desc(), AudioDetection.id.desc()).offset(offset).limit(limit).all()
 
     def delete_audio_detection(self, detection_id: int, user_id: int) -> bool:
         detection = self.db.query(AudioDetection).filter(AudioDetection.id == detection_id, AudioDetection.user_id == user_id).first()
