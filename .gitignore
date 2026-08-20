@@ -73,10 +73,29 @@ datasets/processed/
 datasets/train/
 datasets/test/
 datasets/validation/
-backend/datasets/processed/
-backend/datasets/train/
-backend/datasets/test/
-backend/datasets/validation/
+backend/datasets/
+
+# Redundant documentation & presentation notes
+PRESENTATION_NOTES.md
+README_DEPLOYMENT.md
+INSTALLATION.md
+USER_MANUAL.md
+API_DOCUMENTATION.md
+ARCHITECTURE.md
+DATABASE_SCHEMA.md
+
+# Redundant manual test data, generated reports & legacy scripts
+sample_data_for_testing/
+sample_images/
+datasets/dataset_report.csv
+datasets/load_sites.py
+datasets/load_species.py
+datasets/verify_dataset.py
+backend/.env.example
+backend/scripts/download_datasets.py
+backend/scripts/generate_sample_test_images.py
+backend/scripts/purge_fake_data.py
+backend/scripts/test_image_upload_e2e.py
 
 # IDE & OS
 .vscode/
