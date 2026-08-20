@@ -142,12 +142,17 @@ class ModelManager:
 
     def ensure_image_model(self) -> None:
         """Lazy-load only the lightweight image detection model when requested."""
+        if os.getenv("ENABLE_CPU_YOLO", "false").lower() != "true" and self.device == "cpu":
+            self._yolo_model = None
+            self._image_backend = "vision_heuristics"
+            return
+
         if self._yolo_model is None:
             try:
                 model_name = os.getenv("YOLO_MODEL_PATH", "yolov8n.pt")
                 resolved_model = None
                 for candidate in [model_name, f"backend/{model_name}", Path(__file__).resolve().parent.parent.parent / model_name]:
-                    if candidate and Path(candidate).exists():
+                    if candidate and Path(candidate).is_file():
                         resolved_model = str(candidate)
                         break
                 
@@ -158,7 +163,6 @@ class ModelManager:
                     self._image_backend = "yolov8n_coco"
                     logger.info("Lightweight YOLO detector ready.")
                 else:
-                    logger.info("YOLO weights '%s' not present on disk. Using fast vision heuristics fallback.", model_name)
                     self._yolo_model = None
                     self._image_backend = "vision_heuristics"
             except Exception as exc:
@@ -180,7 +184,7 @@ class ModelManager:
                 self._clip_model = None
 
     def ensure_audio_model(self) -> None:
-        """Lazy-load AST model only if explicitly requested; otherwise use optimized librosa bioacoustics."""
+        """Lazy-load AST model only if explicitly requested; otherwise use optimized bioacoustics."""
         if os.getenv("ENABLE_AST_TRANSFORMER", "false").lower() == "true" and self._ast_model is None:
             try:
                 from transformers import ASTFeatureExtractor, AutoModelForAudioClassification
@@ -194,11 +198,11 @@ class ModelManager:
                 self._ast_model.eval()
                 self._audio_backend = "ast_audioset"
             except Exception as exc:
-                logger.warning("AST load failed (%s). Using librosa bioacoustics.", exc)
+                logger.warning("AST load failed (%s). Using fast bioacoustics.", exc)
                 self._ast_model = None
-                self._audio_backend = "librosa_bioacoustics"
+                self._audio_backend = "fast_bioacoustics"
         else:
-            self._audio_backend = "librosa_bioacoustics"
+            self._audio_backend = "fast_bioacoustics"
 
     def ensure_models(self) -> ModelStatus:
         return self.get_status()
@@ -221,8 +225,9 @@ class ModelManager:
                 inputs = {k: v.to(self.device) for k, v in inputs.items()}
                 with torch.inference_mode():
                     outputs = self._clip_model(**inputs)
-                    probs = outputs.logits_per_image.softmax(dim=1)[0]
-                    best_idx = int(probs.argmax().item())
+                    logits_per_image = outputs.logits_per_image
+                    probs = logits_per_image.softmax(dim=1)[0]
+                    best_idx = int(torch.argmax(probs).item())
                     best_prob = float(probs[best_idx].item())
                     if best_prob > 0.15:
                         return REAL_SPECIES[best_idx], round(best_prob, 2)
@@ -278,11 +283,9 @@ class ModelManager:
         if self._yolo_model is not None and full_pil is not None:
             try:
                 img_cv = cv2.cvtColor(np.array(full_pil), cv2.COLOR_RGB2BGR) if HAS_CV2 else None
-                
-                # Run lightweight YOLO inference
                 results = self._yolo_model.predict(
                     img_cv if img_cv is not None else image_path,
-                    imgsz=384,
+                    imgsz=320,
                     conf=0.15,
                     iou=0.45,
                     verbose=False,
@@ -424,74 +427,46 @@ class ModelManager:
             raise FileNotFoundError(f"Audio file not found: {audio_file.resolve()}")
 
         # 1. Load audio with strict memory constraints (max 5s, sr=16000)
-        samples = np.array([])
+        samples = np.array([], dtype=np.float32)
         sr = 16000
         duration_sec = 1.0
         spectral_centroid = 1250.0
         rms_energy = 0.045
         zcr_mean = 0.035
 
-        if HAS_LIBROSA:
-            try:
+        try:
+            import soundfile as sf
+            raw_data, orig_sr = sf.read(str(audio_file), dtype="float32", always_2d=False)
+            if hasattr(raw_data, "ndim") and raw_data.ndim > 1:
+                raw_data = np.mean(raw_data, axis=1)
+            if orig_sr != 16000 and HAS_LIBROSA:
+                samples = librosa.resample(raw_data, orig_sr=orig_sr, target_sr=16000)
+            else:
+                samples = raw_data
+            if len(samples) > 16000 * 5:
+                samples = samples[:16000 * 5]
+            sr = 16000
+        except Exception:
+            if HAS_LIBROSA:
                 try:
-                    import soundfile as sf
-                    raw_data, orig_sr = sf.read(str(audio_file), dtype="float32", always_2d=False)
-                    if hasattr(raw_data, "ndim") and raw_data.ndim > 1:
-                        raw_data = np.mean(raw_data, axis=1)
-                    if orig_sr != 16000:
-                        samples = librosa.resample(raw_data, orig_sr=orig_sr, target_sr=16000)
-                    else:
-                        samples = raw_data
-                    if len(samples) > 16000 * 5:
-                        samples = samples[:16000 * 5]
-                    sr = 16000
-                except Exception:
                     samples, sr = librosa.load(str(audio_file), sr=16000, duration=5.0, mono=True)
-                
-                duration_sec = float(len(samples)) / float(sr) if len(samples) > 0 else 1.0
-                
-                # Extract lightweight features
-                if len(samples) > 0:
-                    spectral_centroid = float(np.mean(librosa.feature.spectral_centroid(y=samples, sr=sr)))
-                    rms_energy = float(np.mean(librosa.feature.rms(y=samples)))
-                    zcr_mean = float(np.mean(librosa.feature.zero_crossing_rate(samples)))
-            except Exception as exc:
-                logger.warning("Audio feature extraction exception: %s", exc)
+                except Exception:
+                    samples = np.array([], dtype=np.float32)
 
-        # 2. Species identification via AST transformer, acoustic signature & keywords
+        if len(samples) > 0:
+            duration_sec = float(len(samples)) / float(sr)
+            rms_energy = float(np.sqrt(np.mean(samples**2)))
+            zcr_mean = float(np.mean(np.abs(np.diff(np.sign(samples)))) / 2)
+            fft_len = min(len(samples), 4096)
+            mags = np.abs(np.fft.rfft(samples[:fft_len]))
+            freqs = np.fft.rfftfreq(fft_len, 1.0 / sr)
+            spectral_centroid = float(np.sum(freqs * mags) / (np.sum(mags) + 1e-6))
+
+        # 2. Species identification via acoustic signature & keywords
         fname_search = f"{original_filename or ''} {audio_file.name}".lower()
         predicted_species = "African Fish Eagle"
         audio_confidence = 0.92
         top5_predictions = []
-
-        # Optional AST Audio Spectrogram Transformer inference (16kHz resampling)
-        if self._ast_model is not None and self._ast_extractor is not None and len(samples) > 0 and HAS_TORCH:
-            try:
-                inputs = self._ast_extractor(samples, sampling_rate=16000, return_tensors="pt")
-                inputs = {k: v.to(self.device) for k, v in inputs.items()}
-                with torch.inference_mode():
-                    outputs = self._ast_model(**inputs)
-                    logits = outputs.logits[0]
-                    probs = torch.softmax(logits, dim=-1)
-                    top_indices = torch.topk(probs, k=5).indices.tolist()
-                    top_probs = torch.topk(probs, k=5).values.tolist()
-                    id2label = getattr(self._ast_model.config, "id2label", {})
-                    top5_predictions = [
-                        {"label": id2label.get(idx, f"Class {idx}"), "confidence": round(float(top_probs[i]), 3)}
-                        for i, idx in enumerate(top_indices)
-                    ]
-                    for p in top5_predictions:
-                        lbl = p["label"].lower()
-                        for sp, kw_list in AUDIO_KEYWORDS.items():
-                            if any(k in lbl for k in kw_list):
-                                predicted_species = sp
-                                audio_confidence = max(0.85, round(float(p["confidence"]), 2))
-                                matched = True
-                                break
-                        if matched:
-                            break
-            except Exception as exc:
-                logger.warning("AST inference warning: %s", exc)
 
         matched = False
         for sp, kw_list in AUDIO_KEYWORDS.items():
@@ -502,7 +477,6 @@ class ModelManager:
                 break
 
         if not matched:
-            # Frequency-based acoustic heuristic
             if spectral_centroid > 2500.0:
                 predicted_species = "African Fish Eagle"
                 audio_confidence = 0.91
@@ -521,7 +495,7 @@ class ModelManager:
         # 3. Generate visualizer plots (Waveform & Mel Spectrogram) with lightweight PIL
         if len(samples) > 0:
             try:
-                # Waveform (Slate dark theme with emerald green waveform)
+                # Waveform
                 wf_w, wf_h = 400, 120
                 img_wf = Image.new("RGB", (wf_w, wf_h), "#0f172a")
                 draw_wf = ImageDraw.Draw(img_wf)
@@ -542,13 +516,17 @@ class ModelManager:
                 img_wf.save(str(waveform_path), format="PNG")
                 del img_wf
 
-                # Spectrogram
+                # Fast NumPy Spectrogram
                 sp_w, sp_h = 400, 120
-                if HAS_LIBROSA:
-                    mel_spec = librosa.feature.melspectrogram(y=samples, sr=sr, n_mels=48, hop_length=256)
-                    mel_db = librosa.power_to_db(mel_spec, ref=np.max)
-                    norm_spec = ((mel_db - mel_db.min()) / (mel_db.max() - mel_db.min() + 1e-6) * 255.0).astype(np.uint8)
-                    norm_spec = np.flipud(norm_spec)
+                frame_len = 256
+                hop_len = 128
+                if len(samples) > frame_len:
+                    frames = np.lib.stride_tricks.sliding_window_view(samples, frame_len)[::hop_len]
+                    window = np.hanning(frame_len)
+                    spec = np.abs(np.fft.rfft(frames * window, axis=1))
+                    spec_db = 20 * np.log10(spec + 1e-6)
+                    norm_spec = ((spec_db - spec_db.min()) / (spec_db.max() - spec_db.min() + 1e-6) * 255.0).astype(np.uint8)
+                    norm_spec = np.rot90(norm_spec)
                     
                     r = (np.clip((norm_spec - 128) * 2, 0, 255) * 0.9 + np.clip(norm_spec * 1.5, 0, 255) * 0.1).astype(np.uint8)
                     g = np.clip(norm_spec * 1.2, 0, 255).astype(np.uint8)
@@ -558,12 +536,6 @@ class ModelManager:
                     img_sp = Image.fromarray(rgb, "RGB").resize((sp_w, sp_h), Image.Resampling.BILINEAR)
                     draw_sp = ImageDraw.Draw(img_sp)
                     draw_sp.text((10, 8), "Mel-Spectrogram Profile", fill="#f8fafc")
-                    img_sp.save(str(spectrogram_path), format="PNG")
-                    del img_sp
-                else:
-                    img_sp = Image.new("RGB", (sp_w, sp_h), "#0f172a")
-                    draw_sp = ImageDraw.Draw(img_sp)
-                    draw_sp.text((10, 8), "Mel-Spectrogram Profile", fill="#94a3b8")
                     img_sp.save(str(spectrogram_path), format="PNG")
                     del img_sp
             except Exception as exc:
@@ -586,10 +558,12 @@ class ModelManager:
                 "spectral_centroid": round(spectral_centroid, 2),
                 "rms_energy": round(rms_energy, 4),
                 "zero_crossing_rate": round(zcr_mean, 4),
-                "dominant_frequency": f"{spectral_centroid:.1f} Hz",
+                "duration": round(duration_sec, 2),
             },
-            "waveform_image_path": str(waveform_path) if waveform_path.exists() else "",
-            "spectrogram_image_path": str(spectrogram_path) if spectrogram_path.exists() else "",
+            "top5_predictions": top5_predictions,
+            "waveform_image_path": str(waveform_path) if waveform_path.exists() else None,
+            "spectrogram_image_path": str(spectrogram_path) if spectrogram_path.exists() else None,
+            "audio_path": str(audio_file),
             "prediction_time": elapsed,
         }
 
