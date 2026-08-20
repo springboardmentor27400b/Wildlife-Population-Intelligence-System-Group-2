@@ -1,0 +1,688 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Administrator Dashboard | WPIS</title>
+
+    <link
+        rel="stylesheet"
+        href="css/dashboard.css"
+    >
+
+    <link
+        rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css"
+    >
+
+</head>
+
+
+<body>
+
+<div class="app-shell">
+
+
+    <!-- =====================================================
+         SIDEBAR
+    ====================================================== -->
+
+    <aside
+        class="sidebar"
+        id="sidebar"
+    >
+
+        <a
+            class="brand"
+            href="admin-dashboard.html"
+        >
+
+            <img
+                src="images/logo.png"
+                alt="WPIS Logo"
+            >
+
+            WPIS
+
+        </a>
+
+
+        <nav class="side-nav">
+
+            <a
+                class="active"
+                href="admin-dashboard.html"
+            >
+
+                <i class="fa-solid fa-table-columns"></i>
+
+                Admin Dashboard
+
+            </a>
+
+            <a href="gis.html">
+                <i class="fa-solid fa-map"></i>
+                GIS Visualization
+            </a>
+
+
+            <a href="monitoring.html">
+
+                <i class="fa-solid fa-map-location-dot"></i>
+
+                Monitoring Management
+
+            </a>
+
+            <a href="reports.html">
+                <i class="fa-solid fa-file-lines"></i>
+                Reports & Export
+            </a>
+
+
+            <a href="wildlife.html">
+
+                <i class="fa-solid fa-paw"></i>
+
+                Wildlife Records
+
+            </a>
+
+
+            <a href="population.html">
+
+                <i class="fa-solid fa-chart-line"></i>
+
+                Population Analytics
+
+            </a>
+
+
+            <a href="habitat.html">
+
+                <i class="fa-solid fa-tree"></i>
+
+                Habitat Intelligence
+
+            </a>
+
+
+            <a href="conservation.html">
+
+                <i class="fa-solid fa-shield-heart"></i>
+
+                Conservation
+
+            </a>
+
+
+            <a href="health.html">
+
+                <i class="fa-solid fa-heart-pulse"></i>
+
+                Wildlife Health
+
+            </a>
+
+
+            <a href="audio.html">
+
+                <i class="fa-solid fa-volume-high"></i>
+
+                Audio Analysis
+
+            </a>
+
+
+            <a
+                class="logout"
+                href="#"
+                data-logout
+            >
+
+                <i class="fa-solid fa-arrow-right-from-bracket"></i>
+
+                Logout
+
+            </a>
+
+        </nav>
+
+    </aside>
+
+
+
+    <!-- =====================================================
+         MAIN
+    ====================================================== -->
+
+    <main class="app-main">
+
+
+        <!-- =================================================
+             HEADER
+        ================================================== -->
+
+        <header class="app-header">
+
+            <div>
+
+                <button
+                    class="menu-button"
+                    id="menuButton"
+                >
+
+                    <i class="fa-solid fa-bars"></i>
+
+                </button>
+
+
+                <h1>
+                    Administrator Dashboard
+                </h1>
+
+
+                <span>
+                    Platform administration, analytics and
+                    monitoring system management
+                </span>
+
+            </div>
+
+
+            <div class="ai-status">
+
+                <i class="fa-solid fa-circle"></i>
+
+                Platform Active
+
+            </div>
+
+        </header>
+
+
+
+        <!-- =================================================
+             PLATFORM OVERVIEW
+        ================================================== -->
+
+        <section class="dashboard-section">
+
+            <div class="section-heading">
+
+                <div>
+
+                    <h2>
+                        Platform Overview
+                    </h2>
+
+                    <p>
+                        Current WPIS platform activity and system statistics
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <div class="dash-stats">
+
+
+                <article class="dash-stat">
+
+                    <i class="fa-solid fa-users"></i>
+
+                    <strong id="totalUsers">
+                        --
+                    </strong>
+
+                    <span>
+                        Total Users
+                    </span>
+
+                </article>
+
+
+                <article class="dash-stat">
+
+                    <i class="fa-solid fa-map-location-dot"></i>
+
+                    <strong id="totalSites">
+                        --
+                    </strong>
+
+                    <span>
+                        Monitoring Sites
+                    </span>
+
+                </article>
+
+
+                <article class="dash-stat">
+
+                    <i class="fa-solid fa-paw"></i>
+
+                    <strong id="totalWildlife">
+                        --
+                    </strong>
+
+                    <span>
+                        Wildlife Records
+                    </span>
+
+                </article>
+
+
+                <article class="dash-stat">
+
+                    <i class="fa-solid fa-image"></i>
+
+                    <strong id="totalImages">
+                        --
+                    </strong>
+
+                    <span>
+                        Images Analyzed
+                    </span>
+
+                </article>
+
+
+                <article class="dash-stat">
+
+                    <i class="fa-solid fa-volume-high"></i>
+
+                    <strong id="totalAudio">
+                        --
+                    </strong>
+
+                    <span>
+                        Audio Files
+                    </span>
+
+                </article>
+
+            </div>
+
+        </section>
+
+
+
+        <!-- =================================================
+             PLATFORM ANALYTICS
+        ================================================== -->
+
+        <section class="dashboard-section">
+
+            <div class="section-heading">
+
+                <div>
+
+                    <h2>
+                        Platform Analytics
+                    </h2>
+
+                    <p>
+                        System-wide research and AI activity
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <div class="dashboard-grid">
+
+
+                <article class="panel">
+
+                    <div class="panel-heading">
+
+                        <div>
+
+                            <h2>
+                                <i class="fa-solid fa-chart-column"></i>
+                                Activity Overview
+                            </h2>
+
+                            <p class="panel-subtitle">
+                                Platform usage and analysis volume
+                            </p>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="chart-wrapper">
+
+                        <canvas id="adminActivityChart"></canvas>
+
+                    </div>
+
+                </article>
+
+
+                <article class="panel">
+
+                    <div class="panel-heading">
+
+                        <div>
+
+                            <h2>
+                                <i class="fa-solid fa-brain"></i>
+                                AI Processing
+                            </h2>
+
+                            <p class="panel-subtitle">
+                                Current wildlife intelligence activity
+                            </p>
+
+                        </div>
+
+                    </div>
+
+
+                    <div
+                        id="aiAnalyticsData"
+                        class="intelligence-list"
+                    >
+
+                        <div class="loading-text">
+                            Loading AI analytics...
+                        </div>
+
+                    </div>
+
+                </article>
+
+            </div>
+
+        </section>
+
+
+
+        <!-- =================================================
+             USER MANAGEMENT
+        ================================================== -->
+
+        <section class="dashboard-section">
+
+            <div class="section-heading">
+
+                <div>
+
+                    <h2>
+                        <i class="fa-solid fa-users-gear"></i>
+                        User Management
+                    </h2>
+
+                    <p>
+                        Registered WPIS users and assigned roles
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <article class="panel">
+
+                <div
+                    id="usersData"
+                    class="intelligence-list"
+                >
+
+                    <div class="loading-text">
+                        Loading users...
+                    </div>
+
+                </div>
+
+            </article>
+
+        </section>
+
+
+
+        <!-- =================================================
+             MONITORING SYSTEM MANAGEMENT
+        ================================================== -->
+
+        <section class="dashboard-section">
+
+            <div class="section-heading">
+
+                <div>
+
+                    <h2>
+                        <i class="fa-solid fa-satellite-dish"></i>
+                        Monitoring System Management
+                    </h2>
+
+                    <p>
+                        Registered monitoring sites and device activity
+                    </p>
+
+                </div>
+
+                <a
+                    href="monitoring.html"
+                    class="panel-action"
+                >
+                    Manage monitoring
+                    <i class="fa-solid fa-arrow-right"></i>
+                </a>
+
+            </div>
+
+
+            <article class="panel">
+
+                <div
+                    id="monitoringData"
+                    class="intelligence-list"
+                >
+
+                    <div class="loading-text">
+                        Loading monitoring systems...
+                    </div>
+
+                </div>
+
+            </article>
+
+        </section>
+
+
+
+        <!-- =================================================
+             REPORT GENERATION
+        ================================================== -->
+
+        <section class="dashboard-section">
+
+            <div class="section-heading">
+
+                <div>
+
+                    <h2>
+                        <i class="fa-solid fa-file-lines"></i>
+                        Report Generation
+                    </h2>
+
+                    <p>
+                        Generate analytical reports from WPIS data
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <div class="quick-links">
+
+
+                <a
+                    class="quick-card"
+                    href="reports.html?type=wildlife"
+                >
+
+                    <div class="quick-icon">
+
+                        <i class="fa-solid fa-paw"></i>
+
+                    </div>
+
+                    <div class="quick-content">
+
+                        <h3>
+                            Wildlife Reports
+                        </h3>
+
+                        <p>
+                            Generate wildlife survey and observation reports.
+                        </p>
+
+                    </div>
+
+                    <span class="quick-arrow">
+
+                        Generate
+                        <i class="fa-solid fa-arrow-right"></i>
+
+                    </span>
+
+                </a>
+
+
+                <a
+                    class="quick-card"
+                    href="reports.html?type=population"
+                >
+
+                    <div class="quick-icon">
+
+                        <i class="fa-solid fa-chart-line"></i>
+
+                    </div>
+
+                    <div class="quick-content">
+
+                        <h3>
+                            Population Reports
+                        </h3>
+
+                        <p>
+                            Generate species population analytics.
+                        </p>
+
+                    </div>
+
+                    <span class="quick-arrow">
+
+                        Generate
+                        <i class="fa-solid fa-arrow-right"></i>
+
+                    </span>
+
+                </a>
+
+
+                <a
+                    class="quick-card"
+                    href="reports.html?type=biodiversity"
+                >
+
+                    <div class="quick-icon">
+
+                        <i class="fa-solid fa-seedling"></i>
+
+                    </div>
+
+                    <div class="quick-content">
+
+                        <h3>
+                            Biodiversity Reports
+                        </h3>
+
+                        <p>
+                            Generate biodiversity and ecosystem reports.
+                        </p>
+
+                    </div>
+
+                    <span class="quick-arrow">
+
+                        Generate
+                        <i class="fa-solid fa-arrow-right"></i>
+
+                    </span>
+
+                </a>
+
+
+                <a
+                    class="quick-card"
+                    href="reports.html?type=conservation"
+                >
+
+                    <div class="quick-icon">
+
+                        <i class="fa-solid fa-shield-heart"></i>
+
+                    </div>
+
+                    <div class="quick-content">
+
+                        <h3>
+                            Conservation Reports
+                        </h3>
+
+                        <p>
+                            Generate conservation priority reports.
+                        </p>
+
+                    </div>
+
+                    <span class="quick-arrow">
+
+                        Generate
+                        <i class="fa-solid fa-arrow-right"></i>
+
+                    </span>
+
+                </a>
+
+
+            </div>
+
+        </section>
+
+
+    </main>
+
+</div>
+
+<script>
+    window.WPIS_ALLOWED_ROLES = [
+        "administrator"
+    ];
+</script>
+
+<script src="js/role-guard.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="js/admin-dashboard.js"></script>
+<script src="js/notifications.js"></script>
+
+
+</body>
+
+</html>

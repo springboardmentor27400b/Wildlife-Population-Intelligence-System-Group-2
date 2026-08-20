@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Forest Department Dashboard | WPIS</title>
+
+    <link
+        rel="stylesheet"
+        href="css/dashboard.css"
+    >
+
+    <link
+        rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css"
+    >
+
+</head>
+
+
+<body>
+
+<div class="app-shell">
+
+
+    <!-- =====================================================
+         SIDEBAR
+    ====================================================== -->
+
+    <aside
+        class="sidebar"
+        id="sidebar"
+    >
+
+        <a
+            class="brand"
+            href="forest-dashboard.html"
+        >
+
+            <img
+                src="images/logo.png"
+                alt="WPIS Logo"
+            >
+
+            WPIS
+
+        </a>
+
+
+        <nav class="side-nav">
+
+            <a
+                class="active"
+                href="forest-dashboard.html"
+            >
+
+                <i class="fa-solid fa-table-columns"></i>
+
+                Forest Dashboard
+
+            </a>
+
+            <a href="gis.html">
+                <i class="fa-solid fa-map"></i>
+                GIS Visualization
+            </a>
+
+
+            <a href="monitoring.html">
+
+                <i class="fa-solid fa-map-location-dot"></i>
+
+                Monitoring Sites
+
+            </a>
+
+            <a href="reports.html">
+                <i class="fa-solid fa-file-lines"></i>
+                Reports & Export
+            </a>
+
+
+            <a href="wildlife.html">
+
+                <i class="fa-solid fa-paw"></i>
+
+                Wildlife
+
+            </a>
+
+
+            <a href="population.html">
+
+                <i class="fa-solid fa-chart-line"></i>
+
+                Population Intelligence
+
+            </a>
+
+
+            <a href="habitat.html">
+
+                <i class="fa-solid fa-tree"></i>
+
+                Habitat Intelligence
+
+            </a>
+
+
+            <a href="conservation.html">
+
+                <i class="fa-solid fa-shield-heart"></i>
+
+                Conservation
+
+            </a>
+
+
+            <a href="health.html">
+
+                <i class="fa-solid fa-heart-pulse"></i>
+
+                Wildlife Health
+
+            </a>
+
+            <a class="logout"
+            href="#"
+            data-logout
+            >
+            <i class="fa-solid fa-arrow-right-from-bracket"></i>
+            Logout
+        </a>
+
+        </nav>
+
+    </aside>
+
+
+
+    <!-- =====================================================
+         MAIN
+    ====================================================== -->
+
+    <main class="app-main">
+
+
+        <!-- =================================================
+             HEADER
+        ================================================== -->
+
+        <header class="app-header">
+
+            <div>
+
+                <button
+                    class="menu-button"
+                    id="menuButton"
+                >
+
+                    <i class="fa-solid fa-bars"></i>
+
+                </button>
+
+
+                <h1>
+                    Forest Department Dashboard
+                </h1>
+
+
+                <span>
+                    Protected-area monitoring, wildlife movement,
+                    patrol planning and field intelligence
+                </span>
+
+            </div>
+
+
+            <div class="ai-status">
+
+                <i class="fa-solid fa-circle"></i>
+
+                Field Intelligence Active
+
+            </div>
+
+        </header>
+
+
+
+        <!-- =================================================
+             FIELD OVERVIEW
+        ================================================== -->
+
+        <section class="dashboard-section">
+
+            <div class="section-heading">
+
+                <div>
+
+                    <h2>
+                        Field Operations Overview
+                    </h2>
+
+                    <p>
+                        Current monitoring and wildlife activity across
+                        registered field locations
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <div class="dash-stats">
+
+
+                <article class="dash-stat">
+
+                    <i class="fa-solid fa-shield-halved"></i>
+
+                    <strong id="protectedAreaCount">
+                        --
+                    </strong>
+
+                    <span>
+                        Protected / monitored areas
+                    </span>
+
+                </article>
+
+
+                <article class="dash-stat">
+
+                    <i class="fa-solid fa-location-dot"></i>
+
+                    <strong id="monitoringSiteCount">
+                        --
+                    </strong>
+
+                    <span>
+                        Monitoring sites
+                    </span>
+
+                </article>
+
+
+                <article class="dash-stat">
+
+                    <i class="fa-solid fa-route"></i>
+
+                    <strong id="movementSpeciesCount">
+                        --
+                    </strong>
+
+                    <span>
+                        Species movement records
+                    </span>
+
+                </article>
+
+
+                <article class="dash-stat">
+
+                    <i class="fa-solid fa-triangle-exclamation"></i>
+
+                    <strong id="incidentCount">
+                        --
+                    </strong>
+
+                    <span>
+                        Recent wildlife observations
+                    </span>
+
+                </article>
+
+            </div>
+
+        </section>
+
+
+
+        <!-- =================================================
+             PROTECTED AREA MONITORING
+        ================================================== -->
+
+        <section class="dashboard-section">
+
+            <div class="section-heading">
+
+                <div>
+
+                    <h2>
+                        <i class="fa-solid fa-shield-halved"></i>
+                        Protected Area Monitoring
+                    </h2>
+
+                    <p>
+                        Monitoring locations, habitat types, priorities
+                        and recommended field resources
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <article class="panel">
+
+                <div
+                    id="protectedAreaData"
+                    class="intelligence-list"
+                >
+
+                    <div class="loading-text">
+                        Loading protected-area monitoring...
+                    </div>
+
+                </div>
+
+            </article>
+
+        </section>
+
+
+
+        <!-- =================================================
+             WILDLIFE MOVEMENT
+        ================================================== -->
+
+        <section class="dashboard-section">
+
+            <div class="section-heading">
+
+                <div>
+
+                    <h2>
+                        <i class="fa-solid fa-route"></i>
+                        Wildlife Movement Analysis
+                    </h2>
+
+                    <p>
+                        Species movement across registered monitoring locations
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <article class="panel">
+
+                <div
+                    id="movementData"
+                    class="intelligence-list"
+                >
+
+                    <div class="loading-text">
+                        Analyzing wildlife movement...
+                    </div>
+
+                </div>
+
+            </article>
+
+        </section>
+
+
+
+        <!-- =================================================
+             PATROL PLANNING
+        ================================================== -->
+
+        <section class="dashboard-section">
+
+            <div class="section-heading">
+
+                <div>
+
+                    <h2>
+                        <i class="fa-solid fa-person-walking"></i>
+                        Patrol Planning
+                    </h2>
+
+                    <p>
+                        Recommended patrol frequency and field resources
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <article class="panel">
+
+                <div
+                    id="patrolData"
+                    class="intelligence-list"
+                >
+
+                    <div class="loading-text">
+                        Loading patrol recommendations...
+                    </div>
+
+                </div>
+
+            </article>
+
+        </section>
+
+
+
+        <!-- =================================================
+             INCIDENT / OBSERVATION LOG
+        ================================================== -->
+
+        <section class="dashboard-section">
+
+            <div class="section-heading">
+
+                <div>
+
+                    <h2>
+                        <i class="fa-solid fa-triangle-exclamation"></i>
+                        Wildlife Observation Incident Log
+                    </h2>
+
+                    <p>
+                        Recent wildlife observations that may require
+                        field attention
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <article class="panel">
+
+                <div
+                    id="incidentData"
+                    class="intelligence-list"
+                >
+
+                    <div class="loading-text">
+                        Loading recent wildlife observations...
+                    </div>
+
+                </div>
+
+            </article>
+
+        </section>
+
+
+
+        <!-- =================================================
+             FIELD ACTION WORKFLOW
+        ================================================== -->
+
+        <section class="dashboard-section">
+
+            <div class="section-heading">
+
+                <div>
+
+                    <h2>
+                        Field Operations Workflow
+                    </h2>
+
+                    <p>
+                        From monitoring data to field action
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <article class="panel">
+
+                <div class="dash-stats">
+
+
+                    <div class="dash-stat">
+
+                        <i class="fa-solid fa-location-dot"></i>
+
+                        <strong>
+                            01
+                        </strong>
+
+                        <span>
+                            Monitor Area
+                        </span>
+
+                    </div>
+
+
+                    <div class="dash-stat">
+
+                        <i class="fa-solid fa-paw"></i>
+
+                        <strong>
+                            02
+                        </strong>
+
+                        <span>
+                            Observe Wildlife
+                        </span>
+
+                    </div>
+
+
+                    <div class="dash-stat">
+
+                        <i class="fa-solid fa-route"></i>
+
+                        <strong>
+                            03
+                        </strong>
+
+                        <span>
+                            Analyze Movement
+                        </span>
+
+                    </div>
+
+
+                    <div class="dash-stat">
+
+                        <i class="fa-solid fa-person-walking"></i>
+
+                        <strong>
+                            04
+                        </strong>
+
+                        <span>
+                            Plan Patrol
+                        </span>
+
+                    </div>
+
+
+                    <div class="dash-stat">
+
+                        <i class="fa-solid fa-shield-halved"></i>
+
+                        <strong>
+                            05
+                        </strong>
+
+                        <span>
+                            Take Action
+                        </span>
+
+                    </div>
+
+                </div>
+
+            </article>
+
+        </section>
+
+
+    </main>
+
+</div>
+
+<script>
+    window.WPIS_ALLOWED_ROLES = [
+        "forest_department_officer"
+    ];
+</script>
+
+<script src="js/role-guard.js"></script>
+<script src="js/forest-dashboard.js"></script>
+<script src="js/notifications.js"></script>
+
+</body>
+
+</html>

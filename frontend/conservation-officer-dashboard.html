@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Conservation Officer Dashboard | WPIS</title>
+
+    <link
+        rel="stylesheet"
+        href="css/dashboard.css"
+    >
+
+    <link
+        rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css"
+    >
+
+</head>
+
+
+<body>
+
+<div class="app-shell">
+
+
+    <!-- =====================================================
+         SIDEBAR
+    ====================================================== -->
+
+    <aside class="sidebar">
+
+        <a
+            class="brand"
+            href="conservation-officer.html"
+        >
+
+            <img
+                src="images/logo.png"
+                alt="WPIS Logo"
+            >
+
+            WPIS
+
+        </a>
+
+
+        <nav class="side-nav">
+
+            <a
+                class="active"
+                href="conservation-officer.html"
+            >
+
+                <i class="fa-solid fa-table-columns"></i>
+
+                Officer Dashboard
+
+            </a>
+
+            <a href="gis.html">
+                <i class="fa-solid fa-map"></i>
+                GIS Visualization
+            </a>
+
+
+            <a href="conservation.html">
+
+                <i class="fa-solid fa-shield-heart"></i>
+
+                Conservation Intelligence
+
+            </a>
+
+
+            <a href="population.html">
+
+                <i class="fa-solid fa-chart-line"></i>
+
+                Population Intelligence
+
+            </a>
+
+
+            <a href="habitat.html">
+
+                <i class="fa-solid fa-tree"></i>
+
+                Habitat Intelligence
+
+            </a>
+
+
+            <a href="health.html">
+
+                <i class="fa-solid fa-heart-pulse"></i>
+
+                Wildlife Health
+
+            </a>
+
+
+            <a href="wildlife.html">
+
+                <i class="fa-solid fa-paw"></i>
+
+                Wildlife
+
+            </a>
+
+
+            <a href="monitoring.html">
+
+                <i class="fa-solid fa-map-location-dot"></i>
+
+                Monitoring
+
+            </a>
+
+
+            <a href="audio.html">
+
+                <i class="fa-solid fa-volume-high"></i>
+
+                Audio Analysis
+
+            </a>
+
+            <a href="reports.html">
+                <i class="fa-solid fa-file-lines"></i>
+                Reports & Export
+            </a>
+
+            <a class="logout" href="#" data-logout>
+                <i class="fa-solid fa-arrow-right-from-bracket"></i>
+                Logout
+            </a>
+
+        </nav>
+
+    </aside>
+
+
+
+    <!-- =====================================================
+         MAIN
+    ====================================================== -->
+
+    <main class="app-main">
+
+
+        <!-- =================================================
+             HEADER
+        ================================================== -->
+
+        <header class="app-header">
+
+            <div>
+
+                <h1>
+                    Conservation Officer Dashboard
+                </h1>
+
+                <span>
+                    Wildlife protection, conservation priorities
+                    and field action intelligence
+                </span>
+
+            </div>
+
+
+            <div class="ai-status">
+
+                <i class="fa-solid fa-circle"></i>
+
+                Conservation Intelligence Active
+
+            </div>
+
+        </header>
+
+
+
+        <!-- =================================================
+             OVERVIEW
+        ================================================== -->
+
+        <section class="dashboard-section">
+
+            <div class="section-heading">
+
+                <div>
+
+                    <h2>
+                        Conservation Action Overview
+                    </h2>
+
+                    <p>
+                        Current priorities requiring conservation attention
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <div class="dash-stats">
+
+
+                <article class="dash-stat">
+
+                    <i class="fa-solid fa-triangle-exclamation"></i>
+
+                    <strong id="priorityCount">
+                        --
+                    </strong>
+
+                    <span>
+                        Priority Species
+                    </span>
+
+                </article>
+
+
+                <article class="dash-stat">
+
+                    <i class="fa-solid fa-seedling"></i>
+
+                    <strong id="restorationCount">
+                        --
+                    </strong>
+
+                    <span>
+                        Restoration Areas
+                    </span>
+
+                </article>
+
+
+                <article class="dash-stat">
+
+                    <i class="fa-solid fa-shield-heart"></i>
+
+                    <strong id="protectionCount">
+                        --
+                    </strong>
+
+                    <span>
+                        Protection Strategies
+                    </span>
+
+                </article>
+
+
+                <article class="dash-stat">
+
+                    <i class="fa-solid fa-radar"></i>
+
+                    <strong id="monitoringCount">
+                        --
+                    </strong>
+
+                    <span>
+                        Monitoring Plans
+                    </span>
+
+                </article>
+
+            </div>
+
+        </section>
+
+
+
+        <!-- =================================================
+             PRIORITY ALERT
+        ================================================== -->
+
+        <section class="dashboard-section">
+
+            <div class="section-heading">
+
+                <div>
+
+                    <h2>
+                        Immediate Conservation Priorities
+                    </h2>
+
+                    <p>
+                        Species currently requiring higher conservation attention
+                    </p>
+
+                </div>
+
+                <span class="ai-status">
+
+                    <i class="fa-solid fa-circle"></i>
+
+                    AI Analysis
+
+                </span>
+
+            </div>
+
+
+            <article class="panel">
+
+                <div
+                    id="priorityData"
+                    class="intelligence-list"
+                >
+
+                    <div class="loading-text">
+
+                        Loading conservation priorities...
+
+                    </div>
+
+                </div>
+
+            </article>
+
+        </section>
+
+
+
+        <!-- =================================================
+             HABITAT RESTORATION
+        ================================================== -->
+
+        <section class="dashboard-section">
+
+            <div class="section-heading">
+
+                <div>
+
+                    <h2>
+                        Habitat Restoration Actions
+                    </h2>
+
+                    <p>
+                        Areas where restoration intervention may be required
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <article class="panel">
+
+                <div
+                    id="restorationData"
+                    class="intelligence-list"
+                >
+
+                    <div class="loading-text">
+
+                        Loading restoration recommendations...
+
+                    </div>
+
+                </div>
+
+            </article>
+
+        </section>
+
+
+
+        <!-- =================================================
+             PROTECTION STRATEGIES
+        ================================================== -->
+
+        <section class="dashboard-section">
+
+            <div class="section-heading">
+
+                <div>
+
+                    <h2>
+                        Wildlife Protection Actions
+                    </h2>
+
+                    <p>
+                        Species-specific protection recommendations
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <article class="panel">
+
+                <div
+                    id="protectionData"
+                    class="intelligence-list"
+                >
+
+                    <div class="loading-text">
+
+                        Loading protection strategies...
+
+                    </div>
+
+                </div>
+
+            </article>
+
+        </section>
+
+
+
+        <!-- =================================================
+             MONITORING
+        ================================================== -->
+
+        <section class="dashboard-section">
+
+            <div class="section-heading">
+
+                <div>
+
+                    <h2>
+                        Monitoring Priorities
+                    </h2>
+
+                    <p>
+                        Recommended locations and monitoring resources
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <article class="panel">
+
+                <div
+                    id="monitoringData"
+                    class="intelligence-list"
+                >
+
+                    <div class="loading-text">
+
+                        Loading monitoring recommendations...
+
+                    </div>
+
+                </div>
+
+            </article>
+
+        </section>
+
+
+
+        <!-- =================================================
+             CONSERVATION WORKFLOW
+        ================================================== -->
+
+        <section class="dashboard-section">
+
+            <div class="section-heading">
+
+                <div>
+
+                    <h2>
+                        Conservation Action Workflow
+                    </h2>
+
+                    <p>
+                        From observation to field intervention
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <article class="panel">
+
+                <div class="dash-stats">
+
+
+                    <div class="dash-stat">
+
+                        <i class="fa-solid fa-eye"></i>
+
+                        <strong>
+                            01
+                        </strong>
+
+                        <span>
+                            Observe
+                        </span>
+
+                    </div>
+
+
+                    <div class="dash-stat">
+
+                        <i class="fa-solid fa-magnifying-glass-chart"></i>
+
+                        <strong>
+                            02
+                        </strong>
+
+                        <span>
+                            Assess Risk
+                        </span>
+
+                    </div>
+
+
+                    <div class="dash-stat">
+
+                        <i class="fa-solid fa-triangle-exclamation"></i>
+
+                        <strong>
+                            03
+                        </strong>
+
+                        <span>
+                            Prioritize
+                        </span>
+
+                    </div>
+
+
+                    <div class="dash-stat">
+
+                        <i class="fa-solid fa-shield-heart"></i>
+
+                        <strong>
+                            04
+                        </strong>
+
+                        <span>
+                            Take Action
+                        </span>
+
+                    </div>
+
+
+                    <div class="dash-stat">
+
+                        <i class="fa-solid fa-radar"></i>
+
+                        <strong>
+                            05
+                        </strong>
+
+                        <span>
+                            Monitor
+                        </span>
+
+                    </div>
+
+                </div>
+
+            </article>
+
+        </section>
+
+
+    </main>
+
+</div>
+<script>
+    window.WPIS_ALLOWED_ROLES = [
+        "conservation_officer"
+    ];
+</script>
+
+<script src="js/role-guard.js"></script>
+<script src="js/conservation-officer.js"></script>
+<script src="js/notifications.js"></script>
+
+</body>
+
+</html>

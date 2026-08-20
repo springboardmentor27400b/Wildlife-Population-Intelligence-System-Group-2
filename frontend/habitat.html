@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Habitat Intelligence | WPIS</title>
+
+    <link
+        rel="stylesheet"
+        href="css/dashboard.css"
+    >
+
+    <link
+        rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css"
+    >
+
+</head>
+
+
+<body>
+
+<div class="app-shell">
+
+
+    <!-- =====================================================
+         SIDEBAR
+    ====================================================== -->
+
+    <aside
+        class="sidebar"
+        id="sidebar"
+    >
+
+        <a
+            class="brand"
+            href="researcher-dashboard.html"
+        >
+
+            <img
+                src="images/logo.png"
+                alt="WPIS logo"
+            >
+
+            WPIS
+
+        </a>
+
+
+        <nav class="side-nav">
+
+            <a href="researcher-dashboard.html">
+
+                <i class="fa-solid fa-table-columns"></i>
+
+                Dashboard
+
+            </a>
+
+
+            <a href="wildlife.html">
+
+                <i class="fa-solid fa-paw"></i>
+
+                Wildlife
+
+            </a>
+
+
+            <a href="monitoring.html">
+
+                <i class="fa-solid fa-map-location-dot"></i>
+
+                Monitoring
+
+            </a>
+
+
+            <a href="audio.html">
+
+                <i class="fa-solid fa-volume-high"></i>
+
+                Audio Analysis
+
+            </a>
+
+
+            <a href="population.html">
+
+                <i class="fa-solid fa-chart-line"></i>
+
+                Population Intelligence
+
+            </a>
+
+
+            <a
+                class="active"
+                href="habitat.html"
+            >
+
+                <i class="fa-solid fa-tree"></i>
+
+                Habitat Intelligence
+
+            </a>
+
+
+            <a href="conservation.html">
+
+                <i class="fa-solid fa-shield-heart"></i>
+
+                Conservation
+
+            </a>
+
+
+            <a href="health.html">
+
+                <i class="fa-solid fa-heart-pulse"></i>
+
+                Wildlife Health
+
+            </a>
+
+
+            <a href="about.html">
+
+                <i class="fa-solid fa-circle-info"></i>
+
+                About
+
+            </a>
+
+
+            <a href="contact.html">
+
+                <i class="fa-solid fa-envelope"></i>
+
+                Contact
+
+            </a>
+
+
+            <a
+                class="logout"
+                href="#"
+                data-logout
+            >
+
+                <i class="fa-solid fa-arrow-right-from-bracket"></i>
+
+                Logout
+
+            </a>
+
+        </nav>
+
+    </aside>
+
+
+
+    <!-- =====================================================
+         MAIN
+    ====================================================== -->
+
+    <main class="app-main">
+
+
+        <!-- HEADER -->
+
+        <header class="app-header">
+
+            <div>
+
+                <button
+                    class="menu-button"
+                    id="menuButton"
+                >
+
+                    <i class="fa-solid fa-bars"></i>
+
+                </button>
+
+
+                <h1>
+                    Habitat Intelligence
+                </h1>
+
+
+                <span>
+
+                    Habitat monitoring, environmental
+                    suitability and ecosystem assessment
+
+                </span>
+
+            </div>
+
+
+            <div class="user-chip">
+
+                <span class="avatar">
+
+                    <i class="fa-solid fa-user"></i>
+
+                </span>
+
+                Wildlife Researcher
+
+            </div>
+
+        </header>
+
+
+
+        <!-- =================================================
+             PAGE STATUS
+        ================================================== -->
+
+        <section class="dashboard-section">
+
+            <div class="section-heading">
+
+                <div>
+
+                    <h2>
+                        Habitat Intelligence Overview
+                    </h2>
+
+                    <p>
+                        Environmental conditions and habitat
+                        information derived from monitoring data.
+                    </p>
+
+                </div>
+
+
+                <span class="ai-status">
+
+                    <i class="fa-solid fa-circle"></i>
+
+                    Intelligence Active
+
+                </span>
+
+            </div>
+
+
+
+            <!-- =================================================
+                 KEY INDICATORS
+            ================================================== -->
+
+            <div class="dash-stats">
+
+
+                <article class="dash-stat">
+
+                    <i class="fa-solid fa-users"></i>
+
+                    <strong id="totalPopulation">
+                        --
+                    </strong>
+
+                    <span>
+                        Total Population
+                    </span>
+
+                </article>
+
+
+
+                <article class="dash-stat">
+
+                    <i class="fa-solid fa-paw"></i>
+
+                    <strong id="speciesRichness">
+                        --
+                    </strong>
+
+                    <span>
+                        Species Richness
+                    </span>
+
+                </article>
+
+
+
+                <article class="dash-stat">
+
+                    <i class="fa-solid fa-seedling"></i>
+
+                    <strong id="biodiversityIndex">
+                        --
+                    </strong>
+
+                    <span>
+                        Biodiversity Index
+                    </span>
+
+                </article>
+
+
+
+                <article class="dash-stat">
+
+                    <i class="fa-solid fa-location-dot"></i>
+
+                    <strong id="locations">
+                        --
+                    </strong>
+
+                    <span>
+                        Monitoring Locations
+                    </span>
+
+                </article>
+
+            </div>
+
+        </section>
+
+
+
+        <!-- =================================================
+             HABITAT CLASSIFICATION
+        ================================================== -->
+
+        <section class="dashboard-section">
+
+            <div class="section-heading">
+
+                <div>
+
+                    <h2>
+                        <i class="fa-solid fa-layer-group"></i>
+                        Habitat Classification
+                    </h2>
+
+                    <p>
+                        Habitat types identified across monitoring
+                        locations.
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <div
+                class="dashboard-grid"
+                id="classificationData"
+            >
+
+                <article class="panel">
+
+                    <div class="loading-text">
+
+                        Loading habitat classifications...
+
+                    </div>
+
+                </article>
+
+            </div>
+
+        </section>
+
+
+
+        <!-- =================================================
+             HABITAT SUITABILITY
+        ================================================== -->
+
+        <section class="dashboard-section">
+
+            <div class="section-heading">
+
+                <div>
+
+                    <h2>
+                        <i class="fa-solid fa-leaf"></i>
+                        Habitat Suitability
+                    </h2>
+
+                    <p>
+                        Environmental suitability based on vegetation,
+                        water and rainfall indicators.
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <div
+                class="dashboard-grid"
+                id="suitabilityData"
+            >
+
+                <article class="panel">
+
+                    <div class="loading-text">
+
+                        Calculating habitat suitability...
+
+                    </div>
+
+                </article>
+
+            </div>
+
+        </section>
+
+
+
+        <!-- =================================================
+             HABITAT CHANGE
+        ================================================== -->
+
+        <section class="dashboard-section">
+
+            <div class="section-heading">
+
+                <div>
+
+                    <h2>
+                        <i class="fa-solid fa-chart-line"></i>
+                        Habitat Change Detection
+                    </h2>
+
+                    <p>
+                        Environmental change and degradation monitoring.
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <article class="panel">
+
+                <div id="changeData">
+
+                    <div class="ai-empty-state">
+
+                        <i class="fa-solid fa-satellite-dish"></i>
+
+                        <strong>
+                            Habitat Change Monitoring
+                        </strong>
+
+                        <span>
+                            Habitat degradation reports are generated
+                            during new habitat assessments.
+                        </span>
+
+                    </div>
+
+                </div>
+
+            </article>
+
+        </section>
+
+
+
+        <!-- =================================================
+             RESTORATION
+        ================================================== -->
+
+        <section class="dashboard-section">
+
+            <div class="section-heading">
+
+                <div>
+
+                    <h2>
+                        <i class="fa-solid fa-seedling"></i>
+                        Restoration Recommendations
+                    </h2>
+
+                    <p>
+                        Recommended restoration actions based on
+                        conservation intelligence.
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <div
+                class="dashboard-grid"
+                id="restorationData"
+            >
+
+                <article class="panel">
+
+                    <div class="loading-text">
+
+                        Loading restoration recommendations...
+
+                    </div>
+
+                </article>
+
+            </div>
+
+        </section>
+
+
+
+        <!-- =================================================
+             WILDLIFE CORRIDOR / PROTECTION
+        ================================================== -->
+
+        <section class="dashboard-section">
+
+            <div class="section-heading">
+
+                <div>
+
+                    <h2>
+                        <i class="fa-solid fa-route"></i>
+                        Wildlife Corridor & Protection Analysis
+                    </h2>
+
+                    <p>
+                        Species protection strategies and movement
+                        support recommendations.
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <div
+                class="dashboard-grid"
+                id="corridorData"
+            >
+
+                <article class="panel">
+
+                    <div class="loading-text">
+
+                        Loading protection analysis...
+
+                    </div>
+
+                </article>
+
+            </div>
+
+        </section>
+
+
+
+        <!-- =================================================
+             PROTECTED AREAS
+        ================================================== -->
+
+        <section class="dashboard-section">
+
+            <div class="section-heading">
+
+                <div>
+
+                    <h2>
+                        <i class="fa-solid fa-shield-halved"></i>
+                        Protected Area Monitoring
+                    </h2>
+
+                    <p>
+                        Monitoring priorities and recommended resources
+                        for protected locations.
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <div
+                class="dashboard-grid"
+                id="protectedAreaData"
+            >
+
+                <article class="panel">
+
+                    <div class="loading-text">
+
+                        Loading protected area monitoring...
+
+                    </div>
+
+                </article>
+
+            </div>
+
+        </section>
+
+
+    </main>
+
+</div>
+
+
+
+<script src="js/habitat.js"></script>
+
+</body>
+
+</html>

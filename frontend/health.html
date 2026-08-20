@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>Wildlife Health Scoring | WPIS</title>
+
+    <link rel="stylesheet"
+          href="css/dashboard.css">
+
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+
+</head>
+
+<body>
+
+<div class="app-shell">
+
+    <!-- SIDEBAR -->
+
+    <aside class="sidebar">
+
+        <a class="brand"
+           href="dashboard.html">
+
+            <img src="images/logo.png">
+
+            WPIS
+
+        </a>
+
+        <nav class="side-nav">
+
+            <a href="health.html">
+                <i class="fa-solid fa-heart-pulse"></i>
+                Health
+            </a>
+
+            <a class="active"
+               href="conservation.html">
+
+                <i class="fa-solid fa-chart-line"></i>
+
+                Conservation Intelligence
+
+            </a>
+
+            <a href="habitat.html">
+                <i class="fa-solid fa-tree"></i>
+                Habitat Intelligence
+            </a>
+
+            <a href="conservation.html">
+                <i class="fa-solid fa-shield-heart"></i>
+                Conservation
+            </a>
+
+            <a href="health.html">
+                <i class="fa-solid fa-heart-pulse"></i>
+                Wildlife Health
+            </a>
+
+            <a href="wildlife.html">
+                <i class="fa-solid fa-paw"></i>
+                Wildlife
+            </a>
+
+        </nav>
+
+    </aside>
+
+    <!-- MAIN -->
+
+    <main class="app-main">
+
+        <header class="app-header">
+
+            <div>
+
+                <h1>
+                    Wildlife Health Scoring
+                </h1>
+                <span>
+
+                    Biodiversity & Ecosystem Health Assessment
+                </span>
+
+            </div>
+
+        </header>
+
+        <!-- SUMMARY -->
+
+        <section class="dash-stats">
+
+            <article class="dash-stat">
+
+                <i class="fa-solid fa-users"></i>
+
+                <strong id="totalPopulation">--</strong>
+
+                <span>Total Population</span>
+
+            </article>
+
+            <article class="dash-stat">
+
+                <i class="fa-solid fa-paw"></i>
+
+                <strong id="speciesRichness">--</strong>
+
+                <span>Species Richness</span>
+
+            </article>
+
+            <article class="dash-stat">
+
+                <i class="fa-solid fa-seedling"></i>
+
+                <strong id="biodiversityIndex">--</strong>
+
+                <span>Biodiversity Index</span>
+
+            </article>
+
+            <article class="dash-stat">
+
+                <i class="fa-solid fa-location-dot"></i>
+
+                <strong id="locations">--</strong>
+
+                <span>Locations</span>
+
+            </article>
+
+        </section>
+
+        <!-- OVERVIEW -->
+    <section class="dashboard-grid">
+
+    <article class="panel">
+
+        <h2>Biodiversity Score</h2>
+
+        <div id="biodiversityData">
+
+            Loading...
+
+        </div>
+
+    </article>
+
+
+    <article class="panel">
+
+        <h2>Habitat Quality Score</h2>
+
+        <div id="habitatData">
+
+            Loading...
+
+        </div>
+
+    </article>
+
+
+    <article class="panel">
+
+        <h2>Species Conservation Score</h2>
+
+        <div id="conservationData">
+
+            Loading...
+
+        </div>
+
+    </article>
+
+
+    <article class="panel">
+
+        <h2>Population Stability</h2>
+
+        <div id="populationData">
+
+            Loading...
+
+        </div>
+
+    </article>
+
+
+    <article class="panel">
+
+        <h2>Ecosystem Health</h2>
+
+        <div id="ecosystemData">
+
+            Loading...
+
+        </div>
+
+    </article>
+
+</section>
+
+    </main>
+
+</div>
+
+<script>
+console.log("Health HTML loaded");
+</script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script src="js/health.js"></script>
+
+
+</body>
+
+</html>

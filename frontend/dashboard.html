@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Dashboard | WPIS</title>
+
+</head>
+
+
+<body>
+
+    <p id="dashboardMessage">
+        Loading your dashboard...
+    </p>
+
+
+    <script>
+
+        const userData =
+            localStorage.getItem("wpis_user");
+
+
+        // ==========================================
+        // CHECK LOGIN
+        // ==========================================
+
+        if (!userData) {
+
+            window.location.href =
+                "login.html";
+
+        } else {
+
+            try {
+
+                const user =
+                    JSON.parse(userData);
+
+
+                // ==========================================
+                // ROLE-BASED ROUTING
+                // ==========================================
+
+                switch (user.role) {
+
+                    case "wildlife_researcher":
+
+                        window.location.href =
+                            "researcher-dashboard.html";
+
+                        break;
+
+
+                    case "conservation_officer":
+
+                        window.location.href =
+                            "conservation-officer.html";
+
+                        break;
+
+
+                    case "forest_department_officer":
+
+                        window.location.href =
+                            "forest-dashboard.html";
+
+                        break;
+
+
+                    case "administrator":
+
+                        window.location.href =
+                            "admin-dashboard.html";
+
+                        break;
+
+
+                    default:
+
+                        document.querySelector(
+                            "#dashboardMessage"
+                        ).textContent =
+                            "Invalid user role. Please contact the administrator.";
+
+                        localStorage.removeItem(
+                            "wpis_token"
+                        );
+
+                        localStorage.removeItem(
+                            "wpis_user"
+                        );
+
+                }
+
+            } catch (error) {
+
+                console.error(
+                    "Dashboard routing error:",
+                    error
+                );
+
+
+                localStorage.removeItem(
+                    "wpis_token"
+                );
+
+                localStorage.removeItem(
+                    "wpis_user"
+                );
+
+
+                window.location.href =
+                    "login.html";
+
+            }
+
+        }
+
+    </script>
+
+</body>
+
+</html>

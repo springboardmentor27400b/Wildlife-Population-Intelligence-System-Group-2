@@ -17,3 +17,8 @@ pydantic-settings
 email-validator
 
 python-dateutil
+
+opencv-python-headless
+librosa
+setuptools<82
+ultralytics-opencv-headless

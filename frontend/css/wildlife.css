@@ -1,0 +1,1070 @@
+@import url('style.css');
+
+
+/* ================================
+   APP LAYOUT
+================================ */
+
+.app-shell {
+
+    display: grid;
+
+    grid-template-columns: 250px 1fr;
+
+    min-height: 100vh;
+
+    background: #f4f7f3;
+
+}
+
+
+/* ================================
+   SIDEBAR
+================================ */
+
+.sidebar {
+
+    padding: 26px 15px;
+
+    background: var(--pine);
+
+    color: #fff;
+
+}
+
+
+.sidebar .brand {
+
+    padding: 0 10px 32px;
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 10px;
+
+    color: #fff;
+
+    font-size: 1.4rem;
+
+    font-weight: 900;
+
+    text-decoration: none;
+
+}
+
+
+.sidebar .brand img {
+
+    width: 38px;
+
+    height: 38px;
+
+    object-fit: contain;
+
+}
+
+
+.side-nav {
+
+    display: grid;
+
+    gap: 7px;
+
+}
+
+
+.side-nav a {
+
+    padding: 12px 14px;
+
+    border-radius: 10px;
+
+    color: #d7e8dc;
+
+    font-weight: 700;
+
+    text-decoration: none;
+
+}
+
+
+.side-nav a.active,
+.side-nav a:hover {
+
+    background: rgba(255,255,255,.14);
+
+    color: #fff;
+
+}
+
+
+.side-nav i {
+
+    width: 23px;
+
+}
+
+
+.logout {
+
+    margin-top: 28px !important;
+
+    color: #ffc5bd !important;
+
+}
+
+
+/* ================================
+   MAIN
+================================ */
+
+.app-main {
+
+    padding: 28px;
+
+    overflow: hidden;
+
+}
+
+
+.app-header {
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: space-between;
+
+    margin-bottom: 26px;
+
+}
+
+
+.app-header h1 {
+
+    margin: 0;
+
+    font-size: 1.8rem;
+
+}
+
+
+.subtitle {
+
+    color: var(--muted);
+
+    display: block;
+
+    margin-top: 5px;
+
+}
+
+/* ================================
+   WILDLIFE PAGE HERO
+================================ */
+
+.page-heading {
+    width: 100%;
+}
+
+
+.heading-top {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 8px;
+}
+
+
+.page-eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+
+    color: var(--forest);
+
+    font-size: .75rem;
+    font-weight: 800;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+}
+
+
+.page-eyebrow i {
+    font-size: .85rem;
+}
+
+
+.page-heading h1 {
+    margin: 0;
+
+    font-size: 2.15rem;
+    line-height: 1.15;
+
+    letter-spacing: -.03em;
+}
+
+
+.page-heading .subtitle {
+    max-width: 720px;
+
+    margin: 8px 0 0;
+
+    color: var(--muted);
+
+    font-size: .98rem;
+    line-height: 1.6;
+}
+
+
+/* ================================
+   TOOLBAR
+================================ */
+
+.toolbar {
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: space-between;
+
+    gap: 15px;
+
+    margin-bottom: 22px;
+
+}
+
+
+.search-filter {
+
+    display: flex;
+
+    gap: 10px;
+
+    flex: 1;
+
+}
+
+
+.search-filter input,
+.search-filter select {
+
+    padding: 12px 14px;
+
+    border: 1px solid var(--line);
+
+    border-radius: 10px;
+
+    background: #fff;
+
+    font: inherit;
+
+}
+
+
+.search-filter input {
+
+    width: 100%;
+
+    max-width: 400px;
+
+}
+
+
+.search-filter select {
+
+    min-width: 160px;
+
+}
+
+
+/* ================================
+   BUTTONS
+================================ */
+
+.btn {
+
+    display: inline-flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    gap: 8px;
+
+    padding: 12px 18px;
+
+    border: none;
+
+    border-radius: 10px;
+
+    background: var(--forest);
+
+    color: #fff;
+
+    font-weight: 700;
+
+    cursor: pointer;
+
+    text-decoration: none;
+
+}
+
+
+.btn:hover {
+
+    opacity: .9;
+
+}
+
+
+.btn:disabled {
+
+    opacity: .6;
+
+    cursor: not-allowed;
+
+}
+
+
+.btn-ai {
+
+    background: #176344;
+
+    width: 100%;
+
+}
+
+
+.save-btn {
+
+    width: 100%;
+
+    margin-top: 10px;
+
+}
+
+
+/* ================================
+   WILDLIFE GRID
+================================ */
+
+.admin-grid {
+
+    display: grid;
+
+    grid-template-columns: repeat(
+        auto-fill,
+        minmax(260px, 1fr)
+    );
+
+    gap: 20px;
+
+}
+
+
+/* ================================
+   RECORD CARD
+================================ */
+
+.record-card {
+
+    background: #fff;
+
+    border-radius: 18px;
+
+    overflow: hidden;
+
+    box-shadow:
+        0 9px 28px
+        rgba(16,59,44,.08);
+
+}
+
+
+.record-card > img {
+
+    width: 100%;
+
+    height: 200px;
+
+    object-fit: cover;
+
+    display: block;
+
+}
+
+
+.record-body {
+
+    padding: 18px;
+
+}
+
+
+.record-body h3 {
+
+    margin: 10px 0 8px;
+
+}
+
+
+.record-body p {
+
+    color: var(--muted);
+
+    margin: 0;
+
+}
+
+
+.badge {
+
+    display: inline-block;
+
+    padding: 5px 10px;
+
+    border-radius: 20px;
+
+    background: #edf7ef;
+
+    color: var(--forest);
+
+    font-size: .8rem;
+
+    font-weight: 700;
+
+}
+
+
+.record-actions {
+
+    display: flex;
+
+    gap: 8px;
+
+    margin-top: 16px;
+
+}
+
+
+.icon-btn {
+
+    border: none;
+
+    background: #edf7ef;
+
+    color: var(--forest);
+
+    padding: 9px 12px;
+
+    border-radius: 8px;
+
+    cursor: pointer;
+
+}
+
+
+.icon-btn.danger {
+
+    color: #a6342a;
+
+    background: #fff0ee;
+
+}
+
+
+/* ================================
+   MODAL
+================================ */
+
+.modal {
+
+    display: none;
+
+    position: fixed;
+
+    inset: 0;
+
+    z-index: 100;
+
+    background: rgba(0,0,0,.45);
+
+    align-items: center;
+
+    justify-content: center;
+
+    padding: 20px;
+
+}
+
+
+.modal.show {
+
+    display: flex;
+
+}
+
+
+.modal-box {
+
+    width: 100%;
+
+    max-width: 650px;
+
+    max-height: 90vh;
+
+    overflow-y: auto;
+
+    background: #fff;
+
+    border-radius: 20px;
+
+    padding: 25px;
+
+    box-shadow:
+        0 20px 60px
+        rgba(0,0,0,.2);
+
+}
+
+
+.modal-head {
+
+    display: flex;
+
+    justify-content: space-between;
+
+    align-items: center;
+
+    margin-bottom: 20px;
+
+}
+
+
+.modal-head h2 {
+
+    margin: 0;
+
+}
+
+
+.modal-head .icon-btn {
+
+    background: transparent;
+
+    font-size: 1.2rem;
+
+}
+
+
+/* ================================
+   FORM
+================================ */
+
+.two-col {
+
+    display: grid;
+
+    grid-template-columns: 1fr 1fr;
+
+    gap: 15px;
+
+}
+
+
+.field {
+
+    margin-bottom: 16px;
+
+}
+
+
+.field label {
+
+    display: block;
+
+    margin-bottom: 7px;
+
+    font-weight: 700;
+
+}
+
+
+.field input,
+.field select {
+
+    width: 100%;
+
+    box-sizing: border-box;
+
+    padding: 12px 14px;
+
+    border: 1px solid var(--line);
+
+    border-radius: 10px;
+
+    font: inherit;
+
+    background: #fff;
+
+}
+
+
+.field input:focus,
+.field select:focus {
+
+    outline: none;
+
+    border-color: var(--forest);
+
+}
+
+
+/* ================================
+   IMAGE PREVIEW
+================================ */
+
+.image-preview {
+
+    display: none;
+
+    width: 100%;
+
+    max-height: 280px;
+
+    object-fit: cover;
+
+    border-radius: 14px;
+
+    margin: 10px 0 15px;
+
+}
+
+
+.image-preview.show {
+
+    display: block;
+
+}
+
+
+/* ================================
+   AI ANALYSIS
+================================ */
+
+.ai-actions {
+    margin: 15px 0;
+}
+
+
+/* MAIN AI RESULT BOX */
+
+.ai-result {
+
+    display: none;
+
+    width: 100%;
+
+    box-sizing: border-box;
+
+    margin: 20px 0;
+
+    padding: 20px;
+
+    border-radius: 14px;
+
+    background: #f1f8f3;
+
+    border: 2px solid #d7e8dc;
+
+    color: #1f3329;
+
+}
+
+
+/* FORCE SHOW */
+
+.ai-result.show {
+
+    display: block !important;
+
+    visibility: visible !important;
+
+    opacity: 1 !important;
+
+}
+
+
+/* AI RESULT HEADING */
+
+.ai-result h3 {
+
+    margin: 0 0 15px 0;
+
+    color: var(--forest);
+
+    font-size: 1.2rem;
+
+}
+
+
+.ai-result h3 i {
+
+    margin-right: 7px;
+
+}
+
+
+/* SUCCESS MESSAGE */
+
+.ai-success {
+
+    display: block;
+
+    padding: 12px 15px;
+
+    margin-bottom: 15px;
+
+    border-radius: 10px;
+
+    background: #edf7ef;
+
+    color: var(--forest);
+
+    font-weight: 700;
+
+}
+
+
+/* SUMMARY */
+
+.ai-summary {
+
+    margin-bottom: 15px;
+
+    padding: 12px 15px;
+
+    background: #ffffff;
+
+    border-radius: 10px;
+
+    border: 1px solid #e2ebe5;
+
+}
+
+
+.ai-summary p {
+
+    margin: 5px 0;
+
+}
+
+
+/* DETECTION CARD */
+
+.ai-detection {
+
+    display: block;
+
+    width: 100%;
+
+    box-sizing: border-box;
+
+    padding: 18px;
+
+    margin: 12px 0;
+
+    border-radius: 12px;
+
+    background: #ffffff;
+
+    border: 1px solid #e2ebe5;
+
+    box-shadow: 0 3px 10px rgba(16, 59, 44, 0.05);
+
+}
+
+
+.ai-detection h3 {
+
+    margin: 0 0 15px 0;
+
+    color: var(--forest);
+
+    font-size: 1.25rem;
+
+}
+
+
+.ai-detection p {
+
+    margin: 9px 0;
+
+    color: #34483e;
+
+}
+
+
+.ai-detection strong {
+
+    color: var(--forest);
+
+}
+
+
+/* BADGE INSIDE AI REPORT */
+
+.ai-detection .badge {
+
+    display: inline-block;
+
+    margin-left: 5px;
+
+    padding: 5px 10px;
+
+    border-radius: 20px;
+
+    background: #edf7ef;
+
+    color: var(--forest);
+
+    font-size: 0.85rem;
+
+    font-weight: 700;
+
+}
+
+
+/* LOADING */
+
+.ai-loading {
+
+    display: block;
+
+    padding: 15px;
+
+    color: var(--muted);
+
+    font-weight: 600;
+
+    line-height: 1.6;
+
+}
+
+
+/* ERROR */
+
+.ai-error {
+
+    display: block;
+
+    padding: 15px;
+
+    border-radius: 10px;
+
+    background: #fff0ee;
+
+    color: #a6342a;
+
+    font-weight: 600;
+
+}
+
+
+/* FINAL STATUS */
+
+.ai-status {
+
+    margin-top: 15px;
+
+    padding: 12px 15px;
+
+    border-radius: 10px;
+
+    background: #edf7ef;
+
+    color: var(--forest);
+
+    font-weight: 700;
+
+}
+
+
+/* ================================
+   NOTICE
+================================ */
+
+.notice {
+
+    display: none;
+
+    padding: 12px;
+
+    border-radius: 10px;
+
+    margin-bottom: 15px;
+
+}
+
+
+.notice.error {
+
+    display: block;
+
+    background: #fff0ee;
+
+    color: #a6342a;
+
+}
+
+
+.notice.success {
+
+    display: block;
+
+    background: #edf7ef;
+
+    color: var(--forest);
+
+}
+
+
+/* ================================
+   MOBILE MENU
+================================ */
+
+.menu-button {
+
+    display: none;
+
+    background: var(--pine);
+
+    color: #fff;
+
+    padding: 10px;
+
+    border: none;
+
+    border-radius: 9px;
+
+    cursor: pointer;
+
+}
+
+
+/* ================================
+   RESPONSIVE
+================================ */
+
+@media(max-width: 900px) {
+
+    .app-shell {
+
+        grid-template-columns: 1fr;
+
+    }
+
+
+    .sidebar {
+
+        display: none;
+
+        position: fixed;
+
+        z-index: 20;
+
+        inset: 0 25% 0 0;
+
+    }
+
+
+    .sidebar.open {
+
+        display: block;
+
+    }
+
+
+    .menu-button {
+
+        display: inline-block;
+
+        margin-right: 10px;
+
+    }
+
+
+    .toolbar {
+
+        flex-direction: column;
+
+        align-items: stretch;
+
+    }
+
+
+    .search-filter {
+
+        flex-direction: column;
+
+    }
+
+
+    .search-filter input {
+
+        max-width: none;
+
+    }
+
+
+    .two-col {
+
+        grid-template-columns: 1fr;
+
+    }
+
+
+    .app-main {
+
+        padding: 20px;
+
+    }
+
+}
+
+
+@media(max-width: 500px) {
+
+    .app-header h1,
+    .page-heading h1 {
+
+    font-size: 1.5rem;
+
+}
+
+
+.page-heading .subtitle {
+
+    font-size: .9rem;
+    line-height: 1.5;
+
+}
+
+
+    .admin-grid {
+
+        grid-template-columns: 1fr;
+
+    }
+
+
+    .modal-box {
+
+        padding: 18px;
+
+    }
+
+}

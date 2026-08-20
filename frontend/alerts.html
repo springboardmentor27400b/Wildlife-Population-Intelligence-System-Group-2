@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Notifications & Alerts | WPIS</title>
+
+    <link
+        rel="stylesheet"
+        href="css/dashboard.css"
+    >
+
+    <link
+        rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css"
+    >
+
+</head>
+
+
+<body>
+
+<div class="app-shell">
+
+
+    <aside
+        class="sidebar"
+        id="sidebar"
+    >
+
+        <a
+            class="brand"
+            href="dashboard.html"
+        >
+
+            <img
+                src="images/logo.png"
+                alt="WPIS Logo"
+            >
+
+            WPIS
+
+        </a>
+
+
+        <nav class="side-nav">
+
+            <a href="researcher-dashboard.html"
+            id="alertsDashboardLink"
+>
+            <i class="fa-solid fa-table-columns"></i>
+                Dashboard
+            </a>
+
+            <a
+                class="active"
+                href="alerts.html"
+            >
+                <i class="fa-solid fa-bell"></i>
+                Notifications & Alerts
+            </a>
+
+            <a href="wildlife.html">
+                <i class="fa-solid fa-paw"></i>
+                Wildlife
+            </a>
+
+            <a href="population.html">
+                <i class="fa-solid fa-chart-line"></i>
+                Population Intelligence
+            </a>
+
+            <a href="habitat.html">
+                <i class="fa-solid fa-tree"></i>
+                Habitat Intelligence
+            </a>
+
+            <a href="conservation.html">
+                <i class="fa-solid fa-shield-heart"></i>
+                Conservation
+            </a>
+
+            <a href="monitoring.html">
+                <i class="fa-solid fa-map-location-dot"></i>
+                Monitoring
+            </a>
+
+            <a href="health.html">
+                <i class="fa-solid fa-heart-pulse"></i>
+                Wildlife Health
+            </a>
+
+            <a
+                class="logout"
+                href="#"
+                data-logout
+            >
+                <i class="fa-solid fa-arrow-right-from-bracket"></i>
+                Logout
+            </a>
+
+        </nav>
+
+    </aside>
+
+
+
+    <main class="app-main">
+
+
+        <header class="app-header">
+
+            <div>
+
+                <button
+                    class="menu-button"
+                    id="menuButton"
+                >
+                    <i class="fa-solid fa-bars"></i>
+                </button>
+
+
+                <h1>
+                    Notifications & Alerts
+                </h1>
+
+
+                <span>
+                    Wildlife, population, habitat,
+                    monitoring and conservation notifications
+                </span>
+
+            </div>
+
+
+            <div class="ai-status">
+
+                <i class="fa-solid fa-circle"></i>
+
+                Alert Intelligence Active
+
+            </div>
+
+        </header>
+
+
+
+        <!-- SUMMARY -->
+
+        <section class="dashboard-section">
+
+            <div class="section-heading">
+
+                <div>
+
+                    <h2>
+                        Alert Overview
+                    </h2>
+
+                    <p>
+                        Current intelligence generated from WPIS monitoring data
+                    </p>
+
+                </div>
+
+                <button
+                    class="btn"
+                    id="refreshAlerts"
+                >
+                    <i class="fa-solid fa-rotate"></i>
+                    Refresh
+                </button>
+
+            </div>
+
+
+            <div class="dash-stats">
+
+                <article class="dash-stat">
+
+                    <i class="fa-solid fa-bell"></i>
+
+                    <strong id="totalAlerts">
+                        --
+                    </strong>
+
+                    <span>
+                        Total Alerts
+                    </span>
+
+                </article>
+
+
+                <article class="dash-stat">
+
+                    <i class="fa-solid fa-circle-exclamation"></i>
+
+                    <strong id="criticalAlerts">
+                        --
+                    </strong>
+
+                    <span>
+                        Critical
+                    </span>
+
+                </article>
+
+
+                <article class="dash-stat">
+
+                    <i class="fa-solid fa-triangle-exclamation"></i>
+
+                    <strong id="highAlerts">
+                        --
+                    </strong>
+
+                    <span>
+                        High Priority
+                    </span>
+
+                </article>
+
+
+                <article class="dash-stat">
+
+                    <i class="fa-solid fa-leaf"></i>
+
+                    <strong id="habitatAlerts">
+                        --
+                    </strong>
+
+                    <span>
+                        Habitat Alerts
+                    </span>
+
+                </article>
+
+            </div>
+
+        </section>
+
+
+
+        <!-- FILTERS -->
+
+        <section class="dashboard-section">
+
+            <article class="panel">
+
+                <div
+                    style="
+                        display:flex;
+                        gap:12px;
+                        flex-wrap:wrap;
+                        align-items:center;
+                    "
+                >
+
+                    <select
+                        id="categoryFilter"
+                        style="
+                            padding:12px;
+                            border:1px solid #dfe8e3;
+                            border-radius:10px;
+                        "
+                    >
+
+                        <option value="all">
+                            All alert types
+                        </option>
+
+                        <option value="endangered_species">
+                            Endangered species
+                        </option>
+
+                        <option value="population_decline">
+                            Population decline
+                        </option>
+
+                        <option value="habitat_degradation">
+                            Habitat degradation
+                        </option>
+
+                        <option value="monitoring_device">
+                            Monitoring device
+                        </option>
+
+                        <option value="conservation_notification">
+                            Conservation notification
+                        </option>
+
+                    </select>
+
+
+                    <select
+                        id="severityFilter"
+                        style="
+                            padding:12px;
+                            border:1px solid #dfe8e3;
+                            border-radius:10px;
+                        "
+                    >
+
+                        <option value="all">
+                            All severity levels
+                        </option>
+
+                        <option value="critical">
+                            Critical
+                        </option>
+
+                        <option value="high">
+                            High
+                        </option>
+
+                        <option value="medium">
+                            Medium
+                        </option>
+
+                        <option value="low">
+                            Low
+                        </option>
+
+                    </select>
+
+                </div>
+
+            </article>
+
+        </section>
+
+
+
+        <!-- ALERT LIST -->
+
+        <section class="dashboard-section">
+
+            <div
+                id="alertsList"
+                class="dashboard-grid"
+            >
+
+                <article class="panel">
+
+                    <div class="loading-text">
+                        Loading alerts...
+                    </div>
+
+                </article>
+
+            </div>
+
+        </section>
+
+
+    </main>
+
+</div>
+
+
+<script src="js/alerts.js"></script>
+
+</body>
+
+</html>

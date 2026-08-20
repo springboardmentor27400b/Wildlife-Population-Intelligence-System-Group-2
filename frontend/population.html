@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>Population Intelligence | WPIS</title>
+
+    <link rel="stylesheet"
+          href="css/dashboard.css">
+
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+
+</head>
+
+<body>
+
+<div class="app-shell">
+
+    <!-- SIDEBAR -->
+
+    <aside class="sidebar">
+
+        <a class="brand"
+           href="dashboard.html">
+
+            <img src="images/logo.png">
+
+            WPIS
+
+        </a>
+
+        <nav class="side-nav">
+
+            <a href="dashboard.html">
+                <i class="fa-solid fa-table-columns"></i>
+                Dashboard
+            </a>
+
+            <a class="active"
+               href="population.html">
+
+                <i class="fa-solid fa-chart-line"></i>
+
+                Population Intelligence
+
+            </a>
+
+            <a href="habitat.html">
+                <i class="fa-solid fa-tree"></i>
+                Habitat Intelligence
+            </a>
+
+            <a href="conservation.html">
+                <i class="fa-solid fa-shield-heart"></i>
+                Conservation
+            </a>
+
+            <a href="health.html">
+                <i class="fa-solid fa-heart-pulse"></i>
+                Wildlife Health
+            </a>
+
+            <a href="wildlife.html">
+                <i class="fa-solid fa-paw"></i>
+                Wildlife
+            </a>
+
+        </nav>
+
+    </aside>
+
+    <!-- MAIN -->
+
+<main class="app-main">
+
+    <!-- HEADER -->
+
+    <header class="app-header">
+
+        <div>
+
+            <h1>Population Intelligence</h1>
+
+            <span>
+                Wildlife population trends, biodiversity,
+                distribution and conservation intelligence
+            </span>
+
+        </div>
+
+        <div class="ai-status">
+            <i class="fa-solid fa-circle"></i>
+            Intelligence Active
+        </div>
+
+    </header>
+
+
+    <!-- =====================================================
+         KEY POPULATION INDICATORS
+    ====================================================== -->
+
+    <section class="dash-stats">
+
+        <article class="dash-stat population-card">
+
+            <i class="fa-solid fa-users"></i>
+
+            <strong id="totalPopulation">--</strong>
+
+            <span>Total Population</span>
+
+        </article>
+
+
+        <article class="dash-stat species-card">
+
+            <i class="fa-solid fa-paw"></i>
+
+            <strong id="speciesRichness">--</strong>
+
+            <span>Species Richness</span>
+
+        </article>
+
+
+        <article class="dash-stat biodiversity-card">
+
+            <i class="fa-solid fa-seedling"></i>
+
+            <strong id="biodiversityIndex">--</strong>
+
+            <span>Biodiversity Index</span>
+
+        </article>
+
+
+        <article class="dash-stat habitat-card">
+
+            <i class="fa-solid fa-location-dot"></i>
+
+            <strong id="locations">--</strong>
+
+            <span>Monitoring Locations</span>
+
+        </article>
+
+    </section>
+
+
+    <!-- =====================================================
+         INTELLIGENCE OVERVIEW
+    ====================================================== -->
+
+    <section class="dashboard-grid">
+
+
+        <!-- POPULATION OVERVIEW -->
+
+        <article class="panel intelligence-panel">
+
+            <div class="panel-heading">
+
+                <div>
+
+                    <h2>
+                        <i class="fa-solid fa-chart-line"></i>
+                        Population Overview
+                    </h2>
+
+                    <p class="panel-subtitle">
+                        Current population intelligence summary
+                    </p>
+
+                </div>
+
+                <span class="panel-live">
+                    <i class="fa-solid fa-circle"></i>
+                    Live
+                </span>
+
+            </div>
+
+            <div id="overviewData"
+                 class="intelligence-content">
+
+                <div class="loading-text">
+                    Loading population intelligence...
+                </div>
+
+            </div>
+
+        </article>
+
+        <!-- POPULATION CHART -->
+
+        <article class="panel population-chart-panel">
+
+            <div class="panel-heading">
+
+                <div>
+
+                    <h2>
+                        <i class="fa-solid fa-chart-column"></i>
+                        Population by Species
+                    </h2>
+
+                    <p class="panel-subtitle">
+                        Comparative population distribution
+                    </p>
+
+                </div>
+
+            </div>
+
+            <div class="chart-wrapper population-chart-wrapper">
+
+                <canvas id="populationChart"></canvas>
+
+            </div>
+
+        </article>
+
+
+        <!-- POPULATION ALERTS -->
+
+        <article class="panel">
+
+            <div class="panel-heading">
+
+                <div>
+
+                    <h2>
+                        <i class="fa-solid fa-triangle-exclamation"></i>
+                        Population Alerts
+                    </h2>
+
+                    <p class="panel-subtitle">
+                        Species requiring attention
+                    </p>
+
+                </div>
+
+            </div>
+
+            <div id="alertsData"
+                 class="intelligence-list">
+
+                <div class="loading-text">
+                    Checking population alerts...
+                </div>
+
+            </div>
+
+        </article>
+
+
+        <!-- MIGRATION -->
+
+        <article class="panel">
+
+            <div class="panel-heading">
+
+                <div>
+
+                    <h2>
+                        <i class="fa-solid fa-route"></i>
+                        Migration Analysis
+                    </h2>
+
+                    <p class="panel-subtitle">
+                        Detected species movement across locations
+                    </p>
+
+                </div>
+
+            </div>
+
+            <div id="migrationData"
+                 class="intelligence-list">
+
+                <div class="loading-text">
+                    Analyzing species movement...
+                </div>
+
+            </div>
+
+        </article>
+
+
+        <!-- DISTRIBUTION -->
+
+        <article class="panel">
+
+            <div class="panel-heading">
+
+                <div>
+
+                    <h2>
+                        <i class="fa-solid fa-map-location-dot"></i>
+                        Species Distribution
+                    </h2>
+
+                    <p class="panel-subtitle">
+                        Population spread across monitoring locations
+                    </p>
+
+                </div>
+
+            </div>
+
+            <div id="distributionData"
+                 class="intelligence-list">
+
+                <div class="loading-text">
+                    Loading species distribution...
+                </div>
+
+            </div>
+
+        </article>
+
+
+    </section>
+
+
+    <!-- =====================================================
+         CONSERVATION PRIORITY
+    ====================================================== -->
+
+    <section class="dashboard-section">
+
+        <div class="section-heading">
+
+            <div>
+
+                <h2>Conservation Priority Intelligence</h2>
+
+                <p>
+                    Species requiring higher conservation attention
+                </p>
+
+            </div>
+
+        </div>
+
+
+        <article class="panel">
+
+            <div id="priorityData"
+                 class="priority-grid">
+
+                <div class="loading-text">
+                    Calculating conservation priorities...
+                </div>
+
+            </div>
+
+        </article>
+
+    </section>
+
+</main>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="js/population.js"></script>

@@ -1,0 +1,678 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+
+    <meta charset="utf-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1"
+    >
+
+    <title>Monitoring | WPIS</title>
+
+
+    <!-- Google Font -->
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap"
+        rel="stylesheet"
+    >
+
+
+    <!-- Font Awesome -->
+    <link
+        rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css"
+    >
+
+
+    <!-- Leaflet GIS -->
+    <link
+        rel="stylesheet"
+        href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        integrity="sha256-p4NxAoJBhIINfQ3L7qQfYb5LkL8d3k1n9x4Q0s5c3h4="
+        crossorigin=""
+    >
+
+
+    <!-- Existing Monitoring CSS -->
+    <link
+        rel="stylesheet"
+        href="css/monitoring.css"
+    >
+
+
+    <style>
+
+        /* =====================================================
+           GIS MAP
+        ====================================================== */
+
+        .gis-section {
+            margin-top: 24px;
+        }
+
+
+        .gis-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 14px;
+        }
+
+
+        .gis-header h2 {
+            margin: 0;
+            font-size: 20px;
+            font-weight: 800;
+        }
+
+
+        .gis-header p {
+            margin: 5px 0 0;
+            color: var(--muted);
+            font-size: 14px;
+        }
+
+
+        .gis-status {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            font-size: 13px;
+            font-weight: 700;
+        }
+
+
+        .gis-status i {
+            font-size: 8px;
+        }
+
+
+        #monitoringMap {
+            width: 100%;
+            height: 480px;
+            border-radius: 14px;
+            overflow: hidden;
+            border: 1px solid rgba(0, 0, 0, 0.08);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.06);
+        }
+
+
+        .map-popup {
+            min-width: 220px;
+        }
+
+
+        .map-popup h3 {
+            margin: 0 0 10px;
+            font-size: 16px;
+            font-weight: 800;
+        }
+
+
+        .map-popup-row {
+            margin: 5px 0;
+            font-size: 13px;
+        }
+
+
+        .map-popup-row strong {
+            font-weight: 700;
+        }
+
+
+        .map-empty {
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--muted);
+            font-size: 14px;
+        }
+
+
+        @media (max-width: 700px) {
+
+            .gis-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+
+            #monitoringMap {
+                height: 380px;
+            }
+
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+
+<div class="app-shell">
+
+
+    <!-- =====================================================
+         SIDEBAR
+    ====================================================== -->
+
+    <aside
+        class="sidebar"
+        id="sidebar"
+    >
+
+        <a
+            class="brand"
+            href="index.html"
+        >
+
+            <img
+                src="images/logo.png"
+                alt="WPIS logo"
+            >
+
+            WPIS
+
+        </a>
+
+
+        <nav class="side-nav">
+
+
+            <a href="dashboard.html">
+
+                <i class="fa-solid fa-grid-2"></i>
+
+                Dashboard
+
+            </a>
+
+
+            <a href="wildlife.html">
+
+                <i class="fa-solid fa-paw"></i>
+
+                Wildlife
+
+            </a>
+
+
+            <a
+                class="active"
+                href="monitoring.html"
+            >
+
+                <i class="fa-solid fa-map-location-dot"></i>
+
+                Monitoring
+
+            </a>
+
+
+            <a href="audio.html">
+
+                <i class="fa-solid fa-volume-high"></i>
+
+                Audio Analysis
+
+            </a>
+
+
+            <a
+                class="logout"
+                href="#"
+                data-logout
+            >
+
+                <i class="fa-solid fa-arrow-right-from-bracket"></i>
+
+                Logout
+
+            </a>
+
+
+        </nav>
+
+    </aside>
+
+
+
+    <!-- =====================================================
+         MAIN
+    ====================================================== -->
+
+    <main class="app-main">
+
+
+        <!-- =================================================
+             HEADER
+        ================================================== -->
+
+        <header class="app-header">
+
+            <div>
+
+                <button
+                    class="menu-button"
+                    id="menuButton"
+                >
+
+                    <i class="fa-solid fa-bars"></i>
+
+                </button>
+
+
+                <h1>
+                    Monitoring Sites
+                </h1>
+
+
+                <span style="color:var(--muted)">
+                    Plan and retain every field survey.
+                </span>
+
+            </div>
+
+
+            <div class="ai-status">
+
+                <i class="fa-solid fa-circle"></i>
+
+                GIS Monitoring Active
+
+            </div>
+
+        </header>
+
+
+
+        <!-- =================================================
+             GIS VISUALIZATION
+        ================================================== -->
+
+        <section class="gis-section">
+
+
+            <div class="gis-header">
+
+                <div>
+
+                    <h2>
+                        <i class="fa-solid fa-map-location-dot"></i>
+                        Monitoring Site GIS Visualization
+                    </h2>
+
+                    <p>
+                        Geographic distribution of registered wildlife
+                        monitoring locations
+                    </p>
+
+                </div>
+
+
+                <div
+                    class="gis-status"
+                    id="gisStatus"
+                >
+
+                    <i class="fa-solid fa-circle"></i>
+
+                    Loading monitoring sites...
+
+                </div>
+
+            </div>
+
+
+            <div id="monitoringMap">
+
+                <div class="map-empty">
+
+                    Loading GIS map...
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+
+        <!-- =================================================
+             TOOLBAR
+        ================================================== -->
+
+        <div class="toolbar">
+
+
+            <div class="search-filter">
+
+                <input
+                    id="monitorSearch"
+                    placeholder="Search protected areas or devices"
+                >
+
+            </div>
+
+
+            <button
+                class="btn"
+                id="addMonitoring"
+            >
+
+                <i class="fa-solid fa-plus"></i>
+
+                Add monitoring
+
+            </button>
+
+        </div>
+
+
+
+        <!-- =================================================
+             MONITORING TABLE
+        ================================================== -->
+
+        <div class="table-wrap">
+
+
+            <table>
+
+
+                <thead>
+
+                    <tr>
+
+                        <th>
+                            Protected area
+                        </th>
+
+                        <th>
+                            GPS coordinates
+                        </th>
+
+                        <th>
+                            Survey date
+                        </th>
+
+                        <th>
+                            Device
+                        </th>
+
+                        <th>
+                            Actions
+                        </th>
+
+                    </tr>
+
+                </thead>
+
+
+                <tbody id="monitoringBody">
+
+                    <tr>
+
+                        <td
+                            colspan="5"
+                            class="empty"
+                        >
+
+                            Loading monitoring records…
+
+                        </td>
+
+                    </tr>
+
+                </tbody>
+
+
+            </table>
+
+        </div>
+
+    </main>
+
+</div>
+
+
+
+<!-- =========================================================
+     MONITORING MODAL
+========================================================= -->
+
+<div
+    class="modal"
+    id="monitoringModal"
+>
+
+
+    <div class="modal-box">
+
+
+        <div class="modal-head">
+
+
+            <h2 id="monitoringModalTitle">
+                Add monitoring
+            </h2>
+
+
+            <button
+                class="icon-btn"
+                data-close-modal
+            >
+
+                <i class="fa-solid fa-xmark"></i>
+
+            </button>
+
+        </div>
+
+
+
+        <div
+            class="notice"
+            id="monitoringNotice"
+        ></div>
+
+
+
+        <form id="monitoringForm">
+
+
+            <input
+                type="hidden"
+                id="monitoringId"
+            >
+
+
+            <div class="two-col">
+
+
+                <div class="field">
+
+                    <label>
+                        Survey ID
+                    </label>
+
+                    <input
+                        id="survey_id"
+                        required
+                        placeholder="S001"
+                    >
+
+                </div>
+
+
+                <div class="field">
+
+                    <label>
+                        Monitoring location
+                    </label>
+
+                    <input
+                        id="monitoring_location"
+                        required
+                        placeholder="Bandipur North Zone"
+                    >
+
+                </div>
+
+
+            </div>
+
+
+
+            <div class="field">
+
+                <label>
+                    Habitat type
+                </label>
+
+                <input
+                    id="habitat_type"
+                    required
+                    placeholder="Tropical dry forest"
+                >
+
+            </div>
+
+
+
+            <div class="two-col">
+
+
+                <div class="field">
+
+                    <label>
+                        Protected area
+                    </label>
+
+                    <input
+                        id="protected_area"
+                        required
+                    >
+
+                </div>
+
+
+                <div class="field">
+
+                    <label>
+                        Survey date
+                    </label>
+
+                    <input
+                        id="survey_date"
+                        type="date"
+                        required
+                    >
+
+                </div>
+
+
+            </div>
+
+
+
+            <div class="two-col">
+
+
+                <div class="field">
+
+                    <label>
+                        Latitude
+                    </label>
+
+                    <input
+                        id="latitude"
+                        type="number"
+                        step="any"
+                        required
+                    >
+
+                </div>
+
+
+                <div class="field">
+
+                    <label>
+                        Longitude
+                    </label>
+
+                    <input
+                        id="longitude"
+                        type="number"
+                        step="any"
+                        required
+                    >
+
+                </div>
+
+
+            </div>
+
+
+
+            <div class="field">
+
+                <label>
+                    Monitoring device
+                </label>
+
+                <input
+                    id="monitoring_device"
+                    required
+                    placeholder="Camera trap, GPS collar…"
+                >
+
+            </div>
+
+
+
+            <button
+                class="btn"
+                type="submit"
+            >
+
+                Save monitoring record
+
+            </button>
+
+
+        </form>
+
+
+    </div>
+
+</div>
+
+
+
+<!-- =========================================================
+     LEAFLET GIS
+========================================================= -->
+
+<script
+    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+    crossorigin=""
+></script>
+
+
+
+<!-- Existing monitoring functionality -->
+<script src="js/monitoring.js"></script>
+
+
+</body>
+
+</html>

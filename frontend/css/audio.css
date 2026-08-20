@@ -1,0 +1,426 @@
+@import url('style.css');
+
+
+/* =========================
+   LAYOUT
+========================= */
+
+.app-shell {
+    display: grid;
+    grid-template-columns: 250px 1fr;
+    min-height: 100vh;
+    background: #f4f7f3;
+}
+
+
+/* =========================
+   SIDEBAR
+========================= */
+
+.sidebar {
+    padding: 26px 15px;
+    background: var(--pine);
+    color: #fff;
+}
+
+.sidebar .brand {
+    padding: 0 10px 32px;
+}
+
+.side-nav {
+    display: grid;
+    gap: 7px;
+}
+
+.side-nav a {
+    padding: 12px 14px;
+    border-radius: 10px;
+    color: #d7e8dc;
+    font-weight: 700;
+}
+
+.side-nav a.active,
+.side-nav a:hover {
+    background: rgba(255,255,255,.14);
+    color: #fff;
+}
+
+.side-nav i {
+    width: 23px;
+}
+
+.logout {
+    margin-top: 28px !important;
+    color: #ffc5bd !important;
+}
+
+
+/* =========================
+   MAIN
+========================= */
+
+.app-main {
+    padding: 28px;
+    overflow: hidden;
+}
+
+.app-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 26px;
+}
+
+.app-header h1 {
+    margin: 0;
+    font-size: 1.8rem;
+}
+
+.app-header span {
+    color: var(--muted);
+}
+
+
+/* =========================
+   PANELS
+========================= */
+
+.panel {
+    padding: 24px;
+    margin-bottom: 20px;
+    border-radius: 18px;
+    background: #fff;
+    box-shadow: 0 9px 28px rgba(16,59,44,.08);
+}
+
+.panel h2 {
+    margin: 0 0 8px;
+    font-size: 1.2rem;
+}
+
+.panel-title p {
+    color: var(--muted);
+    margin-top: 5px;
+}
+
+
+/* =========================
+   UPLOAD
+========================= */
+
+.upload-box {
+    margin-top: 20px;
+    padding: 35px;
+    text-align: center;
+    border: 2px dashed #b9d5c0;
+    border-radius: 15px;
+    background: #f8fbf8;
+}
+
+.upload-icon {
+    font-size: 3rem;
+    color: var(--leaf);
+}
+
+.upload-box h3 {
+    margin-bottom: 5px;
+}
+
+.upload-box p {
+    color: var(--muted);
+}
+
+#audioFile {
+    display: none;
+}
+
+.selected-file {
+    margin-top: 15px;
+    font-weight: 700;
+}
+
+
+/* =========================
+   AUDIO PREVIEW
+========================= */
+
+.audio-preview {
+    display: none;
+    margin-top: 20px;
+    padding: 18px;
+    border-radius: 12px;
+    background: #edf7ef;
+}
+
+.audio-preview.show {
+    display: block;
+}
+
+.audio-preview h3 {
+    margin-top: 0;
+}
+
+.audio-preview audio {
+    width: 100%;
+}
+
+
+/* =========================
+   BUTTON
+========================= */
+
+.btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 11px 18px;
+    border: none;
+    border-radius: 10px;
+    background: var(--forest);
+    color: white;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.btn:hover {
+    opacity: .9;
+}
+
+.btn-outline {
+    background: transparent;
+    border: 1px solid var(--forest);
+    color: var(--forest);
+}
+
+.analyze-btn {
+    margin-top: 20px;
+}
+
+.analyze-btn:disabled {
+    opacity: .6;
+    cursor: not-allowed;
+}
+
+
+/* =========================
+   RESULTS
+========================= */
+
+.panel-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.panel-heading h2 {
+    margin: 0;
+}
+
+#resultFilename {
+    color: var(--muted);
+    font-size: .9rem;
+}
+
+
+.prediction-list {
+    display: grid;
+    gap: 14px;
+}
+
+
+.prediction-card {
+    padding: 18px;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    background: #fafcf9;
+}
+
+
+.prediction-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+
+.prediction-label {
+    font-weight: 800;
+    font-size: 1rem;
+}
+
+
+.confidence {
+    font-weight: 800;
+    color: var(--forest);
+}
+
+
+.progress {
+    height: 9px;
+    border-radius: 10px;
+    overflow: hidden;
+    background: #e4ece5;
+}
+
+
+.progress-bar {
+    height: 100%;
+    border-radius: 10px;
+    background: var(--leaf);
+}
+
+
+/* =========================
+   HISTORY
+========================= */
+
+.history-list {
+    display: grid;
+    gap: 12px;
+}
+
+
+.history-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 15px;
+    padding: 16px;
+    border-bottom: 1px solid var(--line);
+}
+
+
+.history-info strong {
+    display: block;
+}
+
+.history-info small {
+    color: var(--muted);
+}
+
+
+.history-predictions {
+    color: var(--forest);
+    font-weight: 700;
+}
+
+
+.delete-btn {
+    border: none;
+    background: transparent;
+    color: #a6342a;
+    cursor: pointer;
+    font-size: 1rem;
+}
+
+
+/* =========================
+   MESSAGE
+========================= */
+
+.message {
+    display: none;
+    margin-top: 18px;
+    padding: 13px;
+    border-radius: 10px;
+    font-weight: 700;
+}
+
+.message.show {
+    display: block;
+}
+
+.message.success {
+    background: #e8f6eb;
+    color: #176344;
+}
+
+.message.error {
+    background: #fdebea;
+    color: #a6342a;
+}
+
+.message.loading {
+    background: #eef4f0;
+    color: var(--forest);
+}
+
+
+/* =========================
+   EMPTY
+========================= */
+
+.empty-state {
+    padding: 25px;
+    text-align: center;
+    color: var(--muted);
+}
+
+
+/* =========================
+   MOBILE
+========================= */
+
+.menu-button {
+    display: none;
+    background: var(--pine);
+    color: #fff;
+    padding: 10px;
+    border-radius: 9px;
+    border: none;
+    cursor: pointer;
+}
+
+
+@media(max-width:900px) {
+
+    .app-shell {
+        grid-template-columns: 1fr;
+    }
+
+    .sidebar {
+        display: none;
+        position: fixed;
+        z-index: 20;
+        inset: 0 25% 0 0;
+    }
+
+    .sidebar.open {
+        display: block;
+    }
+
+    .menu-button {
+        display: inline-block;
+    }
+
+    .app-main {
+        padding: 20px;
+    }
+
+    .panel-heading {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+}
+
+
+@media(max-width:500px) {
+
+    .app-header h1 {
+        font-size: 1.35rem;
+    }
+
+    .upload-box {
+        padding: 25px 15px;
+    }
+
+    .history-item {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+}

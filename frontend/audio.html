@@ -1,0 +1,265 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>Audio Analysis | WPIS</title>
+
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap"
+        rel="stylesheet"
+    >
+
+    <link
+        rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css"
+    >
+
+    <link rel="stylesheet" href="css/audio.css">
+</head>
+
+<body>
+
+<div class="app-shell">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar" id="sidebar">
+
+        <a class="brand" href="index.html">
+            <img src="images/logo.png" alt="WPIS logo">
+            WPIS
+        </a>
+
+        <nav class="side-nav">
+
+            <a href="dashboard.html">
+                <i class="fa-solid fa-grid-2"></i>
+                Dashboard
+            </a>
+
+            <a href="wildlife.html">
+                <i class="fa-solid fa-paw"></i>
+                Wildlife
+            </a>
+
+            <a href="monitoring.html">
+                <i class="fa-solid fa-map-location-dot"></i>
+                Monitoring
+            </a>
+
+            <a class="active" href="audio.html">
+                <i class="fa-solid fa-volume-high"></i>
+                Audio Analysis
+            </a>
+
+            <a class="logout" href="#" data-logout>
+                <i class="fa-solid fa-arrow-right-from-bracket"></i>
+                Logout
+            </a>
+
+        </nav>
+
+    </aside>
+
+
+    <!-- MAIN -->
+    <main class="app-main">
+
+        <!-- HEADER -->
+        <header class="app-header">
+
+            <div>
+
+                <button class="menu-button" id="menuButton">
+                    <i class="fa-solid fa-bars"></i>
+                </button>
+
+                <h1>Audio Analysis</h1>
+
+                <span>
+                    Upload wildlife audio and analyze sounds using AI.
+                </span>
+
+            </div>
+
+        </header>
+
+
+        <!-- UPLOAD PANEL -->
+        <section class="panel upload-panel">
+
+            <div class="panel-title">
+
+                <div>
+                    <h2>
+                        <i class="fa-solid fa-microphone"></i>
+                        Analyze Audio
+                    </h2>
+
+                    <p>
+                        Upload an audio recording to identify sounds and species.
+                    </p>
+                </div>
+
+            </div>
+
+
+            <form id="audioForm">
+
+                <div class="upload-box">
+
+                    <i class="fa-solid fa-cloud-arrow-up upload-icon"></i>
+
+                    <h3>Select an audio file</h3>
+
+                    <p>
+                        Supported formats: MP3, WAV, OGG
+                    </p>
+
+                    <input
+                        type="file"
+                        id="audioFile"
+                        accept="audio/*"
+                        required
+                    >
+
+                    <label for="audioFile" class="btn">
+                        <i class="fa-solid fa-folder-open"></i>
+                        Choose Audio
+                    </label>
+
+                    <p id="selectedFile" class="selected-file">
+                        No file selected
+                    </p>
+
+                </div>
+
+
+                <!-- AUDIO PREVIEW -->
+
+                <div
+                    class="audio-preview"
+                    id="audioPreviewBox"
+                >
+
+                    <h3>
+                        <i class="fa-solid fa-headphones"></i>
+                        Audio Preview
+                    </h3>
+
+                    <audio
+                        id="audioPlayer"
+                        controls
+                    ></audio>
+
+                </div>
+
+
+                <!-- ANALYZE BUTTON -->
+
+                <button
+                    type="submit"
+                    class="btn analyze-btn"
+                    id="analyzeButton"
+                >
+
+                    <i class="fa-solid fa-wand-magic-sparkles"></i>
+
+                    Analyze Audio
+
+                </button>
+
+            </form>
+
+
+            <!-- MESSAGE -->
+
+            <div
+                id="audioMessage"
+                class="message"
+            ></div>
+
+        </section>
+
+
+        <!-- RESULTS -->
+
+        <section
+            class="panel results-panel"
+            id="resultsPanel"
+        >
+
+            <div class="panel-heading">
+
+                <h2>
+                    <i class="fa-solid fa-chart-column"></i>
+                    AI Analysis Results
+                </h2>
+
+                <span id="resultFilename"></span>
+
+            </div>
+
+
+            <div
+                id="predictionList"
+                class="prediction-list"
+            >
+
+                <p class="empty-state">
+                    Upload an audio file to see AI predictions.
+                </p>
+
+            </div>
+
+        </section>
+
+
+        <!-- HISTORY -->
+
+        <section class="panel">
+
+            <div class="panel-heading">
+
+                <h2>
+                    <i class="fa-solid fa-clock-rotate-left"></i>
+                    Analysis History
+                </h2>
+
+                <button
+                    class="btn btn-outline"
+                    id="refreshHistory"
+                >
+
+                    <i class="fa-solid fa-rotate"></i>
+                    Refresh
+
+                </button>
+
+            </div>
+
+
+            <div
+                id="historyList"
+                class="history-list"
+            >
+
+                <p class="empty-state">
+                    Loading audio history...
+                </p>
+
+            </div>
+
+        </section>
+
+    </main>
+
+</div>
+
+
+<script src="js/audio.js"></script>
+
+</body>
+</html>

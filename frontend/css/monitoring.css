@@ -1,0 +1,67 @@
+@import url('wildlife.css');.table-wrap{overflow:auto;border-radius:17px;background:#fff;box-shadow:0 9px 28px rgba(16,59,44,.08)}table{width:100%;border-collapse:collapse;min-width:780px}th,td{text-align:left;padding:15px 17px;border-bottom:1px solid var(--line)}th{background:#f7faf6;color:var(--muted);font-size:.78rem;text-transform:uppercase;letter-spacing:.05em}td{font-size:.9rem;font-weight:650}.empty{text-align:center;padding:40px;color:var(--muted)}
+/* =====================================================
+   GIS MAP
+===================================================== */
+
+.gis-section {
+    margin: 24px 0;
+}
+
+.gis-header {
+    margin-bottom: 14px;
+}
+
+.gis-header h2 {
+    margin: 0 0 6px;
+    font-size: 20px;
+    font-weight: 800;
+}
+
+.gis-header h2 i {
+    margin-right: 8px;
+}
+
+.gis-header p {
+    margin: 0;
+    color: var(--muted);
+}
+
+#monitoringMap {
+    width: 100%;
+    height: 420px;
+    border-radius: 16px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+}
+
+.map-popup h3 {
+    margin: 0 0 10px;
+    font-size: 16px;
+}
+
+.map-popup p {
+    margin: 6px 0;
+    font-size: 13px;
+}
+
+#monitoringMap {
+    width: 100%;
+    height: 450px;
+    border-radius: 14px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+}
+
+.map-section {
+    margin: 24px 0;
+}
+
+.map-popup h3 {
+    margin: 0 0 8px;
+}
+
+.map-popup p {
+    margin: 5px 0;
+    font-size: 13px;
+}

@@ -7,7 +7,7 @@ class Settings(BaseSettings):
     MONGO_DB_NAME: str
 
     JWT_SECRET_KEY: str
-    JWT_ALGORITHM: str
+    JWT_ALGORITHM: str= "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int
 
     model_config = SettingsConfigDict(

@@ -1,0 +1,311 @@
+/* ============================================================
+   WPIS GIS VISUALIZATION
+============================================================ */
+
+.gis-panel {
+    padding: 0;
+    overflow: hidden;
+}
+
+
+/* ============================================================
+   TOOLBAR
+============================================================ */
+
+.gis-toolbar {
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: space-between;
+
+    gap: 20px;
+
+    padding: 18px;
+
+    border-bottom: 1px solid #edf1ee;
+
+    background: #ffffff;
+
+}
+
+
+.gis-search {
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 10px;
+
+    width: min(520px, 100%);
+
+    padding: 11px 14px;
+
+    border: 1px solid #dce5df;
+
+    border-radius: 10px;
+
+    background: #f8faf9;
+
+}
+
+
+.gis-search i {
+
+    color: #71847a;
+
+}
+
+
+.gis-search input {
+
+    width: 100%;
+
+    border: none;
+
+    outline: none;
+
+    background: transparent;
+
+    font-family: inherit;
+
+    font-size: 14px;
+
+}
+
+
+.gis-count {
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 7px;
+
+    color: #526c5f;
+
+    font-size: 13px;
+
+    font-weight: 700;
+
+    white-space: nowrap;
+
+}
+
+
+.gis-count i {
+
+    color: #176344;
+
+}
+
+
+/* ============================================================
+   MAP
+============================================================ */
+
+.gis-map {
+
+    width: 100%;
+
+    height: 560px;
+
+    min-height: 400px;
+
+}
+
+
+.leaflet-container {
+
+    font-family: inherit;
+
+}
+
+
+/* ============================================================
+   REFRESH BUTTON
+============================================================ */
+
+.gis-refresh {
+
+    display: inline-flex;
+
+    align-items: center;
+
+    gap: 8px;
+
+    border: 1px solid #d8e4dc;
+
+    background: #f7faf8;
+
+    color: #176344;
+
+    padding: 9px 14px;
+
+    border-radius: 9px;
+
+    cursor: pointer;
+
+    font-family: inherit;
+
+    font-weight: 700;
+
+}
+
+
+.gis-refresh:hover {
+
+    background: #edf5ef;
+
+}
+
+
+/* ============================================================
+   SITE LIST
+============================================================ */
+
+.gis-site-list {
+
+    display: grid;
+
+    grid-template-columns:
+        repeat(auto-fit, minmax(280px, 1fr));
+
+    gap: 14px;
+
+}
+
+
+.gis-site-card {
+
+    border: 1px solid #e1e9e4;
+
+    border-radius: 12px;
+
+    padding: 16px;
+
+    background: #ffffff;
+
+    cursor: pointer;
+
+    transition:
+        transform 0.15s ease,
+        box-shadow 0.15s ease;
+
+}
+
+
+.gis-site-card:hover {
+
+    transform: translateY(-2px);
+
+    box-shadow:
+        0 8px 22px rgba(20, 60, 44, 0.08);
+
+}
+
+
+.gis-site-title {
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 9px;
+
+    margin-bottom: 10px;
+
+}
+
+
+.gis-site-title i {
+
+    color: #176344;
+
+}
+
+
+.gis-site-title strong {
+
+    color: #183b2d;
+
+}
+
+
+.gis-site-detail {
+
+    display: flex;
+
+    gap: 8px;
+
+    margin-top: 7px;
+
+    color: #657970;
+
+    font-size: 13px;
+
+}
+
+
+.gis-site-detail i {
+
+    width: 16px;
+
+    color: #82948b;
+
+}
+
+
+.gis-empty {
+
+    padding: 35px;
+
+    text-align: center;
+
+    color: #71847a;
+
+}
+
+
+.gis-empty i {
+
+    display: block;
+
+    margin-bottom: 10px;
+
+    font-size: 28px;
+
+}
+
+
+/* ============================================================
+   MOBILE
+============================================================ */
+
+@media (max-width: 700px) {
+
+    .gis-toolbar {
+
+        align-items: stretch;
+
+        flex-direction: column;
+
+    }
+
+
+    .gis-search {
+
+        width: auto;
+
+    }
+
+
+    .gis-map {
+
+        height: 450px;
+
+    }
+
+}

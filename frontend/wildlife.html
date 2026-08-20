@@ -1,0 +1,395 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>Wildlife | WPIS</title>
+
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap"
+        rel="stylesheet"
+    >
+
+    <link
+        rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css"
+    >
+
+    <link rel="stylesheet" href="css/wildlife.css">
+</head>
+
+<body>
+
+<div class="app-shell">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar" id="sidebar">
+
+        <a class="brand" href="index.html">
+            <img src="images/logo.png" alt="WPIS logo">
+            WPIS
+        </a>
+
+        <nav class="side-nav">
+
+            <a href="dashboard.html">
+                <i class="fa-solid fa-grid-2"></i>
+                Dashboard
+            </a>
+
+            <a class="active" href="wildlife.html">
+                <i class="fa-solid fa-paw"></i>
+                Wildlife
+            </a>
+
+            <a href="monitoring.html">
+                <i class="fa-solid fa-map-location-dot"></i>
+                Monitoring
+            </a>
+
+            <a href="audio.html">
+                <i class="fa-solid fa-volume-high"></i>
+                Audio Analysis
+            </a>
+
+            <a class="logout" href="#" data-logout>
+                <i class="fa-solid fa-arrow-right-from-bracket"></i>
+                Logout
+            </a>
+
+        </nav>
+
+    </aside>
+
+
+    <!-- MAIN CONTENT -->
+    <main class="app-main">
+
+        <!-- HEADER -->
+        <!-- HEADER -->
+<header class="app-header">
+
+    <div class="page-heading">
+
+        <div class="heading-top">
+
+            <button class="menu-button" id="menuButton">
+                <i class="fa-solid fa-bars"></i>
+            </button>
+
+            <span class="page-eyebrow">
+                <i class="fa-solid fa-paw"></i>
+                WILDLIFE INTELLIGENCE
+            </span>
+
+        </div>
+
+        <h1>Wildlife records</h1>
+
+        <p class="subtitle">
+            Monitor species, population observations, AI detections,
+            conservation status and wildlife behavior in one place.
+        </p>
+
+    </div>
+
+</header>
+
+
+        <!-- TOOLBAR -->
+        <div class="toolbar">
+
+            <div class="search-filter">
+
+                <input
+                    id="searchInput"
+                    placeholder="Search species or location"
+                >
+
+                <select id="statusFilter">
+
+                    <option value="">
+                        All statuses
+                    </option>
+
+                    <option value="Endangered">
+                        Endangered
+                    </option>
+
+                    <option value="Vulnerable">
+                        Vulnerable
+                    </option>
+
+                    <option value="Protected">
+                        Protected
+                    </option>
+
+                    <option value="Least Concern">
+                        Least Concern
+                    </option>
+
+                </select>
+
+            </div>
+
+
+            <button class="btn" id="addWildlife">
+
+                <i class="fa-solid fa-plus"></i>
+
+                Add wildlife
+
+            </button>
+
+        </div>
+
+
+        <!-- WILDLIFE RECORDS -->
+        <div
+            class="admin-grid"
+            id="wildlifeGrid"
+        ></div>
+
+    </main>
+
+</div>
+
+
+<!-- ADD / EDIT WILDLIFE MODAL -->
+
+<div
+    class="modal"
+    id="wildlifeModal"
+>
+
+    <div class="modal-box">
+
+
+        <!-- MODAL HEADER -->
+
+        <div class="modal-head">
+
+            <h2 id="wildlifeModalTitle">
+                Add wildlife
+            </h2>
+
+            <button
+                class="icon-btn"
+                data-close-modal
+            >
+
+                <i class="fa-solid fa-xmark"></i>
+
+            </button>
+
+        </div>
+
+
+        <!-- ERROR / SUCCESS NOTICE -->
+
+        <div
+            class="notice"
+            id="wildlifeNotice"
+        ></div>
+
+
+        <!-- WILDLIFE FORM -->
+
+        <form id="wildlifeForm">
+
+            <input
+                type="hidden"
+                id="wildlifeId"
+            >
+
+
+            <!-- SPECIES + STATUS -->
+
+            <div class="two-col">
+
+                <div class="field">
+
+                    <label for="species">
+                        Species name
+                    </label>
+
+                    <input
+                        id="species"
+                        required
+                        placeholder="Example: Elephant"
+                    >
+
+                </div>
+
+
+                <div class="field">
+
+                    <label for="conservation_status">
+                        Conservation status
+                    </label>
+
+                    <select id="conservation_status">
+
+                        <option value="Protected">
+                            Protected
+                        </option>
+
+                        <option value="Endangered">
+                            Endangered
+                        </option>
+
+                        <option value="Vulnerable">
+                            Vulnerable
+                        </option>
+
+                        <option value="Least Concern">
+                            Least Concern
+                        </option>
+
+                    </select>
+
+                </div>
+
+            </div>
+
+
+            <!-- COUNT + LOCATION -->
+
+            <div class="two-col">
+
+                <div class="field">
+
+                    <label for="population_count">
+                        Population count
+                    </label>
+
+                    <input
+                        id="population_count"
+                        type="number"
+                        min="0"
+                        placeholder="Example: 10"
+                    >
+
+                </div>
+
+
+                <div class="field">
+
+                    <label for="location">
+                        Location
+                    </label>
+
+                    <input
+                        id="location"
+                        placeholder="Example: Bannerghatta National Park"
+                    >
+
+                </div>
+
+            </div>
+
+
+            <!-- IMAGE UPLOAD -->
+
+            <div class="field">
+
+                <label for="image">
+                    Animal image
+                </label>
+
+                <input
+                    id="image"
+                    type="file"
+                    accept="image/*"
+                >
+
+            </div>
+
+
+            <!-- IMAGE PREVIEW -->
+
+            <img
+                class="image-preview"
+                id="imagePreview"
+                alt="Image preview"
+            >
+
+
+            <!-- AI ANALYSIS BUTTON -->
+
+            <div class="ai-actions">
+
+                <button
+                    class="btn btn-ai"
+                    type="button"
+                    id="analyzeImage"
+                >
+
+                    <i class="fa-solid fa-brain"></i>
+
+                    Analyze with AI
+
+                </button>
+
+            </div>
+
+
+            <!-- AI ANALYSIS RESULTS -->
+
+            <div
+                class="ai-result"
+                id="aiResult"
+            >
+
+                <div class="ai-result-header">
+
+                    <h3>
+
+                        <i class="fa-solid fa-robot"></i>
+
+                        AI Analysis Result
+
+                    </h3>
+
+                </div>
+
+
+                <div id="aiResultContent">
+
+                    Select an image and click
+                    <strong>
+                        Analyze with AI
+                    </strong>.
+
+                </div>
+
+            </div>
+
+
+            <!-- SAVE BUTTON -->
+
+            <button
+                class="btn save-btn"
+                type="submit"
+            >
+
+                <i class="fa-solid fa-floppy-disk"></i>
+
+                Save record
+
+            </button>
+
+        </form>
+
+    </div>
+
+</div>
+
+
+<script src="js/wildlife.js"></script>
+
+</body>
+
+</html>
