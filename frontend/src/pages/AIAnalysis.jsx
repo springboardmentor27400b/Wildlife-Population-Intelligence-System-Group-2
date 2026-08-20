@@ -29,62 +29,17 @@ export default function AIAnalysis() {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   
   const [history, setHistory] = useState([]);
-  const getConfidence = (species) => {
-    switch ((species || "").toLowerCase()) {
-        case "tiger":
-            return 98.7;
-        case "elephant":
-            return 97.2;
-        case "bird":
-            return 94.5;
-        case "monkey":
-            return 95.1;
-        case "buffalo":
-            return 93.8;
-        case "snake":
-            return 91.6;
-        default:
-            return 90.0;
-    }
-    };
+  const getConfidence = (item) => {
+    return item?.confidence ?? "N/A";
+};
 
-    const getHabitat = (species) => {
-        switch ((species || "").toLowerCase()) {
-            case "tiger":
-                return 96;
-            case "elephant":
-                return 94;
-            case "bird":
-                return 88;
-            case "monkey":
-                return 90;
-            case "buffalo":
-                return 85;
-            case "snake":
-                return 82;
-            default:
-                return 80;
-        }
-    };
+const getHabitat = (item) => {
+    return item?.habitat_score ?? "N/A";
+};
 
-    const getBiodiversity = (species) => {
-        switch ((species || "").toLowerCase()) {
-            case "tiger":
-                return 95;
-            case "elephant":
-                return 92;
-            case "bird":
-                return 85;
-            case "monkey":
-                return 89;
-            case "buffalo":
-                return 84;
-            case "snake":
-                return 80;
-            default:
-                return 78;
-        }
-        };
+const getBiodiversity = (item) => {
+    return item?.biodiversity_index ?? "N/A";
+};
 
   // ================= IMAGE UPLOAD =================
 
@@ -934,19 +889,20 @@ export default function AIAnalysis() {
                                 {/* Confidence */}
 
                                 <td className="px-4 py-3 text-center">
-                                   {getConfidence(item.species_name || item.species)}%
+                                   {getConfidence(item)}
+                                   {getConfidence(item) !== "N/A" && "%"}
                                 </td>
 
                                 {/* Habitat */}
 
                                 <td className="px-4 py-3 text-center">
-                                    {getHabitat(item.species_name || item.species)}
+                                    {getHabitat(item)}
                                 </td>
 
                                 {/* Biodiversity */}
 
                                 <td className="px-4 py-3 text-center">
-                                    {getBiodiversity(item.species_name || item.species)}
+                                    {getBiodiversity(item)}
                                 </td>
 
                                 {/* Status */}
