@@ -46,21 +46,37 @@ backend/wildlife.db
 .env
 .env.local
 .env.*.local
+!.env.example
+*.pem
+*.key
+*.log
+backend/logs/
+logs/
+
 
 # Large AI Model Weights
 *.pt
+*.pth
+*.onnx
+*.bin
 yolov8s.pt
 backend/yolov8s.pt
 
-# Media Uploads & Temp files
+# Media Uploads, Generated & Temp files
 scratch/
 uploads/
 backend/uploads/
 backend/static/uploads/
 backend/app/static/uploads/
+datasets/processed/
+datasets/train/
+datasets/test/
+datasets/validation/
 
 # IDE & OS
 .vscode/
 .idea/
 .DS_Store
 Thumbs.db
+
+

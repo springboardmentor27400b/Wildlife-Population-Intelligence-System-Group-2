@@ -11,32 +11,45 @@ BACKEND_ROOT = Path(__file__).resolve().parents[1]
 PROJECT_ROOT = BACKEND_ROOT.parent
 load_dotenv(BACKEND_ROOT / ".env")
 
-def _env_path(name: str, default: Path) -> Path:
-    """Use the default path when an environment variable is intentionally blank."""
-    return Path(os.getenv(name) or str(default)).expanduser()
+def resolve_dataset_root() -> Path:
+    env_dataset = os.getenv("DATASET_PATH") or os.getenv("DATASET_ROOT")
+    if env_dataset:
+        candidate = Path(env_dataset).expanduser()
+        if candidate.exists():
+            return candidate
+        if not candidate.is_absolute():
+            if (PROJECT_ROOT / candidate).exists():
+                return PROJECT_ROOT / candidate
+            if (BACKEND_ROOT / candidate).exists():
+                return BACKEND_ROOT / candidate
+        return PROJECT_ROOT / candidate
+    for default_path in [PROJECT_ROOT / "datasets", PROJECT_ROOT / "dataset", BACKEND_ROOT / "datasets", BACKEND_ROOT / "dataset"]:
+        if default_path.exists():
+            return default_path
+    return PROJECT_ROOT / "datasets"
 
 
-DATASET_ROOT = _env_path("DATASET_ROOT", PROJECT_ROOT / "datasets")
+DATASET_ROOT = resolve_dataset_root()
+
 DATASET_PATHS = {
-    "snapshot_serengeti": _env_path("SNAPSHOT_SERENGETI_PATH", DATASET_ROOT / "images" / "snapshot_serengeti"),
-    "animal_kingdom": _env_path("ANIMAL_KINGDOM_PATH", DATASET_ROOT / "images" / "animal_kingdom"),
-    "inaturalist": _env_path("INATURALIST_PATH", DATASET_ROOT / "images" / "inaturalist"),
-    "birdclef": _env_path("BIRDCLEF_PATH", DATASET_ROOT / "audio" / "birdclef"),
-    "gbif": _env_path("GBIF_PATH", DATASET_ROOT / "metadata" / "gbif"),
+    "snapshot_serengeti": DATASET_ROOT / "images" / "snapshot_serengeti" if (DATASET_ROOT / "images" / "snapshot_serengeti").exists() else DATASET_ROOT / "snapshot_serengeti",
+    "animal_kingdom": DATASET_ROOT / "images" / "animal_kingdom" if (DATASET_ROOT / "images" / "animal_kingdom").exists() else DATASET_ROOT / "animal_kingdom",
+    "inaturalist": DATASET_ROOT / "images" / "inaturalist" if (DATASET_ROOT / "images" / "inaturalist").exists() else DATASET_ROOT / "inaturalist",
+    "birdclef": DATASET_ROOT / "audio" / "birdclef" if (DATASET_ROOT / "audio" / "birdclef").exists() else DATASET_ROOT / "birdclef",
+    "gbif": DATASET_ROOT / "metadata" / "gbif" if (DATASET_ROOT / "metadata" / "gbif").exists() else DATASET_ROOT / "gbif",
+    "species_images": DATASET_ROOT / "species_images",
+    "xeno_canto": DATASET_ROOT / "audio" / "xeno_canto" if (DATASET_ROOT / "audio" / "xeno_canto").exists() else DATASET_ROOT / "xeno_canto",
+    "camera_trap": DATASET_ROOT / "images" / "camera_trap" if (DATASET_ROOT / "images" / "camera_trap").exists() else DATASET_ROOT / "camera_trap",
+    "bird_audio": DATASET_ROOT / "audio" / "bird_audio" if (DATASET_ROOT / "audio" / "bird_audio").exists() else DATASET_ROOT / "bird_audio",
 }
-DATASET_URLS = {
-    "snapshot_serengeti": "https://lila.science/datasets/snapshot-serengeti/",
-    "animal_kingdom": "https://www.kaggle.com/datasets/ashishsaxena/animal-kingdom-image-dataset",
-    "inaturalist": "https://www.inaturalist.org/pages/developers",
-    "birdclef": "https://www.kaggle.com/competitions/birdclef-2024/data",
-    "gbif": "https://www.gbif.org/occurrence/download",
-}
-SUPPORTED_IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png"}
-SUPPORTED_AUDIO_EXTENSIONS = {".wav", ".mp3", ".flac"}
+
+SUPPORTED_IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp", ".bmp"}
+SUPPORTED_AUDIO_EXTENSIONS = {".wav", ".mp3", ".flac", ".ogg", ".m4a"}
 PROCESSED_IMAGES_DIR = DATASET_ROOT / "processed" / "images"
 PROCESSED_AUDIO_DIR = DATASET_ROOT / "processed" / "audio"
 SPLIT_DIRS = {name: DATASET_ROOT / name for name in ("train", "validation", "test")}
 LOG_FILE = BACKEND_ROOT / "logs" / "dataset.log"
+
 
 
 def configure_logging() -> logging.Logger:

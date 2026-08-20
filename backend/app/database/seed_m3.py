@@ -257,6 +257,49 @@ def seed_milestone3_data(db: Session) -> None:
         db.add_all(habitat_records)
         db.commit()
 
+    # 3b. Seed Population Densities (if empty)
+    if db.query(PopulationDensity).count() == 0:
+        logger.info("Seeding Population Densities...")
+        density_records = [
+            PopulationDensity(habitat_name="Savanna North", species="African Elephant", density=0.31, area_km2=500.0, population_count=156, latitude=-2.33, longitude=34.83),
+            PopulationDensity(habitat_name="Coastal Mangrove", species="Bengal Tiger", density=0.14, area_km2=300.0, population_count=42, latitude=21.94, longitude=89.18),
+            PopulationDensity(habitat_name="Savanna South", species="African Lion", density=0.22, area_km2=400.0, population_count=88, latitude=-3.12, longitude=35.10),
+            PopulationDensity(habitat_name="Mixed Woodland", species="Leopard", density=0.19, area_km2=350.0, population_count=67, latitude=-24.00, longitude=31.50),
+            PopulationDensity(habitat_name="River Delta", species="Hippopotamus", density=1.05, area_km2=200.0, population_count=210, latitude=-13.10, longitude=31.80),
+            PopulationDensity(habitat_name="Grassland Zone", species="Giraffe", density=0.28, area_km2=450.0, population_count=124, latitude=-2.85, longitude=34.50),
+            PopulationDensity(habitat_name="Grassland Zone", species="Zebra", density=0.75, area_km2=600.0, population_count=450, latitude=-2.85, longitude=34.50),
+            PopulationDensity(habitat_name="Mountain Forest", species="Black Rhino", density=0.11, area_km2=250.0, population_count=28, latitude=-1.47, longitude=29.40),
+            PopulationDensity(habitat_name="Wetland Alpha", species="African Buffalo", density=0.95, area_km2=400.0, population_count=380, latitude=-19.30, longitude=22.80),
+            PopulationDensity(habitat_name="Mountain Forest", species="Mountain Gorilla", density=0.35, area_km2=150.0, population_count=53, latitude=-1.47, longitude=29.40)
+        ]
+        db.add_all(density_records)
+        db.commit()
+
+    # 3c. Seed Habitat Risks (if empty)
+    if db.query(HabitatRisk).count() == 0:
+        logger.info("Seeding Habitat Risks...")
+        risk_records = [
+            HabitatRisk(habitat_name="Grassland Zone", risk_category="Human Disturbance & Overgrazing", risk_score=49.0, primary_threat="Livestock Encroachment", affected_species="Zebra, Giraffe", description="Grassland Zone experiences high human disturbance and agricultural pressure."),
+            HabitatRisk(habitat_name="Desert Edge", risk_category="Severe Water Depletion", risk_score=62.0, primary_threat="Extended Drought", affected_species="Cheetah, Desert Gazelle", description="Arid region with critical moisture deficits and high fire risk."),
+            HabitatRisk(habitat_name="Coastal Mangrove", risk_category="Sea Level Rise & Pollution", risk_score=58.0, primary_threat="Salinity & Coastal Development", affected_species="Bengal Tiger, Estuarine Crocodile", description="Fragile coastal ecosystem threatened by human encroachment."),
+            HabitatRisk(habitat_name="Rift Valley", risk_category="Eutrophication & Agricultural Runoff", risk_score=71.0, primary_threat="Industrial Pollution", affected_species="Flamingo, Waterfowl", description="Critical pollution levels requiring immediate remediation.")
+        ]
+        db.add_all(risk_records)
+        db.commit()
+
+    # 3d. Seed Migration Corridors (if empty)
+    if db.query(MigrationCorridor).count() == 0:
+        logger.info("Seeding Migration Corridors...")
+        corridor_records = [
+            MigrationCorridor(corridor_name="Serengeti-Mara Elephant Way", from_habitat="Savanna North", to_habitat="Savanna South", species="African Elephant", distance_km=145.0, risk_level="Medium", is_active=True),
+            MigrationCorridor(corridor_name="Zebra Great Migration Route", from_habitat="Grassland Zone", to_habitat="Wetland Alpha", species="Zebra", distance_km=280.0, risk_level="Low", is_active=True),
+            MigrationCorridor(corridor_name="Virunga Mountain Pass", from_habitat="Mountain Forest", to_habitat="Bamboo Forest", species="Mountain Gorilla", distance_km=62.0, risk_level="High", is_active=True),
+            MigrationCorridor(corridor_name="Luangwa River Delta Corridor", from_habitat="River Delta", to_habitat="Mixed Woodland", species="Hippopotamus", distance_km=95.0, risk_level="Medium", is_active=True)
+        ]
+        db.add_all(corridor_records)
+        db.commit()
+
+
     # 4. Seed Conservation Recommendations (12+ records)
     if db.query(ConservationRecommendation).count() == 0:
         logger.info("Seeding Conservation Recommendations...")

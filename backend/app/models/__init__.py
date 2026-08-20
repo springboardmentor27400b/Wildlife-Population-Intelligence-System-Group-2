@@ -14,3 +14,5 @@ from app.models.population import PopulationStatistic, PopulationTrend, Populati
 from app.models.habitat import HabitatAnalytics, HabitatAnalysis, HabitatRisk, MigrationCorridor
 from app.models.conservation import ConservationRecommendation
 from app.models.ecosystem import EcosystemHealth
+from app.models.dataset import DatasetStatistic
+

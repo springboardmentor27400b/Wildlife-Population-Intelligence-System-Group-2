@@ -213,6 +213,8 @@ async def lifespan(app: FastAPI):
     logger = logging.getLogger("app.startup")
     logger.info("Application startup initiated.")
     try:
+        logger.info("Running database migrations...")
+        run_db_migrations()
         logger.info("Seeding demo data into database...")
         seed_demo_data()
         logger.info("Demo data seeded successfully.")
@@ -266,6 +268,12 @@ def run_db_migrations():
             conn.commit()
         except Exception:
             pass
+        for col in ["kingdom", "phylum", "class_name", "order_name"]:
+            try:
+                conn.execute(text(f"ALTER TABLE taxonomy ADD COLUMN {col} VARCHAR(100);"))
+                conn.commit()
+            except Exception:
+                pass
 
 run_db_migrations()
 ensure_upload_directories()
@@ -286,6 +294,7 @@ app.include_router(species_routes.router, prefix="/api")
 app.include_router(dashboard.router, prefix="/api")
 app.include_router(ai.router, prefix="/api")
 app.include_router(datasets.router, prefix="/api")
+app.include_router(datasets.alt_router, prefix="/api")
 # Milestone 3 routers
 app.include_router(population_routes.router, prefix="/api")
 app.include_router(habitat_routes.router, prefix="/api")
