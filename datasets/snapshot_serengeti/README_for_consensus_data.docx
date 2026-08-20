@@ -1,0 +1,20 @@
+Consensus classification data and metadata: We applied the plurality algorithm (described in the manuscript) to the raw classification data to produce a single classification per capture event, accompanied by measures of uncertainty and difficulty. Each species classified in a single capture event receives its own record and species-specific measures of uncertainty. Metadata (data/time & location) are included to facilitate ecological analyses. This dataset excludes all images retired as “blank.”
+•	CaptureEventID: A unique identifier for each capture event and resultant image set. Links to CaptureEventID from raw classification data.
+•	NumImages: The number of images in the image set/capture event.
+•	DateTime: The date-time stamp is reported in yyyy-mm-dd hh:mm:ss. Time zone is UTC + 3:00. Note that daylight savings time is not observed Tanzania.
+•	SiteID: The alpha-numeric site code.
+•	LocationX, LocationY: UTM X and Y coordinates of the site (datum Arc1960, zone 36S) 
+•	NumSpecies: The number of species in this capture event.
+•	Species: Species of animal in the capture event (one of 48 possibilities).
+•	Count: Median number of individuals, estimated as 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11-50 or 51+.
+•	Standing: The proportion of users who selected this behaviour for this species.
+•	Resting: The proportion of users who selected this behaviour for this species.
+•	Moving: The proportion of users who selected this behaviour for this species.
+•	Eating: The proportion of users who selected this behaviour for this species.
+•	Interacting: The proportion of users who selected this behaviour for this species.
+•	Babies: The proportion of users who selected “young present” for this species.
+•	NumClassifications: The total number of users who classified this capture event.
+•	NumVotes: The total number of users who selected this species for this capture event.
+•	NumBlanks: The number of users who selected “nothing here” for this capture event.
+•	Evenness: The Pielou evenness index of species classifications for the capture event.
+

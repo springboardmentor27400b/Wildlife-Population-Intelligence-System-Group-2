@@ -1,0 +1,27 @@
+{
+  "image_size": [
+    224,
+    224
+  ],
+  "num_classes": 10,
+  "classes": [
+    "buffalo",
+    "elephant",
+    "gazelleGrants",
+    "gazelleThomsons",
+    "giraffe",
+    "hartebeest",
+    "impala",
+    "warthog",
+    "wildebeest",
+    "zebra"
+  ],
+  "total_images": 1386,
+  "train_images": 972,
+  "validation_images": 213,
+  "test_images": 201,
+  "train_capture_events": 350,
+  "validation_capture_events": 75,
+  "test_capture_events": 75,
+  "test_accuracy": 0.7562189102172852
+}
