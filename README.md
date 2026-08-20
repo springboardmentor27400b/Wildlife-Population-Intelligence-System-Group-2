@@ -4,11 +4,14 @@ A commercial-grade, multi-modal **AI Wildlife Population & Ecosystem Intelligenc
 
 ---
 
-## Deployment Status Notice
+## Deployment & System Status
 
 > [!NOTE]
-> **DEPLOYMENT STATUS: NOT DEPLOYED (Render & Docker Blueprints Prepared)**  
-> Production configurations, automated Render Blueprints (`render.yaml`), Docker definitions (`docker-compose.prod.yml`), and PostgreSQL pooling logic have been prepared and tested locally. No remote cloud instances have been provisioned yet.
+> **PRODUCTION DEPLOYMENT (Render Cloud & Local Environments)**  
+> - **Live Frontend Web App**: [https://wildlife-frontend-kjbn.onrender.com/](https://wildlife-frontend-kjbn.onrender.com/)
+> - **Live Backend REST API**: [https://wildlife-backend-vdvt.onrender.com/](https://wildlife-backend-vdvt.onrender.com/)
+> - **API Health Check**: [https://wildlife-backend-vdvt.onrender.com/api/health](https://wildlife-backend-vdvt.onrender.com/api/health)
+> - **Local Development**: Fully automated via `start_system.bat` for Windows environments.
 
 ---
 
@@ -20,7 +23,7 @@ The **Wildlife Population Intelligence System** provides an end-to-end intellige
 
 ## Project Objectives
 
-1. **Automated Multimodal Species Identification**: Real-time detection and classification of wildlife using 2-stage vision models (YOLOv8 + ResNet-50) and audio spectral analysis (Librosa MFCCs).
+1. **Automated Multimodal Species Identification**: Real-time detection and classification of wildlife using lightweight computer vision (YOLOv8n + Taxonomy Mapping) and bioacoustic audio signal processing (Librosa Mel-Spectrograms & MFCCs).
 2. **Deterministic Ecological Analytics**: Automated calculation of mathematical ecological indicators, including Shannon's Diversity Index ($H'$), Pielou's Evenness ($J'$), species richness, and habitat suitability scores.
 3. **Population & Habitat Intelligence**: Per-species estimated population density ($/km^2$), growth velocity, sex/age ratio modeling, and migration corridor risk assessment.
 4. **Proactive Conservation Action**: Automated rule-based recommendation engine prioritizing intervention urgency (Critical, High, Medium, Low).
@@ -39,20 +42,19 @@ The **Wildlife Population Intelligence System** provides an end-to-end intellige
 
 ### Backend
 - **Framework**: FastAPI (Python 3.11 / 3.13)
-- **Database ORM**: SQLAlchemy (Dual driver support: SQLite dev fallback & PostgreSQL `psycopg2-binary` prod connection pooling)
+- **Database ORM**: SQLAlchemy (Dual driver support: SQLite local dev & PostgreSQL production)
 - **PDF Engine**: ReportLab
 - **Hardware Telemetry**: `psutil`
-- **Authentication**: JWT tokens (`python-jose`) with bcrypt password hashing (`passlib`)
+- **Authentication**: JWT tokens (`python-jose`) with PBKDF2/bcrypt password hashing
 
 ### AI & Signal Processing
-- **Computer Vision**: Ultralytics YOLOv8 (stage 1 detection) + TorchVision ResNet-50 (stage 2 classification)
-- **Bioacoustics**: Librosa (Mel-frequency cepstral coefficients & spectral centroid analysis)
-- **Computer Vision Utilities**: OpenCV & Pillow
+- **Computer Vision**: Ultralytics YOLOv8 (yolov8n lightweight CPU detector) + IUCN Taxonomy Classification
+- **Bioacoustics**: Librosa (Mel-frequency cepstral coefficients, Mel-spectrogram & spectral centroid analysis)
+- **Image Processing**: OpenCV & Pillow
 
 ### Deployment & Orchestration
 - **Cloud PaaS**: Render Blueprint (`render.yaml`)
 - **Containerization**: Docker & Docker Compose (`docker-compose.yml`, `docker-compose.prod.yml`)
-- **Web Server Proxy**: Nginx (Alpine) with SPA routing fallback
 
 ---
 
@@ -60,11 +62,11 @@ The **Wildlife Population Intelligence System** provides an end-to-end intellige
 
 ```mermaid
 graph TD
-    User([Field Researcher / Admin]) -->|HTTP / Port 80| Frontend[React 18 + Nginx Container]
-    Frontend -->|REST API Requests| Backend[FastAPI Backend Container]
+    User([Field Researcher / Admin]) -->|HTTP / Port 80| Frontend[React 18 SPA Frontend]
+    Frontend -->|REST API Requests| Backend[FastAPI Backend Web Service]
     
     subgraph AI & Analytics Engines
-        Backend --> YOLO[YOLOv8 + ResNet-50 Computer Vision Engine]
+        Backend --> YOLO[YOLOv8 + Wildlife Taxonomy Mapping]
         Backend --> Audio[Librosa Bioacoustic Signal Processor]
         Backend --> Eco[Shannon Index & Ecosystem Health Calculator]
         Backend --> Pop[Population Density & Trend Engine]
@@ -73,8 +75,8 @@ graph TD
     
     subgraph Data & Telemetry Layer
         Backend --> ORM[SQLAlchemy ORM]
-        ORM --> SQLite[SQLite Development DB]
-        ORM --> Postgres[Render / Docker PostgreSQL]
+        ORM --> SQLite[SQLite Local Development DB]
+        ORM --> Postgres[Render Managed PostgreSQL DB]
         Backend --> Telemetry[psutil Hardware Telemetry]
     end
 ```
@@ -87,6 +89,7 @@ graph TD
 | :--- | :--- | :--- |
 | **Main Dashboard** | `/` | Field monitoring sites summary & real-time sampling stats |
 | **Executive Dashboard** | `/executive-dashboard` | 8 summary KPI cards & 12 interactive analytics graphs |
+| **AI Intelligence Workspace** | `/intelligence` | Unified AI workspace for population, habitat, & bioacoustics |
 | **GIS Map** | `/gis` | Interactive Leaflet spatial map with layer filters |
 | **AI Predictions** | `/predictions` | 6-month & 1-year population forecasts & threat probability |
 | **System Health** | `/system-health` | Live dynamic psutil CPU, RAM, & Disk telemetry |
@@ -102,6 +105,7 @@ graph TD
 | **Surveys** | `/surveys` | Field sensor survey events & observer logs |
 | **Observations** | `/observations` | Direct species observation logs & encounter counts |
 | **Datasets** | `/datasets` | Multi-dataset ingestion catalog & metadata stats |
+| **User Profile** | `/profile` | User role details, access permissions, & account metadata |
 
 ---
 
@@ -112,7 +116,16 @@ graph TD
 - Node.js 18+ & npm
 - Docker & Docker Compose (Optional for containerized setup)
 
-### 1. Backend Setup
+### 1. Windows Local Development (`start_system.bat`)
+For local Windows development, a dedicated startup script is provided:
+```cmd
+start_system.bat
+```
+> *Note: `start_system.bat` is for local Windows development only. It automatically discovers Python (virtualenv or system PATH), verifies npm, and launches both frontend (`http://localhost:5173`) and backend (`http://localhost:8000`). It is NOT used in cloud production.*
+
+### 2. Manual Local Setup
+
+#### Backend Setup
 ```bash
 # Navigate to backend directory
 cd backend
@@ -133,7 +146,7 @@ pip install -r requirements.txt
 python -m uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 ```
 
-### 2. Frontend Setup
+#### Frontend Setup
 ```bash
 # Navigate to frontend directory
 cd frontend
@@ -144,7 +157,7 @@ npm install
 # Start Vite development server
 npm run dev
 ```
-The application will be accessible at `http://localhost:5173`.
+The local frontend will be accessible at `http://localhost:5173` and backend at `http://localhost:8000`.
 
 ---
 
@@ -179,31 +192,34 @@ ACCESS_TOKEN_EXPIRE_MINUTES=1440
 
 ---
 
-## Render Cloud Deployment
+## Production Deployment (Render Cloud)
 
-The repository is equipped with a native Render Blueprint (`render.yaml`) for zero-secret automated deployments.
+The application is deployed on Render Cloud with separate frontend and backend services utilizing a native Render Blueprint (`render.yaml`) with environment-variable-based secret management.
 
-### 1-Click Render Blueprint Deployment
-1. Connect your GitHub repository to [Render](https://render.com).
-2. Create a new **Blueprint Instance** from your repository.
-3. Render automatically provisions:
-   - **PostgreSQL Managed Database**: `wildlife-db`
-   - **FastAPI Web Service**: `wildlife-backend` with dynamic `$PORT` binding and auto-generated `SECRET_KEY`.
-   - **React Vite Static Site**: `wildlife-frontend` with automatic SPA rewrites (`/*` -> `/index.html`) and `VITE_API_URL` configuration.
+### Production URLs
+- **Frontend Web Service**: `https://wildlife-frontend-kjbn.onrender.com/`
+- **Backend API Service**: `https://wildlife-backend-vdvt.onrender.com/`
+- **Health Check**: `https://wildlife-backend-vdvt.onrender.com/api/health`
 
-### Manual Render Setup (Alternative)
-- **Backend**:
-  - Type: Web Service (Python 3.11)
+### Render Service Specifications
+- **Backend Web Service (`wildlife-backend`)**:
+  - Runtime: Python 3.11
   - Root Directory: `backend`
   - Build Command: `pip install -r requirements.txt`
-  - Start Command: `uvicorn app.main:app --host 0.0.0.0 --port $PORT`
+  - Start Command: `uvicorn app.main:app --host 0.0.0.0 --port $PORT --workers 1`
   - Health Check: `/api/health`
-- **Frontend**:
-  - Type: Static Site
+  - Environment Variables:
+    - `DATABASE_URL`: `<Render PostgreSQL connection string>`
+    - `SECRET_KEY`: `<secure secret minimum 32 characters>`
+    - `CORS_ORIGINS`: `https://wildlife-frontend-kjbn.onrender.com,http://localhost:5173`
+- **Frontend Static Site (`wildlife-frontend`)**:
+  - Runtime: Static
   - Root Directory: `frontend`
   - Build Command: `npm install && npm run build`
   - Publish Directory: `dist`
-  - Rewrite Rules: `/*` -> `/index.html`
+  - Rewrite Rules: `/*` -> `/index.html` (Rewrite)
+  - Environment Variables:
+    - `VITE_API_URL`: `https://wildlife-backend-vdvt.onrender.com`
 
 ---
 
@@ -241,7 +257,7 @@ python -m pytest tests/ -v
 - **Backend Test Suite**: **27 passed / 0 failed / 0 skipped**
 - **System Integration Test Suite**: **2 passed / 0 failed / 0 skipped**
 - **Total Tests**: **29 passed**
-- **End-to-End Workflow Verification**: **17/17 operational workflow modules verified**
+- **Local End-to-End Workflow Verification**: **17/17 operational workflow modules verified**
 
 ---
 

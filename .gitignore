@@ -62,6 +62,8 @@ logs/
 *.bin
 yolov8s.pt
 backend/yolov8s.pt
+yolov8n.pt
+backend/yolov8n.pt
 
 # Media Uploads, Generated & Temp files
 scratch/
