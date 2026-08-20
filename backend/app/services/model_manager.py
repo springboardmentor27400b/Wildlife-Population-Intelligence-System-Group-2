@@ -244,7 +244,7 @@ class ModelManager:
         confidence_detected = 0.88
         primary_box = []
 
-        # 2. Open working image safely and scale to max 1024px to prevent RAM exhaustion
+        # 2. Open working image safely and scale to max 640px to prevent RAM exhaustion
         full_pil = None
         w_orig, h_orig = 800, 600
         try:
@@ -252,8 +252,8 @@ class ModelManager:
                 w_orig, h_orig = raw_img.size
                 full_pil = raw_img.convert("RGB")
                 # Downsample large images for working copies
-                if max(w_orig, h_orig) > 1024:
-                    full_pil.thumbnail((1024, 1024), Image.Resampling.LANCZOS)
+                if max(w_orig, h_orig) > 640:
+                    full_pil.thumbnail((640, 640), Image.Resampling.BILINEAR)
         except Exception as exc:
             logger.error("Failed to load image: %s", exc)
 
@@ -263,14 +263,14 @@ class ModelManager:
             try:
                 img_cv = cv2.cvtColor(np.array(full_pil), cv2.COLOR_RGB2BGR) if HAS_CV2 else None
                 
-                # Run YOLO inference
+                # Run lightweight YOLO inference
                 results = self._yolo_model(
                     img_cv if img_cv is not None else image_path,
-                    imgsz=640,
+                    imgsz=384,
                     conf=0.15,
                     iou=0.45,
                     verbose=False,
-                    device=self.device
+                    device="cpu"
                 )
                 
                 if results and len(results) > 0 and len(results[0].boxes) > 0:
@@ -407,9 +407,9 @@ class ModelManager:
         if not audio_file.exists():
             raise FileNotFoundError(f"Audio file not found: {audio_file.resolve()}")
 
-        # 1. Load audio with strict memory constraints (max 15s, sr=22050)
+        # 1. Load audio with strict memory constraints (max 5s, sr=16000)
         samples = np.array([])
-        sr = 22050
+        sr = 16000
         duration_sec = 1.0
         spectral_centroid = 1250.0
         rms_energy = 0.045
@@ -417,7 +417,7 @@ class ModelManager:
 
         if HAS_LIBROSA:
             try:
-                samples, sr = librosa.load(str(audio_file), sr=22050, duration=15.0, mono=True)
+                samples, sr = librosa.load(str(audio_file), sr=16000, duration=5.0, mono=True)
                 duration_sec = float(len(samples)) / float(sr) if len(samples) > 0 else 1.0
                 
                 # Extract lightweight features
@@ -428,10 +428,40 @@ class ModelManager:
             except Exception as exc:
                 logger.warning("Librosa audio loading exception: %s", exc)
 
-        # 2. Species identification via acoustic signature & keywords
+        # 2. Species identification via AST transformer, acoustic signature & keywords
         fname_search = f"{original_filename or ''} {audio_file.name}".lower()
         predicted_species = "African Fish Eagle"
         audio_confidence = 0.92
+        top5_predictions = []
+
+        # Optional AST Audio Spectrogram Transformer inference (16kHz resampling)
+        if self._ast_model is not None and self._ast_extractor is not None and len(samples) > 0 and HAS_TORCH:
+            try:
+                inputs = self._ast_extractor(samples, sampling_rate=16000, return_tensors="pt")
+                inputs = {k: v.to(self.device) for k, v in inputs.items()}
+                with torch.inference_mode():
+                    outputs = self._ast_model(**inputs)
+                    logits = outputs.logits[0]
+                    probs = torch.softmax(logits, dim=-1)
+                    top_indices = torch.topk(probs, k=5).indices.tolist()
+                    top_probs = torch.topk(probs, k=5).values.tolist()
+                    id2label = getattr(self._ast_model.config, "id2label", {})
+                    top5_predictions = [
+                        {"label": id2label.get(idx, f"Class {idx}"), "confidence": round(float(top_probs[i]), 3)}
+                        for i, idx in enumerate(top_indices)
+                    ]
+                    for p in top5_predictions:
+                        lbl = p["label"].lower()
+                        for sp, kw_list in AUDIO_KEYWORDS.items():
+                            if any(k in lbl for k in kw_list):
+                                predicted_species = sp
+                                audio_confidence = max(0.85, round(float(p["confidence"]), 2))
+                                matched = True
+                                break
+                        if matched:
+                            break
+            except Exception as exc:
+                logger.warning("AST inference warning: %s", exc)
 
         matched = False
         for sp, kw_list in AUDIO_KEYWORDS.items():
@@ -462,10 +492,10 @@ class ModelManager:
         if HAS_MATPLOTLIB and HAS_LIBROSA and len(samples) > 0:
             try:
                 # Waveform
-                fig_wf, ax_wf = plt.subplots(figsize=(6, 2.2), dpi=80)
+                fig_wf, ax_wf = plt.subplots(figsize=(5, 1.8), dpi=60)
                 time_axis = np.linspace(0, duration_sec, len(samples))
                 ax_wf.plot(time_axis, samples, color="#059669", linewidth=0.7)
-                ax_wf.set_title("Bioacoustic Waveform Analysis", fontsize=9, fontweight="bold", color="#0f172a")
+                ax_wf.set_title("Bioacoustic Waveform Analysis", fontsize=8, fontweight="bold", color="#0f172a")
                 ax_wf.set_xlabel("Time (s)", fontsize=7, color="#475569")
                 ax_wf.set_ylabel("Amplitude", fontsize=7, color="#475569")
                 ax_wf.grid(True, linestyle="--", alpha=0.3)
@@ -474,11 +504,11 @@ class ModelManager:
                 plt.close(fig_wf)
 
                 # Spectrogram
-                fig_sp, ax_sp = plt.subplots(figsize=(6, 2.2), dpi=80)
-                mel_spec = librosa.feature.melspectrogram(y=samples, sr=sr, n_mels=64)
+                fig_sp, ax_sp = plt.subplots(figsize=(5, 1.8), dpi=60)
+                mel_spec = librosa.feature.melspectrogram(y=samples, sr=sr, n_mels=48, hop_length=512)
                 mel_db = librosa.power_to_db(mel_spec, ref=np.max)
                 librosa.display.specshow(mel_db, x_axis="time", y_axis="mel", sr=sr, ax=ax_sp, cmap="viridis")
-                ax_sp.set_title("Mel-Spectrogram Profile", fontsize=9, fontweight="bold", color="#0f172a")
+                ax_sp.set_title("Mel-Spectrogram Profile", fontsize=8, fontweight="bold", color="#0f172a")
                 ax_sp.set_xlabel("Time (s)", fontsize=7, color="#475569")
                 ax_sp.set_ylabel("Freq (Hz)", fontsize=7, color="#475569")
                 fig_sp.tight_layout()

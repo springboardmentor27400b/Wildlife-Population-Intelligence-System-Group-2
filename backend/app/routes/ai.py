@@ -9,7 +9,7 @@ from fastapi.responses import StreamingResponse, JSONResponse
 from sqlalchemy.orm import Session
 
 from app.database.database import get_db
-from app.middleware.auth import get_current_user, require_roles
+from app.middleware.auth import get_current_user, get_optional_current_user, require_roles
 from app.models.user import User
 from app.repositories.ai_repository import AIRepository
 from app.schemas.ai import AudioDetectionOut, AudioUploadRequest, BiodiversitySummary, ImageDetectionOut, ImageUploadRequest, SpeciesClassificationRequest, SpeciesRecordOut
@@ -32,7 +32,7 @@ def parse_bbox(bbox_str: str | None) -> list[int]:
 
 
 @router.post("/image/upload", response_model=ImageDetectionOut)
-def upload_image(file: UploadFile = File(...), location: Optional[str] = Form(None), current_user: User = Depends(require_roles("wildlife_researcher", "conservation_officer", "forest_officer", "admin")), db: Session = Depends(get_db)):
+def upload_image(file: UploadFile = File(...), location: Optional[str] = Form(None), current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     try:
         validate_upload(file, {".jpg", ".jpeg", ".png"}, "image", max_size_mb=20)
         storage = save_upload(file, "image")
@@ -83,13 +83,7 @@ def upload_image(file: UploadFile = File(...), location: Optional[str] = Form(No
     created_at = detection.created_at
     logger.info("Database saved")
 
-    try:
-        from app.services.intelligence_engine import recalculate_all_intelligence
-        recalculate_all_intelligence(db)
-    except Exception:
-        pass
-
-    # Persist species record into PostgreSQL species_records table
+    # Persist species record into PostgreSQL/SQLite species_records table
     try:
         repo.create_species_record(
             common_name=prediction["species"],
@@ -245,7 +239,7 @@ def delete_image_detection(detection_id: int, current_user: User = Depends(get_c
 def upload_audio(
     file: UploadFile = File(...), 
     location: Optional[str] = Form(None), 
-    current_user: User = Depends(require_roles("wildlife_researcher", "conservation_officer", "forest_officer", "admin")), 
+    current_user: User = Depends(get_current_user), 
     db: Session = Depends(get_db)
 ):
     try:
@@ -303,12 +297,6 @@ def upload_audio(
         )
         detection_id = detection.id
         created_at = detection.created_at
-
-        try:
-            from app.services.intelligence_engine import recalculate_all_intelligence
-            recalculate_all_intelligence(db)
-        except Exception:
-            pass
 
         try:
             repo.create_species_record(
@@ -537,10 +525,11 @@ biodiversity_router.add_api_route("/monthly-velocity", get_biodiversity_monthly_
 
 
 @router.get("/report/pdf")
-def generate_report_pdf(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)) -> StreamingResponse:
+def generate_report_pdf(current_user: Optional[User] = Depends(get_optional_current_user), db: Session = Depends(get_db)) -> StreamingResponse:
     repo = AIRepository(db)
-    image_detections = repo.list_image_detections(current_user.id)
-    audio_detections = repo.list_audio_detections(current_user.id)
+    user_id = current_user.id if current_user else None
+    image_detections = repo.list_image_detections(user_id) if user_id else []
+    audio_detections = repo.list_audio_detections(user_id) if user_id else []
     if not image_detections and not audio_detections:
         from app.models.image_detection import ImageDetection
         from app.models.audio_detection import AudioDetection
@@ -579,10 +568,13 @@ def generate_report_pdf(current_user: User = Depends(get_current_user), db: Sess
 
     elements = []
 
+    user_name = current_user.full_name if current_user else "Wildlife Official / Researcher"
+    user_role = current_user.role if current_user else "wildlife_researcher"
+
     # Title & Metadata Header
     elements.append(Paragraph("Wildlife Population Intelligence System", title_style))
     elements.append(Paragraph(f"Official Biodiversity & AI Recognition Report | Generated on {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M UTC')}", subtitle_style))
-    elements.append(Paragraph(f"<b>Researcher / Official:</b> {current_user.full_name} ({current_user.role})", body_style))
+    elements.append(Paragraph(f"<b>Researcher / Official:</b> {user_name} ({user_role})", body_style))
     elements.append(Spacer(1, 10))
 
     # Biodiversity Summary Metrics Table

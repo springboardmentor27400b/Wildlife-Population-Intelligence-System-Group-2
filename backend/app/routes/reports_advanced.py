@@ -6,8 +6,9 @@ from fastapi import APIRouter, Depends, HTTPException, Response
 from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 
+from typing import Optional
 from app.database.database import get_db
-from app.middleware.auth import get_current_user
+from app.middleware.auth import get_current_user, get_optional_current_user
 from app.models.user import User
 from app.models.species import Species
 from app.models.monitoring_site import MonitoringSite
@@ -94,11 +95,11 @@ def get_report_data(db: Session):
     }
 
 @router.get("/advanced")
-def get_advanced_report(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+def get_advanced_report(db: Session = Depends(get_db), current_user: Optional[User] = Depends(get_optional_current_user)):
     return get_report_data(db)
 
 @router.get("/export/json")
-def export_json(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+def export_json(db: Session = Depends(get_db), current_user: Optional[User] = Depends(get_optional_current_user)):
     data = get_report_data(db)
     content = json.dumps(data, indent=2)
     return Response(
@@ -108,7 +109,7 @@ def export_json(db: Session = Depends(get_db), current_user: User = Depends(get_
     )
 
 @router.get("/export/csv")
-def export_csv(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+def export_csv(db: Session = Depends(get_db), current_user: Optional[User] = Depends(get_optional_current_user)):
     pop_list = db.query(PopulationStatistic).all()
     output = io.StringIO()
     writer = csv.writer(output)
@@ -131,7 +132,7 @@ def export_csv(db: Session = Depends(get_db), current_user: User = Depends(get_c
     )
 
 @router.get("/export/excel")
-def export_excel(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+def export_excel(db: Session = Depends(get_db), current_user: Optional[User] = Depends(get_optional_current_user)):
     # Export excel compatible formatted CSV with BOM
     pop_list = db.query(PopulationStatistic).all()
     output = io.StringIO()
@@ -156,7 +157,7 @@ def export_excel(db: Session = Depends(get_db), current_user: User = Depends(get
     )
 
 @router.get("/export/pdf")
-def export_pdf(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+def export_pdf(db: Session = Depends(get_db), current_user: Optional[User] = Depends(get_optional_current_user)):
     from reportlab.lib.pagesizes import letter
     from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, KeepTogether, HRFlowable
     from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle

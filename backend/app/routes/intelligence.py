@@ -1,8 +1,9 @@
+from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 from app.database.database import get_db
-from app.middleware.auth import get_current_user
+from app.middleware.auth import get_current_user, get_optional_current_user
 from app.models.user import User
 from app.services.population_service import get_population_summary, get_species_population, get_population_trends
 from app.services.habitat_service import get_habitat_summary, get_habitat_map
@@ -26,7 +27,7 @@ def trigger_recalculate(db: Session = Depends(get_db), current_user: User = Depe
     return res
 
 @router.get("/dashboard")
-def get_dashboard(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+def get_dashboard(db: Session = Depends(get_db), current_user: Optional[User] = Depends(get_optional_current_user)):
     # Run dynamic recalculation pipeline to ensure latest detection sync
     recalculate_all_intelligence(db)
 
@@ -92,7 +93,7 @@ def get_dashboard(db: Session = Depends(get_db), current_user: User = Depends(ge
     }
 
 @router.get("/export/csv")
-def export_csv(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+def export_csv(db: Session = Depends(get_db), current_user: Optional[User] = Depends(get_optional_current_user)):
     species_pop = get_species_population(db)
     
     output = io.StringIO()
@@ -115,7 +116,7 @@ def export_csv(db: Session = Depends(get_db), current_user: User = Depends(get_c
     return StreamingResponse(iter([output.getvalue()]), media_type="text/csv", headers={"Content-Disposition": "attachment; filename=wildlife_intelligence_data.csv"})
 
 @router.get("/export/pdf")
-def export_pdf(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+def export_pdf(db: Session = Depends(get_db), current_user: Optional[User] = Depends(get_optional_current_user)):
     try:
         from reportlab.pdfgen import canvas
     except ImportError:

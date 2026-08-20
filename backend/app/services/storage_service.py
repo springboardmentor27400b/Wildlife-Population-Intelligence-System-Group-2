@@ -13,6 +13,8 @@ from PIL import Image
 UPLOAD_ROOT = Path(__file__).resolve().parent.parent.parent / "uploads"
 IMAGE_DIR = UPLOAD_ROOT / "images"
 AUDIO_DIR = UPLOAD_ROOT / "audio"
+ORIGINAL_DIR = UPLOAD_ROOT / "original"
+DETECTIONS_DIR = UPLOAD_ROOT / "detections"
 PREDICTIONS_DIR = UPLOAD_ROOT / "predictions"
 CROPS_DIR = UPLOAD_ROOT / "crops"
 AUDIO_PLOTS_DIR = UPLOAD_ROOT / "audio_plots"
@@ -25,7 +27,7 @@ MAX_AUDIO_SIZE_BYTES = 100 * 1024 * 1024
 
 
 def ensure_upload_directories() -> None:
-    for directory in (IMAGE_DIR, AUDIO_DIR, PREDICTIONS_DIR, CROPS_DIR, AUDIO_PLOTS_DIR, THUMBNAILS_DIR):
+    for directory in (IMAGE_DIR, AUDIO_DIR, ORIGINAL_DIR, DETECTIONS_DIR, PREDICTIONS_DIR, CROPS_DIR, AUDIO_PLOTS_DIR, THUMBNAILS_DIR):
         directory.mkdir(parents=True, exist_ok=True)
 
 

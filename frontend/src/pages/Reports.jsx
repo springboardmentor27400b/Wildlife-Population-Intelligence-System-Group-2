@@ -8,6 +8,7 @@ import {
 export default function Reports() {
     const [report, setReport] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [exporting, setExporting] = useState(null);
 
     const loadReport = async () => {
         setLoading(true);
@@ -25,8 +26,38 @@ export default function Reports() {
         loadReport();
     }, []);
 
-    const exportFile = (format) => {
-        window.open(resolveAssetUrl(`/api/reports/export/${format}`), '_blank');
+    const exportFile = async (format) => {
+        setExporting(format);
+        try {
+            const response = await api.get(`/reports/export/${format}`, { responseType: 'blob' });
+            const mimeTypes = {
+                pdf: 'application/pdf',
+                csv: 'text/csv',
+                excel: 'application/vnd.ms-excel',
+                json: 'application/json'
+            };
+            const extensions = {
+                pdf: 'pdf',
+                csv: 'csv',
+                excel: 'xlsx',
+                json: 'json'
+            };
+            const blob = new Blob([response.data], { type: mimeTypes[format] || 'application/octet-stream' });
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `wildlife_intelligence_report.${extensions[format] || format}`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            window.URL.revokeObjectURL(url);
+        } catch (err) {
+            console.error(`Failed to export ${format}:`, err);
+            // Fallback for direct download link
+            window.open(resolveAssetUrl(`/api/reports/export/${format}`), '_blank');
+        } finally {
+            setExporting(null);
+        }
     };
 
     if (loading) {
@@ -59,31 +90,35 @@ export default function Reports() {
                 <div className="flex flex-wrap gap-2">
                     <button
                         onClick={() => exportFile('pdf')}
-                        className="inline-flex items-center space-x-2 rounded-xl bg-emerald-600 px-4 py-2.5 text-xs font-bold text-white shadow-md hover:bg-emerald-700 transition"
+                        disabled={exporting !== null}
+                        className="inline-flex items-center space-x-2 rounded-xl bg-emerald-600 px-4 py-2.5 text-xs font-bold text-white shadow-md hover:bg-emerald-700 transition disabled:opacity-60 cursor-pointer"
                     >
                         <Download className="w-4 h-4" />
-                        <span>Export PDF</span>
+                        <span>{exporting === 'pdf' ? 'Exporting...' : 'Export PDF'}</span>
                     </button>
                     <button
                         onClick={() => exportFile('csv')}
-                        className="inline-flex items-center space-x-2 rounded-xl bg-sky-600 px-4 py-2.5 text-xs font-bold text-white shadow-md hover:bg-sky-700 transition"
+                        disabled={exporting !== null}
+                        className="inline-flex items-center space-x-2 rounded-xl bg-sky-600 px-4 py-2.5 text-xs font-bold text-white shadow-md hover:bg-sky-700 transition disabled:opacity-60 cursor-pointer"
                     >
                         <FileSpreadsheet className="w-4 h-4" />
-                        <span>Export CSV</span>
+                        <span>{exporting === 'csv' ? 'Exporting...' : 'Export CSV'}</span>
                     </button>
                     <button
                         onClick={() => exportFile('excel')}
-                        className="inline-flex items-center space-x-2 rounded-xl bg-teal-600 px-4 py-2.5 text-xs font-bold text-white shadow-md hover:bg-teal-700 transition"
+                        disabled={exporting !== null}
+                        className="inline-flex items-center space-x-2 rounded-xl bg-teal-600 px-4 py-2.5 text-xs font-bold text-white shadow-md hover:bg-teal-700 transition disabled:opacity-60 cursor-pointer"
                     >
                         <FileSpreadsheet className="w-4 h-4" />
-                        <span>Export Excel</span>
+                        <span>{exporting === 'excel' ? 'Exporting...' : 'Export Excel'}</span>
                     </button>
                     <button
                         onClick={() => exportFile('json')}
-                        className="inline-flex items-center space-x-2 rounded-xl bg-purple-600 px-4 py-2.5 text-xs font-bold text-white shadow-md hover:bg-purple-700 transition"
+                        disabled={exporting !== null}
+                        className="inline-flex items-center space-x-2 rounded-xl bg-purple-600 px-4 py-2.5 text-xs font-bold text-white shadow-md hover:bg-purple-700 transition disabled:opacity-60 cursor-pointer"
                     >
                         <FileCode className="w-4 h-4" />
-                        <span>Export JSON</span>
+                        <span>{exporting === 'json' ? 'Exporting...' : 'Export JSON'}</span>
                     </button>
                 </div>
             </div>

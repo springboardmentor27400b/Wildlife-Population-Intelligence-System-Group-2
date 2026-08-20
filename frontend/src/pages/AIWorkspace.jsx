@@ -54,6 +54,31 @@ export default function AIWorkspace() {
     };
 
     const activeTab = getTabFromPath(location.pathname);
+    const [exporting, setExporting] = useState(null);
+
+    const handleExport = async (format) => {
+        setExporting(format);
+        try {
+            const endpoint = format === 'pdf' ? '/reports/export/pdf' : '/intelligence/export/csv';
+            const response = await api.get(endpoint, { responseType: 'blob' });
+            const mimeType = format === 'pdf' ? 'application/pdf' : 'text/csv';
+            const ext = format === 'pdf' ? 'pdf' : 'csv';
+            const blob = new Blob([response.data], { type: mimeType });
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `wildlife_intelligence_report.${ext}`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            window.URL.revokeObjectURL(url);
+        } catch (err) {
+            console.error(`Failed to export ${format}:`, err);
+            window.open(resolveAssetUrl(`/api/intelligence/export/${format}`), '_blank');
+        } finally {
+            setExporting(null);
+        }
+    };
 
     useEffect(() => {
         api.get('/intelligence/dashboard')
@@ -79,20 +104,20 @@ export default function AIWorkspace() {
                     </div>
 
                     <div className="flex flex-wrap items-center gap-2">
-                        <a
-                            href={resolveAssetUrl('/api/intelligence/export/pdf')}
-                            download
-                            className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-4 py-2 text-xs font-semibold text-white shadow-md hover:bg-emerald-500 transition-colors no-underline"
+                        <button
+                            onClick={() => handleExport('pdf')}
+                            disabled={exporting !== null}
+                            className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-4 py-2 text-xs font-semibold text-white shadow-md hover:bg-emerald-500 transition-colors disabled:opacity-60 cursor-pointer"
                         >
-                            <Download className="h-4 w-4" /> Export Intelligence PDF
-                        </a>
-                        <a
-                            href={resolveAssetUrl('/api/intelligence/export/csv')}
-                            download
-                            className="inline-flex items-center gap-2 rounded-xl bg-slate-800 px-4 py-2 text-xs font-semibold text-slate-200 border border-slate-700 hover:bg-slate-700 transition-colors no-underline"
+                            <Download className="h-4 w-4" /> {exporting === 'pdf' ? 'Generating PDF...' : 'Export Intelligence PDF'}
+                        </button>
+                        <button
+                            onClick={() => handleExport('csv')}
+                            disabled={exporting !== null}
+                            className="inline-flex items-center gap-2 rounded-xl bg-slate-800 px-4 py-2 text-xs font-semibold text-slate-200 border border-slate-700 hover:bg-slate-700 transition-colors disabled:opacity-60 cursor-pointer"
                         >
-                            <Download className="h-4 w-4" /> Export CSV
-                        </a>
+                            <Download className="h-4 w-4" /> {exporting === 'csv' ? 'Exporting CSV...' : 'Export CSV'}
+                        </button>
                     </div>
                 </div>
 
