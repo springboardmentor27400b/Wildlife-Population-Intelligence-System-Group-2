@@ -71,7 +71,8 @@ app.add_middleware(
     allow_origins=[
     "http://localhost:5173",
     "http://localhost:8080",
-],
+    "https://wildlife-frontend.agreeablestone-2730e914.koreacentral.azurecontainerapps.io",
+ ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
