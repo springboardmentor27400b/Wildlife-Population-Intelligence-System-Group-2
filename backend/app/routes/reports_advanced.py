@@ -444,6 +444,9 @@ def export_pdf(db: Session = Depends(get_db), current_user: Optional[User] = Dep
     doc.build(story, canvasmaker=NumberedCanvas)
     buffer.seek(0)
     pdf_bytes = buffer.getvalue()
+    buffer.close()
+    del story
+    del doc
 
     return Response(
         content=pdf_bytes,

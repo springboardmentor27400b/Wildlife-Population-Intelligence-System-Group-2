@@ -33,9 +33,10 @@ def get_system_health(db: Session = Depends(get_db)):
     db_size_bytes = os.path.getsize(db_path) if os.path.exists(db_path) else 1024 * 1024 * 5
     db_size_mb = round(db_size_bytes / (1024 * 1024), 2)
 
-    # 2. Real-time CPU Usage
+    # 2. Real-time CPU Usage (non-blocking sampling)
     try:
-        cpu_usage = round(psutil.cpu_percent(interval=0.05), 1)
+        val = psutil.cpu_percent(interval=None)
+        cpu_usage = round(val if val is not None else 0.0, 1)
     except Exception:
         cpu_usage = 12.0
 

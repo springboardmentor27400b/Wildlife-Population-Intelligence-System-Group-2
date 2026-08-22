@@ -95,6 +95,11 @@ def save_upload(file: UploadFile, kind: str) -> dict[str, Any]:
     destination = target_dir / target_name
 
     destination.write_bytes(contents)
+    del contents
+    try:
+        file.file.close()
+    except Exception:
+        pass
 
     return {
         "storage_path": str(destination),

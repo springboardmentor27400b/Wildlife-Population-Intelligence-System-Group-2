@@ -2,6 +2,7 @@ import gc
 import logging
 import os
 import shutil
+import threading
 from dataclasses import dataclass
 from pathlib import Path
 from time import perf_counter
@@ -139,6 +140,8 @@ class ModelManager:
         if HAS_TORCH and torch.cuda.is_available():
             self.device = "cuda"
 
+        self._inference_lock = threading.Lock()
+
         logger.info("ModelManager initialized (Device: %s, Low-Memory Mode Enabled)", self.device)
 
     def ensure_image_model(self) -> None:
@@ -238,13 +241,14 @@ class ModelManager:
         return "Unknown Wildlife", 0.0
 
     def predict_image(self, image_path: str, original_filename: str | None = None) -> dict[str, Any]:
-        """Ultra-low memory, fast image inference pipeline."""
-        self.ensure_image_model()
-        ORIGINAL_DIR.mkdir(parents=True, exist_ok=True)
-        PREDICTIONS_DIR.mkdir(parents=True, exist_ok=True)
-        CROPS_DIR.mkdir(parents=True, exist_ok=True)
-        THUMBNAILS_DIR.mkdir(parents=True, exist_ok=True)
-        start_time = perf_counter()
+        """Ultra-low memory, fast image inference pipeline with serialized concurrency."""
+        with self._inference_lock:
+            self.ensure_image_model()
+            ORIGINAL_DIR.mkdir(parents=True, exist_ok=True)
+            PREDICTIONS_DIR.mkdir(parents=True, exist_ok=True)
+            CROPS_DIR.mkdir(parents=True, exist_ok=True)
+            THUMBNAILS_DIR.mkdir(parents=True, exist_ok=True)
+            start_time = perf_counter()
 
         orig_path = Path(image_path)
         ext = orig_path.suffix if orig_path.suffix else ".jpg"
@@ -433,10 +437,11 @@ class ModelManager:
         }
 
     def predict_audio(self, audio_path: str, original_filename: str | None = None) -> dict[str, Any]:
-        """Ultra-low memory bioacoustic audio inference pipeline."""
-        self.ensure_audio_model()
-        AUDIO_PLOTS_DIR.mkdir(parents=True, exist_ok=True)
-        start_time = perf_counter()
+        """Ultra-low memory bioacoustic audio inference pipeline with serialized concurrency."""
+        with self._inference_lock:
+            self.ensure_audio_model()
+            AUDIO_PLOTS_DIR.mkdir(parents=True, exist_ok=True)
+            start_time = perf_counter()
 
         waveform_filename = f"{uuid4().hex}_waveform.png"
         waveform_path = AUDIO_PLOTS_DIR / waveform_filename
