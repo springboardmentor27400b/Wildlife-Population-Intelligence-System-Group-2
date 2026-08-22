@@ -94,7 +94,10 @@ export default function ImageUploader({ onUpload }) {
             }
         } catch (error) {
             console.error('Image analysis error:', error);
-            setErrorMessage(error.response?.data?.detail || error.message || 'Image analysis failed. Please try again.');
+            const errMsg = error.response?.data?.detail 
+                || (error.message === 'Network Error' ? 'Server connection timed out or is warming up. Please retry in a few seconds.' : error.message)
+                || 'Image analysis failed. Please try again.';
+            setErrorMessage(errMsg);
             setMessage('');
         } finally {
             setIsUploading(false);

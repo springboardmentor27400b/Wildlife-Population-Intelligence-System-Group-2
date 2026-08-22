@@ -98,7 +98,7 @@ def upload_image(file: UploadFile = File(...), location: Optional[str] = Form(No
     rel_crop = to_relative_upload_path(crop_path_raw)
     url_crop = to_public_upload_url(rel_crop)
 
-    thumb_url = to_public_upload_url(to_relative_upload_path(raw_thumb_path)) if raw_thumb_path else resolve_species_thumbnail(prediction["species"])
+    thumb_url = to_public_upload_url(to_relative_upload_path(raw_thumb_path)) if raw_thumb_path else url_raw
     formatted_time = format_iso_utc(created_at, prediction.get("detection_date"), prediction.get("detection_time"))
 
     boxes_out = []
@@ -162,8 +162,12 @@ def image_history(limit: int = 50, offset: int = 0, current_user: User = Depends
         crop_path = to_public_upload_url(to_relative_upload_path(item.crop_image_path)) if item.crop_image_path else url_path
         
         tax_info = classify_species(item.species) if item.species else {}
-        if getattr(item, "thumbnail_path", None) and Path(item.thumbnail_path).exists():
+        if getattr(item, "thumbnail_path", None):
             thumb_url = to_public_upload_url(to_relative_upload_path(item.thumbnail_path))
+        elif item.crop_image_path:
+            thumb_url = to_public_upload_url(to_relative_upload_path(item.crop_image_path))
+        elif item.image_path:
+            thumb_url = to_public_upload_url(to_relative_upload_path(item.image_path))
         else:
             thumb_url = resolve_species_thumbnail(item.species)
         formatted_time = format_iso_utc(item.created_at, item.detection_date, item.detection_time)

@@ -99,7 +99,10 @@ export default function AudioUploader({ onUpload }) {
             }
         } catch (error) {
             console.error('Audio analysis error:', error);
-            setErrorMessage(error.response?.data?.detail || error.message || 'Audio analysis failed. Please try again.');
+            const errMsg = error.response?.data?.detail 
+                || (error.message === 'Network Error' ? 'Server connection timed out or is warming up. Please retry in a few seconds.' : error.message)
+                || 'Audio analysis failed. Please try again.';
+            setErrorMessage(errMsg);
             setMessage('');
         } finally {
             setIsAnalyzing(false);

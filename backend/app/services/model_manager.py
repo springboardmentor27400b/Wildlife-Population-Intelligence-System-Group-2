@@ -250,191 +250,192 @@ class ModelManager:
             THUMBNAILS_DIR.mkdir(parents=True, exist_ok=True)
             start_time = perf_counter()
 
-        orig_path = Path(image_path)
-        ext = orig_path.suffix if orig_path.suffix else ".jpg"
+            orig_path = Path(image_path)
+            ext = orig_path.suffix if orig_path.suffix else ".jpg"
 
-        # 1. Save copy to original storage
-        original_filename_on_disk = f"{uuid4().hex}{ext}"
-        original_saved_path = ORIGINAL_DIR / original_filename_on_disk
-        try:
-            shutil.copy(image_path, str(original_saved_path))
-        except Exception as exc:
-            logger.warning("Failed to copy image: %s", exc)
-            original_saved_path = Path(image_path)
+            # Use stored upload directly without duplicate disk copying
+            original_saved_path = orig_path
 
-        annotated_filename = f"{uuid4().hex}_annotated{ext}"
-        annotated_path = PREDICTIONS_DIR / annotated_filename
-        crop_filename = f"{uuid4().hex}_crop{ext}"
-        crop_path = CROPS_DIR / crop_filename
-        thumb_filename = f"{uuid4().hex}_thumb.jpg"
-        thumb_path = THUMBNAILS_DIR / thumb_filename
+            annotated_filename = f"{uuid4().hex}_annotated{ext}"
+            annotated_path = PREDICTIONS_DIR / annotated_filename
+            crop_filename = f"{uuid4().hex}_crop{ext}"
+            crop_path = CROPS_DIR / crop_filename
+            thumb_filename = f"{uuid4().hex}_thumb.jpg"
+            thumb_path = THUMBNAILS_DIR / thumb_filename
 
-        detected_boxes = []
-        species_detected = "African Elephant"
-        confidence_detected = 0.88
-        primary_box = []
+            detected_boxes = []
+            species_detected = "African Elephant"
+            confidence_detected = 0.88
+            primary_box = []
 
-        # 2. Open working image safely and scale to max 640px to prevent RAM exhaustion
-        full_pil = None
-        w_orig, h_orig = 800, 600
-        try:
-            with Image.open(image_path) as raw_img:
-                w_orig, h_orig = raw_img.size
-                full_pil = raw_img.convert("RGB")
-                # Downsample large images for working copies
-                if max(w_orig, h_orig) > 640:
-                    full_pil.thumbnail((640, 640), Image.Resampling.BILINEAR)
-        except Exception as exc:
-            logger.error("Failed to load image: %s", exc)
-
-        # 3. Perform YOLO detection if model is available
-        yolo_success = False
-        if self._yolo_model is not None and full_pil is not None:
+            # 2. Open working image safely and scale to max 640px to prevent RAM exhaustion
+            full_pil = None
+            w_orig, h_orig = 800, 600
             try:
-                img_cv = cv2.cvtColor(np.array(full_pil), cv2.COLOR_RGB2BGR) if HAS_CV2 else None
-                results = self._yolo_model.predict(
-                    img_cv if img_cv is not None else image_path,
-                    imgsz=320,
-                    conf=0.15,
-                    iou=0.45,
-                    verbose=False,
-                    device="cpu"
-                )
-                
-                if results and len(results) > 0 and len(results[0].boxes) > 0:
-                    boxes = results[0].boxes
-                    names = results[0].names
-                    yolo_success = True
+                with Image.open(image_path) as raw_img:
+                    w_orig, h_orig = raw_img.size
+                    full_pil = raw_img.convert("RGB")
+                    # Downsample large images for working copies
+                    if max(w_orig, h_orig) > 640:
+                        full_pil.thumbnail((640, 640), Image.Resampling.BILINEAR)
+            except Exception as exc:
+                logger.error("Failed to load image: %s", exc)
 
-                    # Find best bounding box
-                    best_conf = -1.0
-                    best_box = None
-                    best_name = "animal"
+            # 3. Perform YOLO detection if model is available
+            yolo_success = False
+            if self._yolo_model is not None and full_pil is not None:
+                try:
+                    img_cv = cv2.cvtColor(np.array(full_pil), cv2.COLOR_RGB2BGR) if HAS_CV2 else None
+                    results = self._yolo_model.predict(
+                        img_cv if img_cv is not None else image_path,
+                        imgsz=320,
+                        conf=0.15,
+                        iou=0.45,
+                        verbose=False,
+                        device="cpu"
+                    )
+                    
+                    if results and len(results) > 0 and len(results[0].boxes) > 0:
+                        boxes = results[0].boxes
+                        names = results[0].names
+                        yolo_success = True
 
-                    for b in boxes:
-                        conf = float(b.conf[0].item()) if hasattr(b, "conf") else 0.5
-                        cls_idx = int(b.cls[0].item()) if hasattr(b, "cls") else 0
-                        cls_name = names.get(cls_idx, "animal").lower()
-                        
-                        if conf > best_conf:
-                            best_conf = conf
-                            best_box = b
-                            best_name = cls_name
+                        # Find best bounding box
+                        best_conf = -1.0
+                        best_box = None
+                        best_name = "animal"
 
-                    if best_box is not None:
-                        coords = best_box.xyxy[0].tolist()
-                        x1, y1, x2, y2 = [int(v) for v in coords]
-                        primary_box = [x1, y1, x2, y2]
-                        confidence_detected = round(max(0.70, best_conf), 2)
-                        
-                        # Map detected COCO class to Wildlife species
-                        species_detected = COCO_WILDLIFE_MAP.get(best_name, best_name.title())
-                        
-                        # If CLIP is available, classify the crop for fine-grained species
-                        if self._clip_model is not None and full_pil is not None:
-                            try:
-                                crop_region = full_pil.crop((x1, y1, x2, y2))
-                                clip_sp, clip_conf = self.classify_crop(crop_region)
-                                if clip_sp != "Unknown Wildlife" and clip_conf >= 0.20:
-                                    species_detected = clip_sp
-                                    confidence_detected = clip_conf
-                            except Exception:
-                                pass
+                        for b in boxes:
+                            conf = float(b.conf[0].item()) if hasattr(b, "conf") else 0.5
+                            cls_idx = int(b.cls[0].item()) if hasattr(b, "cls") else 0
+                            cls_name = names.get(cls_idx, "animal").lower()
+                            
+                            if conf > best_conf:
+                                best_conf = conf
+                                best_box = b
+                                best_name = cls_name
 
-                        detected_boxes.append({
-                            "class_id": 0,
-                            "species": species_detected,
-                            "confidence": confidence_detected,
-                            "box": primary_box,
-                        })
-
-                        # Save crop and annotated images
-                        if HAS_CV2 and img_cv is not None:
-                            h, w = img_cv.shape[:2]
-                            x1, y1 = max(0, min(x1, w-1)), max(0, min(y1, h-1))
-                            x2, y2 = max(0, min(x2, w)), max(0, min(y2, h))
-                            crop_cv = img_cv[y1:y2, x1:x2]
-                            if crop_cv.size > 0:
-                                cv2.imwrite(str(crop_path), crop_cv)
-                                # Save thumbnail directly from crop
+                        if best_box is not None:
+                            coords = best_box.xyxy[0].tolist()
+                            x1, y1, x2, y2 = [int(v) for v in coords]
+                            primary_box = [x1, y1, x2, y2]
+                            confidence_detected = round(max(0.70, best_conf), 2)
+                            
+                            # Map detected COCO class to Wildlife species
+                            species_detected = COCO_WILDLIFE_MAP.get(best_name, best_name.title())
+                            
+                            # If CLIP is available, classify the crop for fine-grained species
+                            if self._clip_model is not None and full_pil is not None:
                                 try:
-                                    crop_pil = Image.fromarray(cv2.cvtColor(crop_cv, cv2.COLOR_BGR2RGB))
-                                    crop_pil.thumbnail((200, 200), Image.Resampling.BILINEAR)
-                                    crop_pil.save(str(thumb_path), "JPEG", quality=85)
+                                    crop_region = full_pil.crop((x1, y1, x2, y2))
+                                    clip_sp, clip_conf = self.classify_crop(crop_region)
+                                    if clip_sp != "Unknown Wildlife" and clip_conf >= 0.20:
+                                        species_detected = clip_sp
                                 except Exception:
                                     pass
-                            
-                            # Draw bounding box and label
-                            cv2.rectangle(img_cv, (x1, y1), (x2, y2), (0, 255, 0), 2)
-                            label_str = f"{species_detected} {int(confidence_detected * 100)}%"
-                            (tw, th), _ = cv2.getTextSize(label_str, cv2.FONT_HERSHEY_SIMPLEX, 0.6, 2)
-                            cv2.rectangle(img_cv, (x1, max(0, y1 - th - 6)), (x1 + tw + 6, y1), (0, 255, 0), -1)
-                            cv2.putText(img_cv, label_str, (x1 + 3, max(12, y1 - 4)), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 0, 0), 2)
-                            cv2.imwrite(str(annotated_path), img_cv)
-            except Exception as exc:
-                logger.warning("YOLO inference failed: %s", exc)
 
-        # 4. Keyword / Heuristic Fallback if YOLO did not trigger
-        if not yolo_success:
-            search_str = f"{original_filename or ''} {orig_path.name}".lower()
-            matched_species = None
-            for sp in REAL_SPECIES:
-                parts = sp.lower().split()
-                if any(p in search_str for p in parts if len(p) > 3):
-                    matched_species = sp
-                    break
+                            detected_boxes.append({
+                                "class_id": 0,
+                                "species": species_detected,
+                                "confidence": confidence_detected,
+                                "box": primary_box,
+                            })
 
-            species_detected = matched_species or "African Elephant"
-            confidence_detected = 0.94 if matched_species else 0.85
-
-            if full_pil is not None:
-                w, h = full_pil.size
-                x1, y1 = int(w * 0.1), int(h * 0.1)
-                x2, y2 = int(w * 0.9), int(h * 0.9)
-                primary_box = [x1, y1, x2, y2]
-                detected_boxes.append({
-                    "class_id": 0,
-                    "species": species_detected,
-                    "confidence": confidence_detected,
-                    "box": primary_box,
-                })
-
-                # Save crop and annotated image
-                crop_pil = full_pil.crop((x1, y1, x2, y2))
-                crop_pil.save(str(crop_path))
-
-                # Save thumbnail directly from crop_pil in memory
-                try:
-                    thumb_pil = crop_pil.copy()
-                    thumb_pil.thumbnail((200, 200))
-                    thumb_pil.save(str(thumb_path), format="JPEG", quality=85)
+                            # Save crop, thumbnail, and annotated images
+                            if HAS_CV2 and img_cv is not None:
+                                h, w = img_cv.shape[:2]
+                                x1, y1 = max(0, min(x1, w-1)), max(0, min(y1, h-1))
+                                x2, y2 = max(0, min(x2, w)), max(0, min(y2, h))
+                                crop_cv = img_cv[y1:y2, x1:x2]
+                                if crop_cv.size > 0:
+                                    cv2.imwrite(str(crop_path), crop_cv)
+                                    try:
+                                        crop_pil = Image.fromarray(cv2.cvtColor(crop_cv, cv2.COLOR_BGR2RGB))
+                                        crop_pil.thumbnail((200, 200), Image.Resampling.BILINEAR)
+                                        crop_pil.save(str(thumb_path), "JPEG", quality=85)
+                                    except Exception:
+                                        pass
+                                
+                                # Draw bounding box and label
+                                cv2.rectangle(img_cv, (x1, y1), (x2, y2), (0, 255, 0), 2)
+                                label_str = f"{species_detected} {int(confidence_detected * 100)}%"
+                                (tw, th), _ = cv2.getTextSize(label_str, cv2.FONT_HERSHEY_SIMPLEX, 0.6, 2)
+                                cv2.rectangle(img_cv, (x1, max(0, y1 - th - 6)), (x1 + tw + 6, y1), (0, 255, 0), -1)
+                                cv2.putText(img_cv, label_str, (x1 + 3, max(12, y1 - 4)), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 0, 0), 2)
+                                cv2.imwrite(str(annotated_path), img_cv)
                 except Exception as exc:
-                    logger.warning("Thumbnail creation exception: %s", exc)
+                    logger.warning("YOLO inference failed: %s", exc)
 
-                annotated_pil = full_pil.copy()
-                draw = ImageDraw.Draw(annotated_pil)
-                draw.rectangle([x1, y1, x2, y2], outline="#059669", width=3)
-                annotated_pil.save(str(annotated_path))
+            # 4. Keyword / Heuristic Fallback if YOLO did not trigger
+            if not yolo_success:
+                search_str = f"{original_filename or ''} {orig_path.name}".lower()
+                matched_species = None
+                for sp in REAL_SPECIES:
+                    parts = sp.lower().split()
+                    if any(p in search_str for p in parts if len(p) > 3):
+                        matched_species = sp
+                        break
 
-        elapsed = round(perf_counter() - start_time, 3)
+                species_detected = matched_species or "African Elephant"
+                confidence_detected = 0.94 if matched_species else 0.85
 
-        # Clean up memory references
-        del full_pil
-        gc.collect()
+                if full_pil is not None:
+                    w, h = full_pil.size
+                    x1, y1 = int(w * 0.1), int(h * 0.1)
+                    x2, y2 = int(w * 0.9), int(h * 0.9)
+                    primary_box = [x1, y1, x2, y2]
+                    detected_boxes.append({
+                        "class_id": 0,
+                        "species": species_detected,
+                        "confidence": confidence_detected,
+                        "box": primary_box,
+                    })
 
-        return {
-            "species": species_detected,
-            "all_species": [species_detected],
-            "confidence": confidence_detected,
-            "bounding_box": primary_box,
-            "detected_boxes": detected_boxes,
-            "image_path": str(original_saved_path),
-            "annotated_image_path": str(annotated_path) if annotated_path.exists() else None,
-            "crop_image_path": str(crop_path) if crop_path.exists() else None,
-            "thumbnail_path": str(thumb_path) if thumb_path.exists() else None,
-            "annotated_filename": annotated_filename,
-            "prediction_time": elapsed,
-        }
+                    # Save crop and annotated image
+                    crop_pil = full_pil.crop((x1, y1, x2, y2))
+                    crop_pil.save(str(crop_path), format="JPEG", quality=85)
+
+                    # Save thumbnail directly from crop_pil in memory
+                    try:
+                        thumb_pil = crop_pil.copy()
+                        thumb_pil.thumbnail((200, 200), Image.Resampling.BILINEAR)
+                        thumb_pil.save(str(thumb_path), format="JPEG", quality=85)
+                    except Exception as exc:
+                        logger.warning("Thumbnail creation exception: %s", exc)
+
+                    annotated_pil = full_pil.copy()
+                    draw = ImageDraw.Draw(annotated_pil)
+                    draw.rectangle([x1, y1, x2, y2], outline="#059669", width=3)
+                    annotated_pil.save(str(annotated_path), format="JPEG", quality=85)
+
+            # Ensure thumbnail exists even if crop wasn't generated
+            if not thumb_path.exists() and full_pil is not None:
+                try:
+                    fallback_thumb = full_pil.copy()
+                    fallback_thumb.thumbnail((200, 200), Image.Resampling.BILINEAR)
+                    fallback_thumb.save(str(thumb_path), format="JPEG", quality=85)
+                except Exception:
+                    pass
+
+            elapsed = round(perf_counter() - start_time, 3)
+
+            # Clean up memory references
+            del full_pil
+            gc.collect()
+
+            return {
+                "species": species_detected,
+                "all_species": [species_detected],
+                "confidence": confidence_detected,
+                "bounding_box": primary_box,
+                "detected_boxes": detected_boxes,
+                "image_path": str(original_saved_path),
+                "annotated_image_path": str(annotated_path) if annotated_path.exists() else None,
+                "crop_image_path": str(crop_path) if crop_path.exists() else None,
+                "thumbnail_path": str(thumb_path) if thumb_path.exists() else None,
+                "annotated_filename": annotated_filename,
+                "prediction_time": elapsed,
+            }
 
     def predict_audio(self, audio_path: str, original_filename: str | None = None) -> dict[str, Any]:
         """Ultra-low memory bioacoustic audio inference pipeline with serialized concurrency."""
@@ -443,41 +444,44 @@ class ModelManager:
             AUDIO_PLOTS_DIR.mkdir(parents=True, exist_ok=True)
             start_time = perf_counter()
 
-        waveform_filename = f"{uuid4().hex}_waveform.png"
-        waveform_path = AUDIO_PLOTS_DIR / waveform_filename
-        spectrogram_filename = f"{uuid4().hex}_spectrogram.png"
-        spectrogram_path = AUDIO_PLOTS_DIR / spectrogram_filename
+            waveform_filename = f"{uuid4().hex}_waveform.png"
+            waveform_path = AUDIO_PLOTS_DIR / waveform_filename
+            spectrogram_filename = f"{uuid4().hex}_spectrogram.png"
+            spectrogram_path = AUDIO_PLOTS_DIR / spectrogram_filename
 
-        audio_file = Path(audio_path)
-        if not audio_file.exists():
-            raise FileNotFoundError(f"Audio file not found: {audio_file.resolve()}")
+            audio_file = Path(audio_path)
+            if not audio_file.exists():
+                raise FileNotFoundError(f"Audio file not found: {audio_file.resolve()}")
 
-        # 1. Load audio with strict memory constraints (max 5s, sr=16000)
-        samples = np.array([], dtype=np.float32)
-        sr = 16000
-        duration_sec = 1.0
-        spectral_centroid = 1250.0
-        rms_energy = 0.045
-        zcr_mean = 0.035
-
-        try:
-            import soundfile as sf
-            raw_data, orig_sr = sf.read(str(audio_file), dtype="float32", always_2d=False)
-            if hasattr(raw_data, "ndim") and raw_data.ndim > 1:
-                raw_data = np.mean(raw_data, axis=1)
-            if orig_sr != 16000 and HAS_LIBROSA:
-                samples = librosa.resample(raw_data, orig_sr=orig_sr, target_sr=16000)
-            else:
-                samples = raw_data
-            if len(samples) > 16000 * 5:
-                samples = samples[:16000 * 5]
+            # 1. Load audio with strict memory constraints (max 5s, sr=16000)
+            samples = np.array([], dtype=np.float32)
             sr = 16000
-        except Exception:
-            if HAS_LIBROSA:
-                try:
-                    samples, sr = librosa.load(str(audio_file), sr=16000, duration=5.0, mono=True)
-                except Exception:
-                    samples = np.array([], dtype=np.float32)
+            duration_sec = 1.0
+            spectral_centroid = 1250.0
+            rms_energy = 0.045
+            zcr_mean = 0.035
+
+            try:
+                import soundfile as sf
+                raw_data, orig_sr = sf.read(str(audio_file), dtype="float32", always_2d=False)
+                if hasattr(raw_data, "ndim") and raw_data.ndim > 1:
+                    raw_data = np.mean(raw_data, axis=1)
+                if orig_sr > 16000:
+                    step = max(1, int(orig_sr / 16000))
+                    samples = raw_data[::step]
+                elif orig_sr < 16000 and HAS_LIBROSA:
+                    samples = librosa.resample(raw_data, orig_sr=orig_sr, target_sr=16000)
+                else:
+                    samples = raw_data
+                if len(samples) > 16000 * 5:
+                    samples = samples[:16000 * 5]
+                sr = 16000
+            except Exception:
+                if HAS_LIBROSA:
+                    try:
+                        samples, sr = librosa.load(str(audio_file), sr=16000, duration=5.0, mono=True)
+                    except Exception:
+                        samples = np.array([], dtype=np.float32)
 
         if len(samples) > 0:
             duration_sec = float(len(samples)) / float(sr)
