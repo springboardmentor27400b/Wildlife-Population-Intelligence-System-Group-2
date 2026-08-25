@@ -116,7 +116,6 @@ Conservation officers use the platform for conservation monitoring.
 
 The current implementation uses:
 
-- Lovable Cloud
 - Supabase
 - PostgreSQL
 - Server-side functions
