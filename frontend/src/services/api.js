@@ -305,6 +305,14 @@ export const analyticsAPI = {
     const response = await client.get('/analytics/gis/habitat');
     return response.data;
   },
+  uploadRasters: async (formData) => {
+    const response = await client.post('/analytics/gis/upload-rasters', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    return response.data;
+  },
   getSentinelNdvi: async () => {
     const response = await client.get('/analytics/gis/sentinel-ndvi');
     return response.data;
