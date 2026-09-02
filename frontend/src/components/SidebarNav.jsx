@@ -24,61 +24,46 @@ import {
     BarChart2,
     Cpu,
     CheckCircle2,
-    Info,
+    Compass,
+    Layers
 } from 'lucide-react';
 import { api } from '../services/api';
 
 const navSections = [
     {
-        title: 'Main',
+        title: 'Overview',
         items: [
             { name: 'Dashboard', path: '/', icon: LayoutDashboard },
-        ],
-    },
-    {
-        title: 'Monitoring',
-        items: [
-            { name: 'Sites', path: '/sites', icon: MapPin },
-            { name: 'Surveys', path: '/surveys', icon: ClipboardList },
-            { name: 'Observations', path: '/observations', icon: Eye },
-        ],
-    },
-    {
-        title: 'AI Analysis',
-        items: [
-            { name: 'Species Recognition', path: '/species', icon: Camera },
-            { name: 'Audio Recognition', path: '/audio', icon: Mic },
-            { name: 'Biodiversity', path: '/biodiversity', icon: Sparkles },
+            { name: 'Executive Analytics', path: '/executive-dashboard', icon: BarChart2 },
         ],
     },
     {
         title: 'Intelligence',
         items: [
-            { name: 'Population Intelligence', path: '/population', icon: Users },
-            { name: 'Habitat Intelligence', path: '/habitat', icon: Trees },
+            { name: 'AI Species Recognition', path: '/species', icon: Camera },
+            { name: 'Audio Recognition', path: '/audio', icon: Mic },
+            { name: 'Biodiversity', path: '/biodiversity', icon: Sparkles },
+            { name: 'Population', path: '/population', icon: Users },
+            { name: 'Habitat', path: '/habitat', icon: Trees },
+            { name: 'Ecosystem', path: '/ecosystem', icon: Activity },
             { name: 'Conservation', path: '/conservation', icon: ShieldCheck },
-            { name: 'Ecosystem Health', path: '/ecosystem', icon: Activity },
         ],
     },
     {
-        title: 'Analytics',
+        title: 'Spatial',
         items: [
-            { name: 'Executive Dashboard', path: '/executive-dashboard', icon: BarChart2 },
             { name: 'GIS Map', path: '/gis', icon: MapPin },
-            { name: 'Predictions', path: '/predictions', icon: Cpu },
-            { name: 'System Health', path: '/system-health', icon: Activity },
         ],
     },
     {
-        title: 'Management',
+        title: 'Operations',
         items: [
-            { name: 'Dataset', path: '/datasets', icon: Database },
+            { name: 'Observations', path: '/observations', icon: Eye },
+            { name: 'Surveys', path: '/surveys', icon: ClipboardList },
+            { name: 'Monitoring Sites', path: '/sites', icon: Compass },
+            { name: 'Datasets', path: '/datasets', icon: Database },
             { name: 'Reports', path: '/reports', icon: FileText },
-        ],
-    },
-    {
-        title: 'Account',
-        items: [
+            { name: 'System Health', path: '/system-health', icon: Cpu },
             { name: 'Profile', path: '/profile', icon: User },
         ],
     },
@@ -156,7 +141,7 @@ export default function Layout({ children }) {
                                     Wildlife Intelligence
                                 </span>
                                 <span className="text-[11px] font-medium text-emerald-400 leading-tight truncate">
-                                    Population System
+                                    Conservation Platform
                                 </span>
                             </div>
                         )}
@@ -192,7 +177,7 @@ export default function Layout({ children }) {
                                         to={item.path}
                                         title={isCollapsed ? item.name : undefined}
                                         onClick={() => setIsMobileOpen(false)}
-                                        className={`group relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200 no-underline ${
+                                        className={`group relative flex items-center gap-3 rounded-xl px-3 py-2 text-xs font-medium transition-all duration-200 no-underline ${
                                             isCollapsed ? 'justify-center px-0' : ''
                                         } ${
                                             active
@@ -201,7 +186,7 @@ export default function Layout({ children }) {
                                         }`}
                                     >
                                         <Icon
-                                            className={`h-5 w-5 flex-shrink-0 transition-transform duration-200 group-hover:scale-110 ${
+                                            className={`h-4 w-4 flex-shrink-0 transition-transform duration-200 group-hover:scale-110 ${
                                                 active ? 'text-white' : 'text-slate-400 group-hover:text-emerald-400'
                                             }`}
                                         />
@@ -209,7 +194,7 @@ export default function Layout({ children }) {
                                             <span className="truncate">{item.name}</span>
                                         )}
                                         {active && !isCollapsed && (
-                                            <span className="ml-auto h-2 w-2 rounded-full bg-emerald-300 shadow-sm shadow-emerald-200" />
+                                            <span className="ml-auto h-1.5 w-1.5 rounded-full bg-emerald-300 shadow-sm shadow-emerald-200" />
                                         )}
                                     </Link>
                                 );
@@ -217,17 +202,17 @@ export default function Layout({ children }) {
                         </div>
                     ))}
 
-                    {/* Logout Button in Account Section */}
+                    {/* Logout Button */}
                     <div className="space-y-1 pt-2 border-t border-slate-800/60">
                         <button
                             type="button"
                             onClick={logout}
                             title={isCollapsed ? 'Logout' : undefined}
-                            className={`group w-full flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-rose-400 hover:bg-rose-950/40 hover:text-rose-300 transition-all duration-200 no-underline ${
+                            className={`group w-full flex items-center gap-3 rounded-xl px-3 py-2 text-xs font-medium text-rose-400 hover:bg-rose-950/40 hover:text-rose-300 transition-all duration-200 no-underline cursor-pointer ${
                                 isCollapsed ? 'justify-center px-0' : ''
                             }`}
                         >
-                            <LogOut className="h-5 w-5 flex-shrink-0 text-rose-400 group-hover:scale-110 transition-transform duration-200" />
+                            <LogOut className="h-4 w-4 flex-shrink-0 text-rose-400 group-hover:scale-110 transition-transform duration-200" />
                             {!isCollapsed && <span>Logout</span>}
                         </button>
                     </div>
@@ -236,15 +221,15 @@ export default function Layout({ children }) {
                 {/* Sidebar Desktop Toggle Footer */}
                 <div className="hidden md:flex h-12 items-center justify-between border-t border-slate-800/80 px-4 bg-slate-950/40">
                     {!isCollapsed && (
-                        <span className="text-[11px] text-slate-500 font-medium select-none">v3.0 • Live System</span>
+                        <span className="text-[11px] text-slate-500 font-medium select-none">Production Platform</span>
                     )}
                     <button
                         type="button"
                         onClick={() => setIsCollapsed(!isCollapsed)}
-                        className="flex h-8 w-8 items-center justify-center rounded-lg bg-slate-800 text-slate-400 hover:bg-emerald-600 hover:text-white transition-all duration-200 shadow-sm"
+                        className="flex h-7 w-7 items-center justify-center rounded-lg bg-slate-800 text-slate-400 hover:bg-emerald-600 hover:text-white transition-all duration-200 shadow-xs cursor-pointer"
                         title={isCollapsed ? 'Expand Sidebar' : 'Collapse Sidebar'}
                     >
-                        {isCollapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
+                        {isCollapsed ? <ChevronRight className="h-3.5 w-3.5" /> : <ChevronLeft className="h-3.5 w-3.5" />}
                     </button>
                 </div>
             </aside>
@@ -252,23 +237,23 @@ export default function Layout({ children }) {
             {/* Main Layout Area */}
             <div className="flex flex-1 flex-col min-w-0">
                 {/* Top Header */}
-                <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-slate-200/80 bg-white/90 px-4 sm:px-6 shadow-sm backdrop-blur-md">
+                <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-slate-200/80 bg-white/90 px-4 sm:px-6 shadow-xs backdrop-blur-md">
                     <div className="flex items-center gap-3">
                         {/* Mobile Drawer Hamburger Toggle */}
                         <button
                             type="button"
                             onClick={() => setIsMobileOpen(true)}
-                            className="flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-slate-50 text-slate-600 hover:bg-emerald-50 hover:text-emerald-700 md:hidden transition-colors"
+                            className="flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 bg-slate-50 text-slate-600 hover:bg-emerald-50 hover:text-emerald-700 md:hidden transition-colors"
                         >
                             <Menu className="h-5 w-5" />
                         </button>
 
                         <div>
                             <div className="flex items-center gap-2">
-                                <h1 className="text-base sm:text-lg font-bold text-slate-900 leading-tight">
+                                <h1 className="text-sm sm:text-base font-bold text-slate-900 leading-tight">
                                     Wildlife Population Intelligence System
                                 </h1>
-                                <span className="hidden sm:inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-0.5 text-xs font-semibold text-emerald-700 border border-emerald-200/80">
+                                <span className="hidden sm:inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] font-semibold text-emerald-700 border border-emerald-200/80">
                                     <CheckCircle2 className="h-3 w-3" /> Live
                                 </span>
                             </div>
@@ -281,7 +266,7 @@ export default function Layout({ children }) {
                     {/* User Profile Info & Logout Header Item */}
                     <div className="flex items-center gap-3">
                         <div className="flex items-center gap-2.5 rounded-full border border-slate-200 bg-slate-50/80 pl-2 pr-3 py-1 text-sm shadow-xs">
-                            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-tr from-emerald-600 to-teal-500 font-bold text-white shadow-sm text-xs">
+                            <div className="flex h-7 w-7 items-center justify-center rounded-full bg-gradient-to-tr from-emerald-600 to-teal-500 font-bold text-white shadow-xs text-xs">
                                 {user?.full_name ? user.full_name.charAt(0).toUpperCase() : 'U'}
                             </div>
                             <div className="hidden sm:flex flex-col text-left">
@@ -297,7 +282,7 @@ export default function Layout({ children }) {
                         <button
                             type="button"
                             onClick={logout}
-                            className="hidden sm:flex items-center gap-1.5 rounded-xl border border-rose-200 bg-rose-50 px-3 py-1.5 text-xs font-semibold text-rose-700 hover:bg-rose-100 hover:border-rose-300 transition-colors shadow-xs"
+                            className="hidden sm:flex items-center gap-1.5 rounded-xl border border-rose-200 bg-rose-50 px-3 py-1.5 text-xs font-semibold text-rose-700 hover:bg-rose-100 hover:border-rose-300 transition-colors shadow-xs cursor-pointer"
                             title="Logout of system"
                         >
                             <LogOut className="h-3.5 w-3.5" />
@@ -314,7 +299,7 @@ export default function Layout({ children }) {
                 {/* App Footer */}
                 <footer className="border-t border-slate-200/80 bg-white/70 px-6 py-3.5 text-xs text-slate-500 flex flex-wrap items-center justify-between gap-2">
                     <div>
-                        <span className="font-semibold text-slate-700">Wildlife Intelligence System</span> • Production Live
+                        <span className="font-semibold text-slate-700">Wildlife Intelligence System</span> • AI-Powered Conservation Platform
                     </div>
                     <div className="flex items-center gap-4 text-[11px] text-slate-400">
                         <span>Population</span> • <span>Habitat</span> • <span>Conservation</span> • <span>Ecosystem</span>
@@ -324,3 +309,4 @@ export default function Layout({ children }) {
         </div>
     );
 }
+

@@ -57,3 +57,22 @@ def get_analytics(db: Session = Depends(get_db), current_user: User = Depends(ge
 @router.get("/habitats/map")
 def get_map(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     return get_habitat_map(db)
+
+@router.get("/habitat/corridors")
+@router.get("/habitats/corridors")
+def get_corridors(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    from app.models.habitat import MigrationCorridor
+    corridors = db.query(MigrationCorridor).all()
+    return [
+        {
+            "id": c.id,
+            "corridor_name": c.corridor_name,
+            "from_habitat": c.from_habitat,
+            "to_habitat": c.to_habitat,
+            "species": c.species,
+            "distance_km": float(c.distance_km or 0.0),
+            "risk_level": c.risk_level or "Medium",
+            "is_active": bool(c.is_active)
+        }
+        for c in corridors
+    ]

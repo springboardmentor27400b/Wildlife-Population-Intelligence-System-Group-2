@@ -1,5 +1,6 @@
 import { Routes, Route, Link, Navigate, useNavigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
+import MainDashboard from './pages/MainDashboard';
 import SpeciesRecognition from './pages/SpeciesRecognition';
 import AudioRecognition from './pages/AudioRecognition';
 import Biodiversity from './pages/Biodiversity';
@@ -432,7 +433,7 @@ export default function App() {
         <Routes>
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
-            <Route path="/" element={<Page element={<DashboardPage />} />} />
+            <Route path="/" element={<Page element={<MainDashboard />} />} />
             <Route path="/sites" element={<Page element={<SitesPage />} />} />
             <Route path="/surveys" element={<Page element={<SurveysPage />} />} />
             <Route path="/observations" element={<Page element={<ObservationsPage />} />} />

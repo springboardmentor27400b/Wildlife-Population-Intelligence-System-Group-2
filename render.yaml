@@ -23,7 +23,7 @@ services:
       - key: SECRET_KEY
         generateValue: true
       - key: CORS_ORIGINS
-        value: https://wildlife-frontend.onrender.com,http://localhost:5173
+        value: https://wildlife-frontend-kjbn.onrender.com,https://wildlife-frontend.onrender.com,http://localhost:5173
 
   # 2. React Vite Frontend Static Site
   - type: web
@@ -38,7 +38,7 @@ services:
         destination: /index.html
     envVars:
       - key: VITE_API_URL
-        value: https://wildlife-backend.onrender.com
+        value: https://wildlife-backend-vdvt.onrender.com
 
 databases:
   # 3. PostgreSQL Database Service
