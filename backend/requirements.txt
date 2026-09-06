@@ -4,8 +4,8 @@ uvicorn[standard]
 tortoise-orm
 asyncpg
 
-beanie
-motor
+beanie==1.30.0
+motor==3.7.1
 
 python-jose[cryptography]
 passlib[bcrypt]
