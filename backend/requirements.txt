@@ -22,5 +22,6 @@ opencv-python-headless
 librosa
 setuptools<82
 ultralytics-opencv-headless
+tensorflow==2.20.0
 tensorflow-hub
 birdnetlib
